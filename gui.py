@@ -1280,9 +1280,6 @@ class ProxyHunterApp(ctk.CTk):
             if btn.winfo_exists(): self._safe_config(btn, text=self._t("reset_short"))
         
         self._safe_config(self.smtp_switch, text=self._t("smtp"))
-        self._safe_config(self.res_switch, text=self._t("source_residential"))
-        if hasattr(self, "dc_switch"): self._safe_config(self.dc_switch, text=self._t("source_datacenter"))
-        if hasattr(self, "mob_switch"): self._safe_config(self.mob_switch, text=self._t("source_mobile"))
         
         if hasattr(self, "lbl_github_tm"): self._safe_config(self.lbl_github_tm, text=self._t("github_tm_label"))
         if hasattr(self, "lbl_github_token"): self._safe_config(self.lbl_github_token, text=self._t("github_token_label"))
@@ -1889,19 +1886,8 @@ class ProxyHunterApp(ctk.CTk):
         self.interactive_widgets.append(self.smtp_switch)
 
         self.dc_var = ctk.BooleanVar(value=True)
-        self.dc_switch = ctk.CTkSwitch(frame, text=self._t("source_datacenter"), variable=self.dc_var, fg_color=BORDER, progress_color=BLUE, font=("Segoe UI", 13), text_color=TEXT)
-        self.dc_switch.pack(anchor="w", padx=10, pady=4)
-        self.interactive_widgets.append(self.dc_switch)
-
-        self.res_var = ctk.BooleanVar(value=False)
-        self.res_switch = ctk.CTkSwitch(frame, text=self._t("source_residential"), variable=self.res_var, fg_color=BORDER, progress_color=BLUE, font=("Segoe UI", 13), text_color=TEXT)
-        self.res_switch.pack(anchor="w", padx=10, pady=4)
-        self.interactive_widgets.append(self.res_switch)
-
-        self.mob_var = ctk.BooleanVar(value=False)
-        self.mob_switch = ctk.CTkSwitch(frame, text=self._t("source_mobile"), variable=self.mob_var, fg_color=BORDER, progress_color=BLUE, font=("Segoe UI", 13), text_color=TEXT)
-        self.mob_switch.pack(anchor="w", padx=10, pady=4)
-        self.interactive_widgets.append(self.mob_switch)
+        self.res_var = ctk.BooleanVar(value=True)
+        self.mob_var = ctk.BooleanVar(value=True)
         settings = self._load_settings()
 
         # Output Directory
@@ -3982,7 +3968,6 @@ class ProxyHunterApp(ctk.CTk):
             try:
                 parts = text.split("[REALTIME_NEW_LIVE]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3]}
-                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"): return
                 uniq_id = f"live:{data['protocol']}:{data['ip']}:{data['port']}"
                 if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
                 if uniq_id not in self._seen_proxies:
@@ -3993,7 +3978,6 @@ class ProxyHunterApp(ctk.CTk):
             try:
                 parts = text.split("[REALTIME_NEW_ELITE]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3], "category": parts[4]}
-                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"): return
                 uniq_id = f"elite:{data['protocol']}:{data['ip']}:{data['port']}"
                 if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
                 if uniq_id not in self._seen_proxies:
@@ -4004,7 +3988,6 @@ class ProxyHunterApp(ctk.CTk):
             try:
                 parts = text.split("[REALTIME_NEW_CATEGORY]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3], "category": parts[4]}
-                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"): return
                 uniq_id = f"cat:{data['protocol']}:{data['ip']}:{data['port']}"
                 if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
                 if uniq_id not in self._seen_proxies:
@@ -4912,16 +4895,21 @@ class ProxyHunterApp(ctk.CTk):
                             asn_str = ip_info.get("asn", "")
                             asn_num = asn_str.split()[0] if asn_str else ""
                             
+                            has_api_data = 'datacenter' in ip_info
+                            asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
+                            
                             if mobile:
                                 cat = self._t("checker_only_mob")
-                            elif hosting is False and 'datacenter' in ip_info:
+                            elif asn_type == "isp":
                                 cat = self._t("checker_only_res")
+                            elif asn_type in ("hosting", "business"):
+                                cat = self._t("checker_only_dc")
+                            elif not has_api_data:
+                                cat = self._t("checker_only_dc")
+                            elif hosting:
+                                cat = self._t("checker_only_dc")
                             else:
-                                asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
-                                if asn_type == "isp":
-                                    cat = self._t("checker_only_res")
-                                else:
-                                    cat = self._t("checker_only_dc")
+                                cat = self._t("checker_only_res")
                         self._update_check_row(proxy, "category", cat)
                     else:
                         self._update_check_row(proxy, "category", self._t("chk_skip"))
@@ -4957,16 +4945,21 @@ class ProxyHunterApp(ctk.CTk):
                             asn_str = ip_info.get("asn", "")
                             asn_num = asn_str.split()[0] if asn_str else ""
                             
+                            has_api_data = 'datacenter' in ip_info
+                            asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
+                            
                             if mobile:
                                 cat = self._t("checker_only_mob")
-                            elif hosting is False and 'datacenter' in ip_info:
+                            elif asn_type == "isp":
                                 cat = self._t("checker_only_res")
+                            elif asn_type in ("hosting", "business"):
+                                cat = self._t("checker_only_dc")
+                            elif not has_api_data:
+                                cat = self._t("checker_only_dc")
+                            elif hosting:
+                                cat = self._t("checker_only_dc")
                             else:
-                                asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
-                                if asn_type == "isp":
-                                    cat = self._t("checker_only_res")
-                                else:
-                                    cat = self._t("checker_only_dc")
+                                cat = self._t("checker_only_res")
                         self._update_check_row(proxy, "category", cat)
                     else:
                         self._update_check_row(proxy, "category", self._t("chk_skip"))
