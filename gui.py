@@ -877,6 +877,8 @@ LANG = {
         "chk_closed": "🚫 Closed",
         "chk_blacklisted": "💀 Blacklisted",
         "chk_clean": "✨ Clean",
+        "chk_unknown": "— Unknown",
+        "chk_stage_category": "Categories: {0}/{1}",
         "output_dir_lbl": "Save Folder:",
         "output_dir_btn": "Browse"
     },
@@ -1035,6 +1037,8 @@ LANG = {
         "chk_closed": "🚫 Закрыт",
         "chk_blacklisted": "💀 В блэклисте",
         "chk_clean": "✨ Чистый",
+        "chk_unknown": "— Неизвестно",
+        "chk_stage_category": "Категории: {0}/{1}",
         "output_dir_lbl": "Папка сохранения:",
         "output_dir_btn": "Выбрать",
         "tab_github": "API ГитХаба",
@@ -4859,26 +4863,33 @@ class ProxyHunterApp(ctk.CTk):
         self._checker_pending_updates = {}
         
         def _periodic_flush():
-            if not getattr(self, "checker_is_running", False):
-                self._flush_checker_updates()
-                # Final progress update
-                if hasattr(self, 'checker_progress'):
-                    self.checker_progress.set(1.0)
-                    self.checker_lbl_prog.configure(text="100%")
-                return
             self._flush_checker_updates()
-            # Update progress bar from main thread (no lock needed for reading int)
-            if hasattr(self, '_checker_total') and self._checker_total > 0:
+            checking = getattr(self, "checker_is_running", False)
+            # Этап категорий длится дольше самой проверки, а раньше не показывался
+            # вовсе: полоса вставала на 100%, цикл обновления останавливался, и
+            # колонка «Категория» продолжала висеть в «⏳» — выглядело как зависание.
+            cat_total = getattr(self, "_category_stage_total", 0)
+
+            if hasattr(self, 'checker_progress'):
                 try:
-                    done = self._checker_done
-                    total = self._checker_total
-                    pct = min(100, int((done / total) * 100))
-                    prog_val = min(1.0, done / total)
-                    self.checker_progress.set(prog_val)
-                    self.checker_lbl_prog.configure(text=f"{pct}%")
+                    if checking and getattr(self, '_checker_total', 0) > 0:
+                        done, total = self._checker_done, self._checker_total
+                        self.checker_progress.set(min(1.0, done / total))
+                        label = "{0}%".format(min(100, int(done / total * 100)))
+                    else:
+                        self.checker_progress.set(1.0)
+                        label = "100%"
+                    if cat_total:
+                        label += " · " + self._t("chk_stage_category").format(
+                            getattr(self, "_category_stage_done", 0), cat_total)
+                    self.checker_lbl_prog.configure(text=label)
                 except Exception:
                     pass
-            self.after(500, _periodic_flush)
+
+            if checking or cat_total:
+                self.after(500, _periodic_flush)
+            else:
+                self._flush_checker_updates()
             
         self.after(500, _periodic_flush)
         
@@ -4896,6 +4907,10 @@ class ProxyHunterApp(ctk.CTk):
                 self._checker_progress_columns.add(col)
         self._checker_total = len(proxies_list) * len(self._checker_progress_columns)
         self._checker_done = 0
+        # Сбрасываем счётчики этапа категорий: остаток от прошлого прогона
+        # заставил бы _periodic_flush крутиться вхолостую.
+        self._category_stage_total = 0
+        self._category_stage_done = 0
         
         self.btn_check_start.configure(text=self._t("cancel"), image=self.icons["cancel"], fg_color=RED, hover_color="#991B1B")
         self._chk_btn_load.configure(state="disabled")
@@ -4943,157 +4958,12 @@ class ProxyHunterApp(ctk.CTk):
         max_threads = 1000
         max_workers = min(max_threads, len(proxies))
         
-                # Pre-fetch categories dynamically in background
+                # Категории определяются в фоне: ip-api.com отдаёт максимум
+                # 100 IP за запрос и держит лимит по частоте, поэтому этап
+                # заведомо дольше самой проверки.
         if getattr(self, "do_check_category", None) and self.do_check_category.get() and self.checker_is_running:
-            def _fetch_categories_bg():
-                unique_ips = set()
-                ip_to_proxies = {}
-                for p in proxies:
-                    clean_p = p.split("://")[-1]
-                    ip = clean_p.split(":")[0]
-                    if ip not in ip_to_proxies: ip_to_proxies[ip] = []
-                    ip_to_proxies[ip].append(p)
-                    
-                    ip_info = dummy_hunter.ip_cache.get(ip, {})
-                    if 'datacenter' not in ip_info:
-                        unique_ips.add(ip)
-                    else:
-                        mobile = ip_info.get("mobile", False)
-                        hosting = ip_info.get("datacenter", False)
-                        asn_str = ip_info.get("asn", "")
-                        asn_num = asn_str.split()[0] if asn_str else ""
-                        asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
-                        cat = "Unknown"
-                        if mobile: cat = self._t("checker_only_mob")
-                        elif asn_type == "isp": cat = self._t("checker_only_res")
-                        elif asn_type in ("hosting", "business"): cat = self._t("checker_only_dc")
-                        elif hosting: cat = self._t("checker_only_dc")
-                        else: cat = self._t("checker_only_res")
-                        self._update_check_row(p, "category", cat)
-                    
-                if not unique_ips: return
-                
-                import requests, time
-                import threading
-                from concurrent.futures import ThreadPoolExecutor, as_completed
-                
-                ips_list = list(unique_ips)
-                chunks = [ips_list[i:i+100] for i in range(0, len(ips_list), 100)]
-                
-                asn_lock = threading.Lock()
-                def _fetch_asn_info(asn):
-                    if asn in dummy_hunter.asn_cache: return
-                    for attempt in range(3):
-                        if dummy_hunter._cancel_event.is_set(): return
-                        try:
-                            html_url = f"https://ipinfo.io/{asn}"
-                            resp_html = requests.get(html_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-                            if resp_html.status_code == 200:
-                                import re
-                                m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<', resp_html.text, re.IGNORECASE)
-                                if m:
-                                    with asn_lock:
-                                        dummy_hunter.asn_cache[asn] = m.group(1).lower()
-                                break
-                            elif resp_html.status_code == 429:
-                                time.sleep(3 + attempt * 2)
-                            else:
-                                break
-                        except Exception:
-                            time.sleep(2)
-
-                for chunk in chunks:
-                    if dummy_hunter._cancel_event.is_set(): break
-                    retries = 3
-                    backoff = 4
-                    chunk_asns_to_fetch = set()
-                    
-                    for attempt in range(retries):
-                        try:
-                            resp = requests.post("http://ip-api.com/batch?fields=query,isp,org,as,hosting,mobile,countryCode", json=chunk, timeout=10)
-                            if resp.status_code == 429:
-                                time.sleep(backoff)
-                                backoff *= 2
-                                continue
-                            if resp.status_code == 200:
-                                try:
-                                    json_data = resp.json()
-                                    if not isinstance(json_data, list): break
-                                    with dummy_hunter._lock:
-                                        for data in json_data:
-                                            if not isinstance(data, dict): continue
-                                            query_ip = data.get('query')
-                                            if not query_ip: continue
-                                            if query_ip not in dummy_hunter.ip_cache:
-                                                dummy_hunter.ip_cache[query_ip] = {}
-                                            
-                                            asn_str = data.get('as', '')
-                                            dummy_hunter.ip_cache[query_ip].update({
-                                                'country': data.get('countryCode', ''),
-                                                'datacenter': data.get('hosting', False),
-                                                'mobile': data.get('mobile', False),
-                                                'isp': data.get('isp', '').lower(),
-                                                'asn': asn_str
-                                            })
-                                            
-                                            if asn_str:
-                                                asn_num = asn_str.split()[0]
-                                                if asn_num.startswith('AS') and asn_num not in dummy_hunter.asn_cache:
-                                                    chunk_asns_to_fetch.add(asn_num)
-                                    break
-                                except Exception:
-                                    break
-                            else:
-                                break
-                        except Exception:
-                            time.sleep(2)
-                    
-                    # Fetch ASNs for this chunk in parallel
-                    if chunk_asns_to_fetch:
-                        with ThreadPoolExecutor(max_workers=min(20, len(chunk_asns_to_fetch))) as executor:
-                            futures = [executor.submit(_fetch_asn_info, asn) for asn in chunk_asns_to_fetch]
-                            for f in as_completed(futures):
-                                if dummy_hunter._cancel_event.is_set():
-                                    for remaining in futures: remaining.cancel()
-                                    executor._work_queue.queue.clear()
-                                    break
-                                    
-                    # Update UI for proxies belonging to this chunk
-                    with dummy_hunter._lock:
-                        for ip in chunk:
-                            ip_info = dummy_hunter.ip_cache.get(ip, {})
-                            if not ip_info: continue
-                            
-                            mobile = ip_info.get("mobile", False)
-                            hosting = ip_info.get("datacenter", False)
-                            asn_str = ip_info.get("asn", "")
-                            asn_num = asn_str.split()[0] if asn_str else ""
-                            has_api_data = 'datacenter' in ip_info
-                            
-                            asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
-                            
-                            cat = "Unknown"
-                            if mobile:
-                                cat = self._t("checker_only_mob")
-                            elif asn_type == "isp":
-                                cat = self._t("checker_only_res")
-                            elif asn_type in ("hosting", "business"):
-                                cat = self._t("checker_only_dc")
-                            elif not has_api_data:
-                                cat = self._t("checker_only_dc")
-                            elif hosting:
-                                cat = self._t("checker_only_dc")
-                            else:
-                                cat = self._t("checker_only_res")
-                                
-                            for proxy in ip_to_proxies.get(ip, []):
-                                self._update_check_row(proxy, "category", cat)
-                                
-                    self.after(0, self._flush_checker_updates)
-                    time.sleep(4) # Respect rate limits for next chunk
-            
-            import threading
-            threading.Thread(target=_fetch_categories_bg, daemon=True).start()
+            threading.Thread(target=self._lookup_categories,
+                             args=(list(proxies), dummy_hunter), daemon=True).start()
 
         def check_one(proxy):
             if not getattr(self, 'checker_is_running', False):
@@ -5388,6 +5258,183 @@ class ProxyHunterApp(ctk.CTk):
         """
         text = str(ping_value)
         return bool(text) and not any(m in text for m in cls.NOT_ALIVE_MARKERS)
+
+    # ip-api.com: не больше 100 адресов за запрос и не чаще 15 запросов в минуту,
+    # отсюда пауза между чанками. Этап заведомо дольше самой проверки прокси.
+    IPAPI_CHUNK = 100
+    IPAPI_COOLDOWN = 4
+
+    def _category_for(self, ip_info, asn_cache):
+        """Категория по данным ip-api и типу ASN. Пустая строка — данных нет."""
+        if not ip_info or 'datacenter' not in ip_info:
+            return ""
+        asn_str = ip_info.get("asn", "")
+        asn_num = asn_str.split()[0] if asn_str else ""
+        asn_type = (asn_cache.get(asn_num) or "").lower()
+
+        if ip_info.get("mobile", False):
+            return self._t("checker_only_mob")
+        if asn_type == "isp":
+            return self._t("checker_only_res")
+        if asn_type in ("hosting", "business"):
+            return self._t("checker_only_dc")
+        if ip_info.get("datacenter", False):
+            return self._t("checker_only_dc")
+        return self._t("checker_only_res")
+
+    def _lookup_categories(self, proxies, hunter):
+        """Определяет категорию каждого прокси (Residential / Mobile / Datacenter).
+
+        Раньше это была вложенная функция без единого try/except. Любое
+        исключение внутри убивало поток молча, и все ещё не обработанные строки
+        навсегда оставались с «⏳» в колонке «Категория». Плюс адреса, по которым
+        ip-api ничего не вернул, отсеивались через `if not ip_info: continue` —
+        и тоже висели «⏳» до конца сеанса.
+
+        Теперь тело целиком под защитой, а в `finally` идёт добивка: каждая
+        строка без категории получает явное «неизвестно». Ни одна не остаётся
+        в состоянии ожидания.
+        """
+        import time
+        import requests
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        ip_to_proxies = {}
+        for p in proxies:
+            ip = p.split("://")[-1].split(":")[0]
+            ip_to_proxies.setdefault(ip, []).append(p)
+
+        resolved = set()
+
+        def publish(ip):
+            """Проставляет категорию всем прокси этого адреса."""
+            cat = self._category_for(hunter.ip_cache.get(ip, {}), hunter.asn_cache)
+            if not cat:
+                return
+            for proxy in ip_to_proxies.get(ip, []):
+                self._update_check_row(proxy, "category", cat)
+            resolved.add(ip)
+
+        try:
+            # Уже известные адреса проставляем сразу, без обращения к сети
+            todo = []
+            for ip in ip_to_proxies:
+                if 'datacenter' in hunter.ip_cache.get(ip, {}):
+                    publish(ip)
+                else:
+                    todo.append(ip)
+
+            chunks = [todo[i:i + self.IPAPI_CHUNK]
+                      for i in range(0, len(todo), self.IPAPI_CHUNK)]
+            self._category_stage_total = len(chunks)
+            self._category_stage_done = 0
+
+            def fetch_asn(asn):
+                if asn in hunter.asn_cache:
+                    return
+                for attempt in range(3):
+                    if hunter._cancel_event.is_set():
+                        return
+                    try:
+                        resp = requests.get("https://ipinfo.io/" + asn, timeout=10,
+                                            headers={'User-Agent': 'Mozilla/5.0'})
+                        if resp.status_code == 200:
+                            m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<',
+                                          resp.text, re.IGNORECASE)
+                            if m:
+                                with hunter._lock:
+                                    hunter.asn_cache[asn] = m.group(1).lower()
+                            return
+                        if resp.status_code == 429:
+                            time.sleep(3 + attempt * 2)
+                        else:
+                            return
+                    except Exception:
+                        time.sleep(2)
+
+            for index, chunk in enumerate(chunks):
+                if hunter._cancel_event.is_set():
+                    break
+
+                asns_to_fetch = set()
+                backoff = self.IPAPI_COOLDOWN
+                for attempt in range(3):
+                    try:
+                        resp = requests.post(
+                            "http://ip-api.com/batch?fields=query,isp,org,as,hosting,mobile,countryCode",
+                            json=chunk, timeout=10)
+                        if resp.status_code == 429:
+                            time.sleep(backoff)
+                            backoff *= 2
+                            continue
+                        if resp.status_code != 200:
+                            break
+                        payload = resp.json()
+                        if not isinstance(payload, list):
+                            break
+                        with hunter._lock:
+                            for data in payload:
+                                if not isinstance(data, dict):
+                                    continue
+                                query_ip = data.get('query')
+                                if not query_ip:
+                                    continue
+                                asn_str = data.get('as', '') or ''
+                                hunter.ip_cache.setdefault(query_ip, {}).update({
+                                    'country': data.get('countryCode', ''),
+                                    'datacenter': data.get('hosting', False),
+                                    'mobile': data.get('mobile', False),
+                                    'isp': (data.get('isp', '') or '').lower(),
+                                    'asn': asn_str,
+                                })
+                                asn_num = asn_str.split()[0] if asn_str else ''
+                                if asn_num.startswith('AS') and asn_num not in hunter.asn_cache:
+                                    asns_to_fetch.add(asn_num)
+                        break
+                    except Exception:
+                        time.sleep(2)
+
+                if asns_to_fetch and not hunter._cancel_event.is_set():
+                    pool = ThreadPoolExecutor(max_workers=min(20, len(asns_to_fetch)))
+                    try:
+                        futures = [pool.submit(fetch_asn, a) for a in asns_to_fetch]
+                        for _ in as_completed(futures):
+                            if hunter._cancel_event.is_set():
+                                break
+                    finally:
+                        pool.shutdown(wait=False, cancel_futures=True)
+
+                for ip in chunk:
+                    publish(ip)
+
+                self._category_stage_done = index + 1
+                # Обновление интерфейса не должно обрывать оставшиеся чанки:
+                # исключение отсюда раньше выбрасывало нас из всего цикла, и
+                # сотни адресов оставались без категории.
+                try:
+                    self.after(0, self._flush_checker_updates)
+                except Exception:
+                    pass
+
+                # После последнего чанка ждать нечего — следующего запроса не будет
+                if index + 1 < len(chunks) and not hunter._cancel_event.is_set():
+                    time.sleep(self.IPAPI_COOLDOWN)
+        except Exception:
+            # Поток фоновый: упасть он мог только молча. Добивка в finally
+            # важнее самой ошибки — строки не должны остаться в «⏳».
+            pass
+        finally:
+            try:
+                unknown = self._t("chk_unknown")
+                for ip, group in ip_to_proxies.items():
+                    if ip in resolved:
+                        continue
+                    for proxy in group:
+                        self._update_check_row(proxy, "category", unknown)
+                self._category_stage_total = 0
+                self.after(0, self._flush_checker_updates)
+            except Exception:
+                pass
 
     def _update_check_row(self, proxy_str, col_name, value):
         if not hasattr(self, '_checker_pending_updates'): return
