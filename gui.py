@@ -86,8 +86,8 @@ def get_hardware_limits():
             ram_gb = stat.ullTotalPhys / (1024 ** 3)
     except: pass
     max_threads = int((cores * 150) + (ram_gb * 100))
-    max_threads = min(max_threads, 5000)
-    max_threads = max(max_threads, 500)
+    max_threads = min(max_threads, 1000)
+    max_threads = max(max_threads, 300)
     
     if max_threads >= 3000:
         tier_key = "tier_ultra"
@@ -4110,7 +4110,7 @@ class ProxyHunterApp(ctk.CTk):
             return
             
         try:
-            threads = max(1, min(20000, int(float(self.entry_threads.get()))))
+            threads = max(1, min(1000, int(float(self.entry_threads.get()))))
             timeout = max(1, min(300, int(float(self.entry_timeout.get()))))
             ping = max(0.0, float(self.entry_ping.get()))
             speed = max(0.0, float(self.entry_speed.get()))
@@ -5137,10 +5137,15 @@ class ProxyHunterApp(ctk.CTk):
                                         p_type = socks.PROXY_TYPE_SOCKS5
                                 
                                 smtp_servers = [
-                                    ('gmail-smtp-in.l.google.com', 25, False),
                                     ('smtp.gmail.com', 587, False),
+                                    ('smtp-mail.outlook.com', 587, False),
+                                    ('smtp.mail.yahoo.com', 587, False),
                                     ('smtp.gmail.com', 465, True),
-                                    ('smtp.mailgun.org', 2525, False)
+                                    ('smtp.mail.yahoo.com', 465, True),
+                                    ('smtp.aol.com', 587, False),
+                                    ('smtp.mail.me.com', 587, False),
+                                    ('smtp.zoho.com', 587, False),
+                                    ('mail.gmx.com', 587, False),
                                 ]
                                 
                                 smtp_success = False
@@ -5154,13 +5159,15 @@ class ProxyHunterApp(ctk.CTk):
                                         
                                         if use_ssl:
                                             context = ssl.create_default_context()
+                                            context.check_hostname = False
+                                            context.verify_mode = ssl.CERT_NONE
                                             s_loop = context.wrap_socket(s_loop, server_hostname=shost)
                                             
-                                        banner = s_loop.recv(1024).decode('utf-8', errors='ignore')
-                                        if banner.startswith('220'):
+                                        banner = s_loop.recv(1024)
+                                        if banner[:3] == b'220':
                                             s_loop.sendall(b'EHLO localhost\r\n')
-                                            ehlo_resp = s_loop.recv(1024).decode('utf-8', errors='ignore')
-                                            if '250' in ehlo_resp:
+                                            ehlo_resp = s_loop.recv(1024)
+                                            if ehlo_resp[:3] == b'250':
                                                 s_loop.sendall(b'QUIT\r\n')
                                                 smtp_success = True
                                                 break
