@@ -1,2 +1,0 @@
-# Mobile Proxies (HTTP): 1
-http://129.80.238.83:444
