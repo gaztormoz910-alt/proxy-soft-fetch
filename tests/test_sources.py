@@ -59,3 +59,24 @@ def test_sources_object_identity_is_preserved_after_dedup():
     """Дедупликация правит список на месте — ссылки на fetch_proxy.SOURCES
     в других модулях обязаны видеть уже очищенный список."""
     assert fetch_proxy.SOURCES is SOURCES
+
+
+# ------------------------------------------------------------------ COR-09
+
+def test_no_url_contains_an_unsubstituted_placeholder():
+    """Три URL уходили на сервер с литеральным '{p}' в адресе."""
+    bad = [u for u, _ in SOURCES if "{" in u or "}" in u]
+    assert bad == [], f"URL с плейсхолдерами: {bad}"
+
+
+def test_paginated_sources_expand_to_real_page_numbers():
+    pages = sorted(int(u.rsplit("page=", 1)[1])
+                   for u, _ in SOURCES if "freeproxy.world" in u)
+    assert pages == list(range(1, 31))
+
+
+def test_sources_that_ignore_pagination_appear_once():
+    """proxyhub.me отдаёт одно и то же на любой странице — качаем один раз."""
+    hits = [u for u, _ in SOURCES if "proxyhub.me" in u]
+    assert len(hits) == 1
+    assert "page=" not in hits[0]
