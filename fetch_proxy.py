@@ -1566,9 +1566,28 @@ class ProxyHunter:
         self._speed_sem = asyncio.Semaphore(self.SPEED_TEST_CONCURRENCY)
 
     def _wait_if_paused(self) -> bool:
-        """Returns True if cancelled, False if ready to continue"""
+        """Блокирует поток, пока стоит пауза. True — работа отменена.
+
+        Только для обычных потоков (сбор источников). В корутинах используйте
+        _await_if_paused: см. REL-02.
+        """
         while self._pause_event.is_set() and not self._cancel_event.is_set():
             time.sleep(0.5)
+        return self._cancel_event.is_set()
+
+    async def _await_if_paused(self) -> bool:
+        """Асинхронный вариант паузы. True — работа отменена.
+
+        REL-02: раньше корутины звали синхронный _wait_if_paused с time.sleep,
+        то есть первый же вставший на паузу воркер блокировал ВЕСЬ event loop.
+        Пауза «работала» побочным эффектом: замирали и остальные воркеры, и
+        обновление прогресса, при этом таймауты уже открытых соединений
+        продолжали тикать — после снятия паузы часть живых прокси оказывалась
+        отброшена как мёртвые.
+        """
+        import asyncio
+        while self._pause_event.is_set() and not self._cancel_event.is_set():
+            await asyncio.sleep(0.1)
         return self._cancel_event.is_set()
     GEOIP_DB_PATH = 'GeoLite2-Country.mmdb'
 
@@ -1911,7 +1930,7 @@ class ProxyHunter:
         except ImportError: tqdm = None
         
         async def async_worker(item):
-            if self._wait_if_paused(): return None
+            if await self._await_if_paused(): return None
             ip_port, protos = item
             
             # Пропускаем зашифрованные конфиги напрямую в результаты
@@ -1942,7 +1961,7 @@ class ProxyHunter:
             working = await ProxyUtils.async_check_proxy(ip, int(port_s), protos, self.timeout)
             if working:
                 if self._cancel_event.is_set(): return None
-                if self._wait_if_paused(): return None
+                if await self._await_if_paused(): return None
                 return (ip_port, working)
             return None
             
@@ -2247,7 +2266,7 @@ class ProxyHunter:
             self.ip_cache[ip].update({'rdns': rdns, 'rdns_dirty': rdns_dirty, 'dnsbl': is_bl, 'bad_ports': has_bad_port})
             return self.ip_cache[ip].copy()
     async def async_run_single_filter(self, item: str) -> Optional[Tuple[str, str]]:
-        if self._wait_if_paused(): return None
+        if await self._await_if_paused(): return None
         if self._cancel_event.is_set(): return None
         
         try:
