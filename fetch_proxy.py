@@ -1530,7 +1530,12 @@ class ProxyHunter:
                     valid_live.append(p)
                 else:
                     # Страна изменилась и теперь не подходит
-                    pass
+                    proto, ipp = p.split('://', 1)
+                    if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                        ip, port = ProxyUtils.extract_ip_port(p)
+                    else:
+                        ip, port = ipp.rsplit(':', 1)
+                    print(f"    [REALTIME_REMOVE_LIVE]|{proto}|{ip}|{port}")
             self.live_results = valid_live
             print(f"    [REALTIME_LIVE] {len(self.live_results)}")
 
@@ -1654,6 +1659,13 @@ class ProxyHunter:
         # it successfully passed the basic check and therefore is genuinely "Рабочий".
         # This keeps the "Рабочие" metrics and exported lists perfectly aligned with what was found.
         # HOWEVER: We MUST remove proxies that failed the strict secondary Country filter!
+        for p in strict_remove:
+            proto, ipp = p.split('://', 1)
+            if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                ip, port = ProxyUtils.extract_ip_port(p)
+            else:
+                ip, port = ipp.rsplit(':', 1)
+            print(f"    [REALTIME_REMOVE_LIVE]|{proto}|{ip}|{port}")
         self.live_results = [p for p in self.live_results if p not in strict_remove]
             
         self.results_datacenter = sorted(set(self.results_datacenter))

@@ -3854,6 +3854,30 @@ class ProxyHunterApp(ctk.CTk):
                 
             updated_filtered = False
             for data, source in p_queue:
+                if source == "remove_live":
+                    # Remove from realtime_proxies["live"]
+                    if hasattr(self, "realtime_proxies"):
+                        live_list = self.realtime_proxies.get("live", [])
+                        new_live = [d for d in live_list if not (d["ip"] == data["ip"] and str(d["port"]) == str(data["port"]) and d["protocol"].lower() == data["protocol"].lower())]
+                        self.realtime_proxies["live"] = new_live
+                        
+                    # Remove from _seen_proxies
+                    if hasattr(self, "_seen_proxies"):
+                        uniq_id = f"live:{data['protocol'].lower()}:{data['ip']}:{data['port']}"
+                        self._seen_proxies.discard(uniq_id)
+                        
+                    # Remove from current arrays if we are looking at live tab
+                    if mapped_src == "live":
+                        if hasattr(self, "_current_raw_data"):
+                            self._current_raw_data = [r for r in self._current_raw_data if not (r[1] == data["ip"] and str(r[2]) == str(data["port"]) and r[0].lower() == data["protocol"].lower())]
+                        if hasattr(self, "_filtered_data"):
+                            old_len = len(self._filtered_data)
+                            self._filtered_data = [r for r in self._filtered_data if not (r[1] == data["ip"] and str(r[2]) == str(data["port"]) and r[0].lower() == data["protocol"].lower())]
+                            if len(self._filtered_data) < old_len:
+                                updated_filtered = True
+                                
+                    continue
+
                 self.realtime_proxies.setdefault(source, []).append(data)
                 
                 if mapped_src == source:
@@ -3955,6 +3979,12 @@ class ProxyHunterApp(ctk.CTk):
                     self._seen_proxies.add(uniq_id)
                     cat = data.get("category", "Elite").lower()
                     self._proxy_queue.append((data, cat))
+            except: pass
+        elif "[REALTIME_REMOVE_LIVE]" in text:
+            try:
+                parts = text.split("[REALTIME_REMOVE_LIVE]")[1].strip().split("|")
+                data = {"ip": parts[1], "port": parts[2], "protocol": parts[0]}
+                self._proxy_queue.append((data, "remove_live"))
             except: pass
     def _toggle_pause(self):
         if not self.is_running or not self.hunter_thread: return
