@@ -21,6 +21,13 @@ PUBLIC_API = 'https://api.github.com/repos/gaztormoz910-alt/proxy-soft-fetch'
 BRANCH = 'audit/deep-fix'
 BROKEN_RELEASES = ('v4.0.1',)
 
+# Пути, которые реально попадают в собранную программу. Изменения вне этого
+# списка (тесты, проверки, ledger, документация) на пользователя не влияют и
+# не обязаны вызывать новый релиз.
+SHIPPED = ('gui.py', 'fetch_proxy.py', 'assets', 'VERSION',
+           'ProxyPulse.spec', 'ProxyPulse.iss', 'version_info.txt',
+           'requirements.txt', '.github/workflows/release.yml')
+
 
 def git(*args):
     out = subprocess.run(('git',) + args, capture_output=True, text=True,
@@ -79,9 +86,16 @@ def check_clean():
     print('  рабочее дерево чистое; тег %s -> %s, HEAD %s'
           % (tag, got[:12] or 'НЕТ', h[:12]))
     assert got, 'тега %s нет на публичном репозитории' % tag
-    # Тег обязан указывать на текущий коммит: иначе опубликованный установщик
-    # собран не из того кода, который лежит в репозитории.
-    assert got == h, 'тег %s указывает на %s, а HEAD %s' % (tag, got[:12], h[:12])
+
+    # Требовать совпадения тега с HEAD буквально — слишком грубо: правка
+    # тестового скрипта или ledger заставляла бы выпускать новую версию, хотя
+    # программа не менялась. Значение имеет только то, что попадает в сборку.
+    diff = git('diff', '--name-only', got, h, '--', *SHIPPED)
+    if diff:
+        for path in diff.splitlines():
+            print('  расходится: %s' % path)
+    assert not diff, 'опубликованный релиз собран не из текущего кода'
+    print('  содержимое сборки совпадает с тегом (%d путей сверено)' % len(SHIPPED))
     print('WORKTREE OK')
 
 
