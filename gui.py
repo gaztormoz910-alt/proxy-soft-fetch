@@ -10,6 +10,7 @@ import time
 import os
 import csv
 import ctypes
+import json
 from collections import deque
 
 class MEMORYSTATUSEX(ctypes.Structure):
@@ -470,7 +471,10 @@ LANG = {
         "subtitle": "v4.0 · Advanced Filtration",
         "source_live": "Live",
         "source_elite": "Elite",
-        "proto_all": "All"
+        "proto_all": "All",
+        "pause": "⏸ Pause",
+        "resume": "▶ Resume",
+        "cancel": "⏹ Cancel"
     },
     "RU": {
         "cfg": "Конфигурация",
@@ -531,7 +535,10 @@ LANG = {
         "subtitle": "v4.0 · Продвинутая фильтрация",
         "source_live": "Рабочие",
         "source_elite": "Элитные",
-        "proto_all": "Все"
+        "proto_all": "Все",
+        "pause": "⏸ Пауза",
+        "resume": "▶ Продолжить",
+        "cancel": "⏹ Отмена"
     }
 }
 
@@ -577,10 +584,6 @@ class ProxyHunterApp(ctk.CTk):
         for w in self.interactive_widgets:
             if w.winfo_exists():
                 w.configure(state=state)
-        # Also disable country checkboxes
-        for var in self.country_vars.values():
-            pass # We can't disable just the var, we need the checkbox widgets. Let's just disable the tabview so they can't switch to it.
-        # self.tab_view.configure(state=state)
                 
     def _on_click_outside(self, event):
         try:
@@ -618,6 +621,14 @@ class ProxyHunterApp(ctk.CTk):
             self.start_btn.configure(text=self._t("start"))
         else:
             self.start_btn.configure(text=self._t("running"))
+            
+        if hasattr(self, "pause_btn"):
+            if getattr(self, "is_paused", False):
+                self.pause_btn.configure(text=self._t("resume"))
+            else:
+                self.pause_btn.configure(text=self._t("pause"))
+        if hasattr(self, "cancel_btn"):
+            self.cancel_btn.configure(text=self._t("cancel"))
             
         self.lbl_stat_total.configure(text=self._t("total"))
         self.lbl_stat_live.configure(text=self._t("live"))
@@ -694,7 +705,8 @@ class ProxyHunterApp(ctk.CTk):
         if getattr(self, "_countries_built", False):
             # Save existing checked states
             old_state = {iso: var.get() for iso, var in getattr(self, "country_vars", {}).items() if var.get()}
-            self._old_country_state = old_state
+            if not getattr(self, "_old_country_state", None):
+                self._old_country_state = old_state
             
             if hasattr(self, "tab_view"):
                 try:
@@ -754,10 +766,8 @@ class ProxyHunterApp(ctk.CTk):
 
     # --- Вкладка ПАРАМЕТРЫ ---
     def _build_settings_tab(self, parent):
-        frame = ctk.CTkScrollableFrame(parent, fg_color="transparent", corner_radius=0)
+        frame = ctk.CTkFrame(parent, fg_color="transparent", corner_radius=0)
         frame.pack(fill="both", expand=True)
-        self._settings_scroll_frame = frame  # keep reference for scroll reset
-        self._enable_autohide_scrollbar(frame)
 
         # Start UI building
         self._hw_cores, self._hw_ram, self._hw_max_threads, self._hw_tier_key, self._hw_tier_color = get_hardware_limits()
@@ -1166,9 +1176,11 @@ class ProxyHunterApp(ctk.CTk):
         self.country_count_label = ctk.CTkLabel(quick, text="0", font=("Segoe UI", 11, "bold"), text_color=BLUE)
         self.country_count_label.pack(side="right", padx=5)
 
-        scroll = ctk.CTkScrollableFrame(parent, fg_color="transparent", corner_radius=0)
+        scroll = ctk.CTkScrollableFrame(
+            parent, fg_color="transparent", corner_radius=0,
+            scrollbar_button_color="#334155", scrollbar_button_hover_color="#475569"
+        )
         scroll.pack(fill="both", expand=True)
-        self._enable_autohide_scrollbar(scroll)
 
         # Собираем все данные для пакетной загрузки
         self._pending_regions = list(REGIONS[self.current_lang].items())
@@ -1230,11 +1242,17 @@ class ProxyHunterApp(ctk.CTk):
             if self._pending_regions:
                 self.after(10, self._load_next_region)
             else:
+                # Добавляем пустой отступ внизу, чтобы последний ряд не прилипал к краю и скролл работал корректно
+                ctk.CTkFrame(self._country_scroll, fg_color="transparent", height=30).pack(fill="x")
+                
                 if hasattr(self, "_old_country_state") and self._old_country_state:
                     for iso, val in self._old_country_state.items():
                         if iso in self.country_vars: self.country_vars[iso].set(val)
                     self._update_count()
                     self._old_country_state = None
+                
+                # Принудительно обновляем зону скролла после полной загрузки
+                self.after(50, lambda: self._country_scroll._parent_canvas.configure(scrollregion=self._country_scroll._parent_canvas.bbox("all")))
         except Exception as e:
             print(f"Error loading region: {e}")
 
@@ -1299,7 +1317,7 @@ class ProxyHunterApp(ctk.CTk):
         # Fallback: try to detect from system locale
         try:
             import locale
-            loc = locale.getdefaultlocale()[0]  # e.g. 'ru_RU'
+            loc = locale.getlocale()[0]  # e.g. 'ru_RU'
             if loc and '_' in loc:
                 return loc.split('_')[1].upper()
         except Exception:
@@ -1327,10 +1345,23 @@ class ProxyHunterApp(ctk.CTk):
         self.subtitle_lbl = ctk.CTkLabel(titles, text=self._t("subtitle"), font=("Segoe UI", 11), text_color="#475569")
         self.subtitle_lbl.pack(anchor="w")
 
-        self.start_btn = ctk.CTkButton(header, text=self._t("start"), font=("Segoe UI", 14, "bold"),
+        self.btn_frame = ctk.CTkFrame(header, fg_color="transparent")
+        self.btn_frame.pack(side="right")
+        
+        self.pause_btn = ctk.CTkButton(self.btn_frame, text=self._t("pause"), font=("Segoe UI", 14, "bold"),
+                                        fg_color=GOLD, hover_color="#D97706", corner_radius=12,
+                                        width=110, height=48, command=self._toggle_pause, state="disabled")
+        self.pause_btn.pack(side="left", padx=(0, 10))
+
+        self.cancel_btn = ctk.CTkButton(self.btn_frame, text=self._t("cancel"), font=("Segoe UI", 14, "bold"),
+                                        fg_color=RED, hover_color="#B91C1C", corner_radius=12,
+                                        width=110, height=48, command=self._cancel_hunter, state="disabled")
+        self.cancel_btn.pack(side="left", padx=(0, 10))
+
+        self.start_btn = ctk.CTkButton(self.btn_frame, text=self._t("start"), font=("Segoe UI", 14, "bold"),
                                         fg_color=BLUE, hover_color="#2563EB", corner_radius=12,
                                         width=190, height=48, command=self._run_hunter)
-        self.start_btn.pack(side="right")
+        self.start_btn.pack(side="left")
 
         stats = ctk.CTkFrame(self.main_panel, fg_color="transparent")
         stats.grid(row=1, column=0, sticky="ew", pady=(0, 12))
@@ -1458,13 +1489,26 @@ class ProxyHunterApp(ctk.CTk):
         scrollbar.pack(side="right", fill="y", pady=8, padx=(0, 4))
 
     def _load_results(self):
-        """Загружаем результаты из CSV в таблицу"""
+        """Загружаем результаты в таблицу"""
         self.proxy_tree.delete(*self.proxy_tree.get_children())
 
-        source = self.result_source.get().lower()
-        folder = f"results_{source}"
-        proto = self.proto_filter.get().lower()
+        source = self.result_source.get()
+        mapped_src = "live" if source.lower() in ("live", self._t("source_live").lower()) else "elite"
+        
+        proto_val = self.proto_filter.get()
+        proto = "все" if proto_val in ("Все", self._t("all_short")) else proto_val.lower()
 
+        count = 0
+        if self.is_running and hasattr(self, "realtime_proxies"):
+            for data in self.realtime_proxies[mapped_src]:
+                if proto == "все" or proto == data["protocol"].lower():
+                    country_name = ISO_TO_NAME[self.current_lang].get(data["country"], data["country"])
+                    self.proxy_tree.insert("", "end", values=(data["protocol"], data["ip"], data["port"], country_name))
+                    count += 1
+            self.result_count_lbl.configure(text=self._t("proxies_count").format(count))
+            return
+
+        folder = f"results_{mapped_src}"
         if proto == "все":
             csv_file = os.path.join(folder, "all.csv")
         else:
@@ -1474,7 +1518,6 @@ class ProxyHunterApp(ctk.CTk):
             self.result_count_lbl.configure(text=self._t("no_data"))
             return
 
-        count = 0
         try:
             with open(csv_file, 'r', encoding='utf-8') as f:
                 reader = csv.reader(f)
@@ -1553,36 +1596,100 @@ class ProxyHunterApp(ctk.CTk):
 
     # ===================== ЛОГИКА =====================
     def _init_log_buffer(self):
-        """Инициализация буферизированного лога — обновляем UI макс 5 раз/сек"""
-        self._log_buffer = deque(maxlen=2000)
+        """Инициализация буферизированного лога — обновляем UI макс 2 раза/сек"""
+        self._log_buffer = deque(maxlen=500)
+        self._proxy_queue = []
+        self._stat_updates = {}
         self._log_lock = threading.Lock()
+        self._live_log_counter = 0  # Троттлинг логов Live-прокси
         self._flush_log()
 
     def _flush_log(self):
-        """Сбрасываем накопленные логи в терминал каждые 200мс"""
+        """Сбрасываем накопленные логи в терминал каждые 500мс"""
         with self._log_lock:
             batch = []
-            while self._log_buffer:
+            for _ in range(min(10, len(self._log_buffer))):
                 batch.append(self._log_buffer.popleft())
+            # Если в буфере скопилось слишком много — оставляем только последние 50
+            if len(self._log_buffer) > 50:
+                keep = list(self._log_buffer)[-50:]
+                self._log_buffer.clear()
+                self._log_buffer.extend(keep)
+            
+            p_queue = self._proxy_queue[:10]
+            self._proxy_queue = self._proxy_queue[10:]
+            
+            s_updates = dict(self._stat_updates)
+            self._stat_updates.clear()
 
+        # Обновляем счётчики пачкой
+        if 'total' in s_updates: self.stat_total.configure(text=s_updates['total'])
+        if 'live' in s_updates: self.stat_live.configure(text=s_updates['live'])
+        if 'elite' in s_updates: self.stat_elite.configure(text=s_updates['elite'])
+
+        # Обновляем таблицу прокси пачкой (макс 20 строк за раз)
+        if p_queue:
+            if not hasattr(self, "realtime_proxies"):
+                self.realtime_proxies = {"live": [], "elite": []}
+                
+            current_src = getattr(self, "result_source", None)
+            mapped_src = None
+            if current_src:
+                mapped_src = "live" if current_src.get().lower() in ("live", self._t("source_live").lower()) else "elite"
+                
+            current_filter = "all"
+            if hasattr(self, "proto_filter"):
+                f_val = self.proto_filter.get()
+                if f_val not in ("Все", self._t("all_short")): current_filter = f_val.lower()
+
+            inserted = 0
+            for data, source in p_queue:
+                self.realtime_proxies[source].append(data)
+                
+                if mapped_src == source:
+                    if current_filter == "all" or current_filter == data["protocol"].lower():
+                        if hasattr(self, "proxy_tree"):
+                            country_name = ISO_TO_NAME[self.current_lang].get(data["country"], data["country"])
+                            self.proxy_tree.insert("", "end", values=(data["protocol"], data["ip"], data["port"], country_name))
+                            inserted += 1
+                            
+            if inserted > 0 and hasattr(self, "result_count_lbl"):
+                count = len(self.proxy_tree.get_children())
+                self.result_count_lbl.configure(text=self._t("proxies_count").format(count))
+
+        # Обновляем терминал пачкой (макс 15 строк — абсолютный потолок)
         if batch:
             self.terminal.configure(state="normal")
+            
+            # Собираем весь текст в одну строку для ОДНОГО вызова insert
+            parts = []
             for text, tag in batch:
-                self.terminal.insert("end", text + "\n", tag)
-            # Обрезаем до 1000 строк
+                parts.append(text)
+            combined = "\n".join(parts) + "\n"
+            # Используем тег последнего элемента (микс тегов при batch-insert невозможен без доп. расходов)
+            last_tag = batch[-1][1] if batch else "default"
+            self.terminal.insert("end", combined, last_tag)
+
+            # Обрезаем терминал до 300 строк (было 1000 — лишнее)
             lines = int(self.terminal.index('end-1c').split('.')[0])
-            if lines > 1000:
-                self.terminal.delete("1.0", f"{lines - 1000}.0")
+            if lines > 300:
+                self.terminal.delete("1.0", f"{lines - 300}.0")
             self.terminal.see("end")
             self.terminal.configure(state="disabled")
 
-        # Повторяем каждые 200мс
-        self.after(200, self._flush_log)
+        self.after(1000, self._flush_log)
 
     def _enqueue_log(self, text, tag):
         """Добавляем лог в очередь (вызывается из рабочего потока — потокобезопасно)"""
+        if getattr(self, "_is_cancelling", False): return
         with self._log_lock:
             self._log_buffer.append((text, tag))
+
+    def _enqueue_live_log(self, msg, tag):
+        """Троттлинг логов Рабочих прокси — показываем каждый 10-й"""
+        self._live_log_counter += 1
+        if self._live_log_counter % 10 == 1:  # 1-й, 11-й, 21-й и т.д.
+            self._enqueue_log(msg, tag)
 
     def _get_tag(self, text):
         if "[+]" in text or "ШАГ" in text: return "blue"
@@ -1592,68 +1699,96 @@ class ProxyHunterApp(ctk.CTk):
         return "default"
 
     def _parse_stats(self, text):
-        if "Уникальных IP:PORT" in text:
-            m = re.search(r'(\d+)', text)
-            if m: self.after(0, lambda v=m.group(1): self.stat_total.configure(text=v))
-        elif "Живых прокси:" in text:
-            m = re.search(r'Живых прокси: (\d+)', text)
-            if m: self.after(0, lambda v=m.group(1): self.stat_live.configure(text=v))
-        elif "прошедших все фильтры:" in text or "passed all filters:" in text:
-            m = re.search(r'(?:прошедших все фильтры:|passed all filters:) (\d+)', text)
-            if m: self.after(0, lambda v=m.group(1): self.stat_elite.configure(text=v))
-        elif "[REALTIME_LIVE]" in text:
-            m = re.search(r'\[REALTIME_LIVE\] (\d+)', text)
-            if m: self.after(0, lambda v=m.group(1): self.stat_live.configure(text=v))
-        elif "[REALTIME_ELITE]" in text:
-            m = re.search(r'\[REALTIME_ELITE\] (\d+)', text)
-            if m: self.after(0, lambda v=m.group(1): self.stat_elite.configure(text=v))
-        elif "[REALTIME_NEW_LIVE]" in text:
-            try:
-                import json
-                json_str = text.split("[REALTIME_NEW_LIVE] ")[1].strip()
-                data = json.loads(json_str)
-                self.after(0, lambda d=data: self._handle_realtime_proxy(d, "live"))
-            except Exception: pass
-        elif "[REALTIME_NEW_ELITE]" in text:
-            try:
-                import json
-                json_str = text.split("[REALTIME_NEW_ELITE] ")[1].strip()
-                data = json.loads(json_str)
-                self.after(0, lambda d=data: self._handle_realtime_proxy(d, "elite"))
-            except Exception: pass
+        if getattr(self, "_is_cancelling", False): return
+        with self._log_lock:
+            if "Уникальных IP:PORT" in text:
+                m = re.search(r'(\d+)', text)
+                if m: self._stat_updates['total'] = m.group(1)
+            elif "Живых прокси:" in text:
+                m = re.search(r'Живых прокси: (\d+)', text)
+                if m: self._stat_updates['live'] = m.group(1)
+            elif "прошедших все фильтры:" in text or "passed all filters:" in text:
+                m = re.search(r'(?:прошедших все фильтры:|passed all filters:) (\d+)', text)
+                if m: self._stat_updates['elite'] = m.group(1)
+            elif "[REALTIME_LIVE]" in text:
+                m = re.search(r'\[REALTIME_LIVE\] (\d+)', text)
+                if m: self._stat_updates['live'] = m.group(1)
+            elif "[REALTIME_ELITE]" in text:
+                m = re.search(r'\[REALTIME_ELITE\] (\d+)', text)
+                if m: self._stat_updates['elite'] = m.group(1)
+            elif "[REALTIME_NEW_LIVE]" in text:
+                try:
+                    json_str = text.split("[REALTIME_NEW_LIVE] ")[1].strip()
+                    self._proxy_queue.append((json.loads(json_str), "live"))
+                    # Синхронизируем счётчик с каждым новым прокси
+                    self._live_count = getattr(self, '_live_count', 0) + 1
+                    self._stat_updates['live'] = str(self._live_count)
+                except Exception: pass
+            elif "[REALTIME_NEW_ELITE]" in text:
+                try:
+                    json_str = text.split("[REALTIME_NEW_ELITE] ")[1].strip()
+                    self._proxy_queue.append((json.loads(json_str), "elite"))
+                    # Синхронизируем счётчик с каждым новым прокси
+                    self._elite_count = getattr(self, '_elite_count', 0) + 1
+                    self._stat_updates['elite'] = str(self._elite_count)
+                except Exception: pass
 
-    def _handle_realtime_proxy(self, data, source):
-        """Вставляет новый прокси в таблицу, если он подходит под текущие фильтры"""
-        if not hasattr(self, "proxy_tree"): return
-        
-        # Проверяем, что выбран именно тот источник, из которого пришел прокси
-        if hasattr(self, "result_source"):
-            current_src = self.result_source.get()
-            # current_src is "Live" or "Elite" or "Рабочие" or "Элитные"
-            # Map it back to "live" or "elite" based on current language
-            mapped_src = "live" if current_src in ("Live", self._t("source_live")) else "elite"
-            if mapped_src != source:
-                return
-        
-        current_filter = "all"
-        if hasattr(self, "proto_filter"):
-            f_val = self.proto_filter.get().lower()
-            if f_val != "все": current_filter = f_val
+    def _toggle_pause(self):
+        if not self.is_running or not self.hunter_thread: return
+        self.is_paused = not getattr(self, "is_paused", False)
+        if self.is_paused:
+            self.pause_btn.configure(text=self._t("resume"), fg_color=GREEN, hover_color="#059669")
+            if hasattr(self, "hunter_instance"):
+                self.hunter_instance.pause()
+        else:
+            self.pause_btn.configure(text=self._t("pause"), fg_color=GOLD, hover_color="#D97706")
+            if hasattr(self, "hunter_instance"):
+                self.hunter_instance.resume()
+
+    def _cancel_hunter(self):
+        if not self.is_running or not self.hunter_thread: return
+        self.cancel_btn.configure(state="disabled")
+        self._is_cancelling = True
+        if hasattr(self, "hunter_instance"):
+            self.hunter_instance.cancel()
             
-        if current_filter == "all" or current_filter == data["protocol"].lower():
-            country_name = ISO_TO_NAME[self.current_lang].get(data["country"], data["country"])
-            self.proxy_tree.insert("", "end", values=(data["protocol"], data["ip"], data["port"], country_name))
+        # Полное мгновенное обнуление всего интерфейса
+        self.stat_total.configure(text="0")
+        self.stat_live.configure(text="0")
+        self.stat_elite.configure(text="0")
+        self.progress_bar.set(0)
+        self.progress_pct.configure(text="0%")
+        self.progress_lbl.configure(text=self._t("wait"))
+        self.realtime_proxies = {"live": [], "elite": []}
+        
+        if hasattr(self, "proxy_tree"):
+            for item in self.proxy_tree.get_children():
+                self.proxy_tree.delete(item)
+        if hasattr(self, "result_count_lbl"):
+            self.result_count_lbl.configure(text=self._t("proxies_count").format(0))
             
-            # Обновляем счетчик
-            if hasattr(self, "result_count_lbl"):
-                count = len(self.proxy_tree.get_children())
-                self.result_count_lbl.configure(text=self._t("proxies_count").format(count))
+        with self._log_lock:
+            self._log_buffer.clear()
+            
+        self.terminal.configure(state="normal")
+        self.terminal.delete("1.0", "end")
+        self.terminal.insert("end", "\n[!] Отмена задачи пользователем. Завершение потоков...\n", "red")
+        self.terminal.configure(state="disabled")
 
     def _run_hunter(self):
         if self.is_running: return
         self.is_running = True
+        self.is_paused = False
+        self._is_cancelling = False
+        self._live_count = 0
+        self._elite_count = 0
+        self.realtime_proxies = {"live": [], "elite": []}
+        
         self._set_ui_state("disabled")
-        self.start_btn.configure(text=self._t("running"), fg_color=RED, hover_color="#B91C1C")
+        self.start_btn.configure(text=self._t("running"), fg_color=RED, hover_color="#B91C1C", state="disabled")
+        self.pause_btn.configure(state="normal", text=self._t("pause"), fg_color=GOLD, hover_color="#D97706")
+        self.cancel_btn.configure(state="normal")
+        
         self.terminal.configure(state="normal")
         self.terminal.delete("1.0", "end")
         self.terminal.configure(state="disabled")
@@ -1685,12 +1820,43 @@ class ProxyHunterApp(ctk.CTk):
         app = self
         class Redir:
             def write(self, text):
+                if getattr(app, "_is_cancelling", False): return
                 if not text.strip(): return
                 try: sys.__stdout__.write(text)
                 except: pass
                 clean = text.strip()
                 tag = app._get_tag(clean)
-                app._enqueue_log(clean, tag)
+                
+                # Не выводим технические JSON-логи и спам загрузки/проверки/фильтрации в визуальный терминал
+                if not any(x in clean for x in ["[REALTIME", "[Загрузка]", "[Проверка]", "[Фильтрация]"]):
+                    app._enqueue_log(clean, tag)
+                
+                # Зато красиво выводим успешные ЭЛИТНЫЕ прокси
+                if "[REALTIME_NEW_ELITE]" in clean:
+                    try:
+                        import json
+                        data = json.loads(clean.split("[REALTIME_NEW_ELITE]")[1].strip())
+                        proto = data.get("protocol", "").upper()
+                        ip = data.get("ip", "")
+                        port = data.get("port", "")
+                        country = data.get("country", "")
+                        msg = f"  [★ ЭЛИТНЫЙ] Прошел все фильтры: {ip}:{port} ({proto}) - {country}"
+                        app._enqueue_log(msg, "gold")
+                    except: pass
+                
+                # И красиво выводим РАБОЧИЕ прокси (Базовая проверка)
+                elif "[REALTIME_NEW_LIVE]" in clean:
+                    try:
+                        import json
+                        data = json.loads(clean.split("[REALTIME_NEW_LIVE]")[1].strip())
+                        proto = data.get("protocol", "").upper()
+                        ip = data.get("ip", "")
+                        port = data.get("port", "")
+                        country = data.get("country", "")
+                        msg = f"  [✓ РАБОЧИЙ] Найден: {ip}:{port} ({proto}) - {country}"
+                        app._enqueue_live_log(msg, "green")
+                    except: pass
+                    
                 app._parse_stats(clean)
                 
                 # Парсинг шагов для UI
@@ -1714,7 +1880,7 @@ class ProxyHunterApp(ctk.CTk):
             old = sys.stdout
             sys.stdout = Redir()
             try:
-                h = ProxyHunter(
+                self.hunter_instance = ProxyHunter(
                     threads=int(float(self.entry_threads.get())),
                     timeout=int(float(self.entry_timeout.get())),
                     countries=self._get_selected_countries(),
@@ -1723,7 +1889,7 @@ class ProxyHunterApp(ctk.CTk):
                     check_smtp=self.smtp_var.get(),
                     residential_only=self.res_var.get(),
                 )
-                h.run()
+                self.hunter_instance.run()
                 print(f"\n{self._t('done_msg')}")
                 # Автоматически загружаем результаты и переключаемся на вкладку
                 self.after(500, self._load_results)
@@ -1734,10 +1900,15 @@ class ProxyHunterApp(ctk.CTk):
             finally:
                 sys.stdout = old
                 self.is_running = False
+                self.hunter_thread = None
+                self.hunter_instance = None
                 self.after(0, lambda: self._set_ui_state("normal"))
-                self.after(0, lambda: self.start_btn.configure(text=self._t("start"), fg_color=BLUE, hover_color="#2563EB"))
+                self.after(0, lambda: self.start_btn.configure(text=self._t("start"), fg_color=BLUE, hover_color="#2563EB", state="normal"))
+                self.after(0, lambda: self.pause_btn.configure(state="disabled"))
+                self.after(0, lambda: self.cancel_btn.configure(state="disabled"))
 
-        threading.Thread(target=target, daemon=True).start()
+        self.hunter_thread = threading.Thread(target=target, daemon=True)
+        self.hunter_thread.start()
 
 if __name__ == "__main__":
     app = ProxyHunterApp()
