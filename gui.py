@@ -119,6 +119,8 @@ class _FakeTqdm:
         self._n = 0
         self._step = max(1, self._total // 100) if self._total else 100
         self._last_print = 0
+        if 'PROGRESS_CALLBACK' in globals() and PROGRESS_CALLBACK:
+            PROGRESS_CALLBACK(self._desc, 0.0, 0, self._total)
     def __iter__(self):
         for item in (self._it or []):
             yield item
@@ -1134,7 +1136,7 @@ class ProxyHunterApp(ctk.CTk):
             if hasattr(self, "github_tm_days_var"):
                 try:
                     val = int(self.github_tm_days_var.get())
-                    settings["github_tm_days"] = max(1, min(15, val))
+                    settings["github_tm_days"] = max(1, min(30, val))
                 except ValueError:
                     settings["github_tm_days"] = 1
             with open("settings.json", "w", encoding="utf-8") as f:
@@ -2011,7 +2013,7 @@ class ProxyHunterApp(ctk.CTk):
                 return
             v = int(val)
             if v < 1: self.github_tm_days_var.set("1")
-            elif v > 15: self.github_tm_days_var.set("15")
+            elif v > 30: self.github_tm_days_var.set("30")
             
         self.github_tm_days_var.trace_add("write", _validate_days)
         
@@ -3069,8 +3071,15 @@ class ProxyHunterApp(ctk.CTk):
         toolbar.pack(fill="x", pady=(5, 8))
 
         # Переключатель Live / Elite
-        self.result_source = ctk.StringVar(value="live")
-        self.source_seg = ctk.CTkSegmentedButton(toolbar, values=["Live", "Elite", "Datacenter", "Residential", "Mobile"], variable=self.result_source,
+        self.result_source = ctk.StringVar(value=self._t("source_live"))
+        initial_vals = [
+            self._t("source_live"),
+            self._t("source_elite"),
+            self._t("source_datacenter"),
+            self._t("source_residential"),
+            self._t("source_mobile")
+        ]
+        self.source_seg = ctk.CTkSegmentedButton(toolbar, values=initial_vals, variable=self.result_source,
                                 fg_color=BORDER, selected_color=BLUE, unselected_color=CARD,
                                 font=("Segoe UI", 12, "bold"),
                                 command=lambda v: self._load_results())
@@ -3218,39 +3227,65 @@ class ProxyHunterApp(ctk.CTk):
                 "residential": "residential.txt",
                 "mobile": "mobile.txt"
             }
-            txt_file = os.path.join(base_dir, "results", file_map.get(mapped_src, f"{mapped_src}.txt"))
+            # Пытаемся найти результаты в новой папке 'results', а если там нет, то в старых 'results_*'
+            txt_file_new = os.path.join(base_dir, "results", file_map.get(mapped_src, f"{mapped_src}.txt"))
+            txt_file_old = os.path.join(base_dir, f"results_{mapped_src}", file_map.get(mapped_src, f"{mapped_src}.txt"))
+            
+            txt_file = txt_file_new if os.path.exists(txt_file_new) else txt_file_old
             
             if os.path.exists(txt_file):
+                # Инициализация базы стран для отображения
+                geoip_reader = None
+                if os.path.exists('GeoLite2-Country.mmdb'):
+                    try:
+                        import maxminddb
+                        geoip_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
+                    except: pass
+                    
                 try:
                     with open(txt_file, 'r', encoding='utf-8') as f:
                         for line in f:
-                            line = line.strip()
-                            if not line or line.startswith('#'): continue
-                            
-                            # Парсинг proto://ip:port
-                            if '://' in line:
-                                proto, ipp = line.split('://', 1)
-                                proto = proto.upper()
-                                if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
-                                    import fetch_proxy
-                                    ext_ip, ext_port = fetch_proxy.ProxyUtils.extract_ip_port(line)
-                                    ip_str, port_str = ext_ip, ext_port
-                                else:
-                                    if ':' in ipp:
-                                        ip_str, port_str = ipp.rsplit(':', 1)
+                            try:
+                                line = line.strip()
+                                if not line or line.startswith('#'): continue
+                                
+                                # Парсинг proto://ip:port
+                                if '://' in line:
+                                    proto, ipp = line.split('://', 1)
+                                    proto = proto.upper()
+                                    if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                                        import fetch_proxy
+                                        ext_ip, ext_port = fetch_proxy.ProxyUtils.extract_ip_port(line)
+                                        ip_str, port_str = ext_ip, ext_port
                                     else:
-                                        ip_str, port_str = ipp, ""
-                                
-                                # Мы не храним страну в txt, так что оставляем неизвестной (или можно попробовать закешировать/определить на лету)
-                                c_name = "Unknown" 
-                                
-                                self._current_raw_data.append((proto, ip_str, port_str, c_name))
-                                protos.add(proto)
-                                countries.add(c_name)
-                                self.proto_counts[proto] = self.proto_counts.get(proto, 0) + 1
-                                self.country_counts[c_name] = self.country_counts.get(c_name, 0) + 1
-                except Exception:
-                    pass
+                                        if ':' in ipp:
+                                            ip_str, port_str = ipp.rsplit(':', 1)
+                                        else:
+                                            ip_str, port_str = ipp, ""
+                                    
+                                    # Определяем страну
+                                    c_name = "Unknown"
+                                    if geoip_reader:
+                                        try:
+                                            match = geoip_reader.get(ip_str)
+                                            if match and 'country' in match:
+                                                c_name = match['country']['iso_code']
+                                        except: pass
+                                    c_name = self._format_country(c_name)
+                                    
+                                    self._current_raw_data.append((proto, ip_str, port_str, c_name))
+                                    protos.add(proto)
+                                    countries.add(c_name)
+                                    self.proto_counts[proto] = self.proto_counts.get(proto, 0) + 1
+                                    self.country_counts[c_name] = self.country_counts.get(c_name, 0) + 1
+                            except Exception:
+                                continue # Игнорируем ошибки парсинга отдельной строки
+                except Exception as e:
+                    print(f"Error reading {txt_file}: {e}")
+                finally:
+                    if geoip_reader:
+                        try: geoip_reader.close()
+                        except: pass
 
         self.all_protos_in_db = protos
         self.all_countries_in_db = countries
@@ -4443,6 +4478,82 @@ class ProxyHunterApp(ctk.CTk):
         self.checker_scrollbar_tree.pack(side="right", fill="y", padx=(0, 4))
         self.check_tree.pack(side="left", fill="both", expand=True)
         self.check_tree_frame.pack(fill="both", expand=True, padx=8, pady=(8, 0))
+        
+        self.checker_pagination_frame = ctk.CTkFrame(right_panel, fg_color="transparent")
+        self.checker_pagination_frame.pack(fill="x", padx=8, pady=(4, 0))
+        
+        self.btn_page_first = ctk.CTkButton(self.checker_pagination_frame, text="<<", width=30, command=self._checker_page_first)
+        self.btn_page_first.pack(side="left", padx=2)
+        
+        self.btn_page_prev = ctk.CTkButton(self.checker_pagination_frame, text="<", width=30, command=self._checker_page_prev)
+        self.btn_page_prev.pack(side="left", padx=2)
+        
+        self.lbl_checker_page = ctk.CTkLabel(self.checker_pagination_frame, text="Page 1 of 1", font=("Segoe UI", 12))
+        self.lbl_checker_page.pack(side="left", padx=10)
+        
+        self.btn_page_next = ctk.CTkButton(self.checker_pagination_frame, text=">", width=30, command=self._checker_page_next)
+        self.btn_page_next.pack(side="left", padx=2)
+        
+        self.btn_page_last = ctk.CTkButton(self.checker_pagination_frame, text=">>", width=30, command=self._checker_page_last)
+        self.btn_page_last.pack(side="left", padx=2)
+    
+    def _checker_page_first(self):
+        if not getattr(self, "checker_current_page", None) is not None: return
+        if self.checker_current_page > 0:
+            self.checker_current_page = 0
+            self._render_checker_page()
+
+    def _checker_page_prev(self):
+        if not getattr(self, "checker_current_page", None) is not None: return
+        if self.checker_current_page > 0:
+            self.checker_current_page -= 1
+            self._render_checker_page()
+
+    def _checker_page_next(self):
+        if not getattr(self, "checker_current_page", None) is not None: return
+        total_pages = max(1, (len(self.checker_filtered_proxies) + self.checker_page_size - 1) // self.checker_page_size)
+        if self.checker_current_page < total_pages - 1:
+            self.checker_current_page += 1
+            self._render_checker_page()
+
+    def _checker_page_last(self):
+        if not getattr(self, "checker_current_page", None) is not None: return
+        total_pages = max(1, (len(self.checker_filtered_proxies) + self.checker_page_size - 1) // self.checker_page_size)
+        if self.checker_current_page < total_pages - 1:
+            self.checker_current_page = total_pages - 1
+            self._render_checker_page()
+            
+    def _render_checker_page(self):
+        if not hasattr(self, "checker_filtered_proxies"): return
+        
+        # Clear current treeview items
+        for item in self.check_tree.get_children():
+            self.check_tree.delete(item)
+        self.check_tree_items.clear()
+        
+        # Determine slice
+        total_proxies = len(self.checker_filtered_proxies)
+        total_pages = max(1, (total_proxies + self.checker_page_size - 1) // self.checker_page_size)
+        
+        if self.checker_current_page >= total_pages:
+            self.checker_current_page = max(0, total_pages - 1)
+            
+        start_idx = self.checker_current_page * self.checker_page_size
+        end_idx = min(start_idx + self.checker_page_size, total_proxies)
+        
+        # Insert slice
+        for proxy_str in self.checker_filtered_proxies[start_idx:end_idx]:
+            vals = self.checker_data.get(proxy_str)
+            if vals:
+                item_id = self.check_tree.insert("", "end", values=vals)
+                self.check_tree_items[proxy_str] = item_id
+                
+        # Update UI labels and buttons
+        self.lbl_checker_page.configure(text=f"Page {self.checker_current_page + 1} of {total_pages}")
+        self.btn_page_first.configure(state="normal" if self.checker_current_page > 0 else "disabled")
+        self.btn_page_prev.configure(state="normal" if self.checker_current_page > 0 else "disabled")
+        self.btn_page_next.configure(state="normal" if self.checker_current_page < total_pages - 1 else "disabled")
+        self.btn_page_last.configure(state="normal" if self.checker_current_page < total_pages - 1 else "disabled")
     
     def _update_checker_count(self, event=None):
         if not hasattr(self, "checker_input") or not hasattr(self, "chk_lbl_count"): return
@@ -4465,11 +4576,11 @@ class ProxyHunterApp(ctk.CTk):
 
 
     def _copy_checker_results(self):
-        visible_items = self.check_tree.get_children()
+        if not hasattr(self, "checker_filtered_proxies"): return
         lines = []
-        for item_id in visible_items:
+        for p in self.checker_filtered_proxies:
             try:
-                vals = self.check_tree.item(item_id, "values")
+                vals = self.checker_data.get(p)
                 if vals and len(vals) >= 8:
                     lines.append(str(vals[1]))
             except: continue
@@ -4490,12 +4601,13 @@ class ProxyHunterApp(ctk.CTk):
         path = fd.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")], initialfile="checked_proxies.txt")
         if not path: return
         
-        visible_items = self.check_tree.get_children()
+        if not hasattr(self, "checker_filtered_proxies"): return
+        
         saved_count = 0
         with open(path, 'w', encoding='utf-8') as f:
-            for item_id in visible_items:
+            for p in self.checker_filtered_proxies:
                 try:
-                    vals = self.check_tree.item(item_id, "values")
+                    vals = self.checker_data.get(p)
                     if vals and len(vals) >= 8:
                         f.write(str(vals[1]) + "\n")
                         saved_count += 1
@@ -4507,7 +4619,7 @@ class ProxyHunterApp(ctk.CTk):
             self.after(2000, lambda: self.btn_save_checker.configure(text=self._t("checker_download"), image=self.icons["download"], fg_color=BLUE))
         else:
             self.btn_save_checker.configure(text=self._t("checker_saved").format(saved_count), fg_color=GREEN)
-            self.after(2000, lambda: self.btn_save_checker.configure(text=self._t("checker_download"), image=self.icons["download"], fg_color=BLUE))
+        self.after(2000, lambda: self.btn_save_checker.configure(text=self._t("checker_download"), image=self.icons["download"], fg_color=BLUE))
 
     def _load_checker_file(self):
         from tkinter import filedialog as fd
@@ -4635,11 +4747,16 @@ class ProxyHunterApp(ctk.CTk):
             checker_timeout = 10
 
         self.checker_data = {}
+        self.checker_all_proxies = proxies_list
+        self.checker_filtered_proxies = list(proxies_list)
+        self.checker_current_page = 0
+        self.checker_page_size = 100
+        
         for idx, p in enumerate(proxies_list, 1):
             vals = [idx, p, "⏳", "⏳", "⏳", "⏳", "⏳", "⏳", "⏳"]
-            item_id = self.check_tree.insert("", "end", values=vals)
-            self.check_tree_items[p] = item_id
             self.checker_data[p] = vals
+            
+        self._render_checker_page()
 
         self.checker_is_running = True
         self._checker_detached = []
@@ -4648,15 +4765,30 @@ class ProxyHunterApp(ctk.CTk):
         def _periodic_flush():
             if not getattr(self, "checker_is_running", False):
                 self._flush_checker_updates()
+                # Final progress update
+                if hasattr(self, 'checker_progress'):
+                    self.checker_progress.set(1.0)
+                    self.checker_lbl_prog.configure(text="100%")
                 return
             self._flush_checker_updates()
+            # Update progress bar from main thread (no lock needed for reading int)
+            if hasattr(self, '_checker_total') and self._checker_total > 0:
+                try:
+                    done = self._checker_done
+                    total = self._checker_total
+                    pct = min(100, int((done / total) * 100))
+                    prog_val = min(1.0, done / total)
+                    self.checker_progress.set(prog_val)
+                    self.checker_lbl_prog.configure(text=f"{pct}%")
+                except Exception:
+                    pass
             self.after(500, _periodic_flush)
             
         self.after(500, _periodic_flush)
         
         self.checker_progress.set(0)
         self.checker_lbl_prog.configure(text="0%")
-        self._checker_total = len(proxies_list)
+        self._checker_total = len(proxies_list) * 5
         self._checker_done = 0
         
         self.btn_check_start.configure(text=self._t("cancel"), image=self.icons["cancel"], fg_color=RED, hover_color="#991B1B")
@@ -4683,7 +4815,7 @@ class ProxyHunterApp(ctk.CTk):
         if self.do_check_smtp.get(): visible_cols.append("smtp")
         self.check_tree["displaycolumns"] = visible_cols
 
-        threading.Thread(target=self._run_checker_thread, args=(list(self.check_tree_items.keys()), checker_timeout), daemon=True).start()
+        threading.Thread(target=self._run_checker_thread, args=(list(self.checker_all_proxies), checker_timeout), daemon=True).start()
 
     def _run_checker_thread(self, proxies, timeout=10):
         from fetch_proxy import ProxyUtils, ProxyHunter
@@ -4699,33 +4831,59 @@ class ProxyHunterApp(ctk.CTk):
             except Exception:
                 pass
 
-        try: max_threads = max(1, min(20000, int(float(self.entry_threads.get()))))
-        except Exception: max_threads = 300
+        # Фиксированно 1000 потоков для чекера, как просил пользователь
+        max_threads = 1000
         max_workers = min(max_threads, len(proxies))
         
-        # Pre-fetch categories if needed
+                # Pre-fetch categories dynamically in background
         if getattr(self, "do_check_category", None) and self.do_check_category.get() and self.checker_is_running:
-            def _update_fetching():
-                if hasattr(self, 'checker_lbl_prog'):
-                    self.checker_lbl_prog.configure(text=self._t("chk_fetching_categories"))
-            self.after(0, _update_fetching)
-            
-            unique_ips = set()
-            for p in proxies:
-                clean_p = p.split("://")[-1]
-                ip = clean_p.split(":")[0]
-                unique_ips.add(ip)
-            if unique_ips:
+            def _fetch_categories_bg():
+                unique_ips = set()
+                ip_to_proxies = {}
+                for p in proxies:
+                    clean_p = p.split("://")[-1]
+                    ip = clean_p.split(":")[0]
+                    unique_ips.add(ip)
+                    if ip not in ip_to_proxies: ip_to_proxies[ip] = []
+                    ip_to_proxies[ip].append(p)
+                    
+                if not unique_ips: return
+                
                 import requests, time
+                import threading
+                from concurrent.futures import ThreadPoolExecutor, as_completed
+                
                 ips_list = list(unique_ips)
                 chunks = [ips_list[i:i+100] for i in range(0, len(ips_list), 100)]
-                total_ips = len(ips_list)
-                processed_ips = 0
                 
+                asn_lock = threading.Lock()
+                def _fetch_asn_info(asn):
+                    if asn in dummy_hunter.asn_cache: return
+                    for attempt in range(3):
+                        if dummy_hunter._cancel_event.is_set(): return
+                        try:
+                            html_url = f"https://ipinfo.io/{asn}"
+                            resp_html = requests.get(html_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
+                            if resp_html.status_code == 200:
+                                import re
+                                m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<', resp_html.text, re.IGNORECASE)
+                                if m:
+                                    with asn_lock:
+                                        dummy_hunter.asn_cache[asn] = m.group(1).lower()
+                                break
+                            elif resp_html.status_code == 429:
+                                time.sleep(3 + attempt * 2)
+                            else:
+                                break
+                        except Exception:
+                            time.sleep(2)
+
                 for chunk in chunks:
                     if dummy_hunter._cancel_event.is_set(): break
                     retries = 3
                     backoff = 4
+                    chunk_asns_to_fetch = set()
+                    
                     for attempt in range(retries):
                         try:
                             resp = requests.post("http://ip-api.com/batch?fields=query,isp,org,as,hosting,mobile,countryCode", json=chunk, timeout=10)
@@ -4744,13 +4902,20 @@ class ProxyHunterApp(ctk.CTk):
                                             if not query_ip: continue
                                             if query_ip not in dummy_hunter.ip_cache:
                                                 dummy_hunter.ip_cache[query_ip] = {}
+                                            
+                                            asn_str = data.get('as', '')
                                             dummy_hunter.ip_cache[query_ip].update({
                                                 'country': data.get('countryCode', ''),
                                                 'datacenter': data.get('hosting', False),
                                                 'mobile': data.get('mobile', False),
                                                 'isp': data.get('isp', '').lower(),
-                                                'asn': data.get('as', '')
+                                                'asn': asn_str
                                             })
+                                            
+                                            if asn_str:
+                                                asn_num = asn_str.split()[0]
+                                                if asn_num.startswith('AS') and asn_num not in dummy_hunter.asn_cache:
+                                                    chunk_asns_to_fetch.add(asn_num)
                                     break
                                 except Exception:
                                     break
@@ -4758,87 +4923,53 @@ class ProxyHunterApp(ctk.CTk):
                                 break
                         except Exception:
                             time.sleep(2)
-                            
-                    processed_ips += len(chunk)
-                    pct = int((processed_ips / total_ips) * 100)
-                    def _update_ip_prog(p=pct, curr=processed_ips, tot=total_ips):
-                        if hasattr(self, 'checker_lbl_prog'):
-                            base_t = self._t("chk_fetching_categories")
-                            self.checker_lbl_prog.configure(text=f"{base_t} IP ({curr}/{tot}) - {p}%")
-                        if hasattr(self, 'checker_progress'):
-                            self.checker_progress.set(p / 100.0)
-                    self.after(0, _update_ip_prog)
                     
-                    time.sleep(4)
-                
-                if dummy_hunter._cancel_event.is_set(): return
-                
-                # Now ASN check
-                unique_asns = set()
-                with dummy_hunter._lock:
-                    for ip, info in dummy_hunter.ip_cache.items():
-                        asn_str = info.get('asn', '')
-                        if asn_str:
-                            asn_num = asn_str.split()[0]
-                            if asn_num.startswith('AS'):
-                                unique_asns.add(asn_num)
-                
-                unique_asns -= set(dummy_hunter.asn_cache.keys())
-                
-                if unique_asns:
-                    total_asn = len(unique_asns)
-                    checked_asn = 0
-                    import threading
-                    asn_lock = threading.Lock()
-                    from concurrent.futures import ThreadPoolExecutor, as_completed
-                    
-                    def _check_single_asn(asn):
-                        nonlocal checked_asn
-                        if dummy_hunter._cancel_event.is_set(): return
-                        for attempt in range(3):
-                            try:
-                                html_url = f"https://ipinfo.io/{asn}"
-                                resp_html = requests.get(html_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-                                if resp_html.status_code == 200:
-                                    import re
-                                    m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<', resp_html.text, re.IGNORECASE)
-                                    if m:
-                                        with asn_lock:
-                                            dummy_hunter.asn_cache[asn] = m.group(1).lower()
+                    # Fetch ASNs for this chunk in parallel
+                    if chunk_asns_to_fetch:
+                        with ThreadPoolExecutor(max_workers=min(20, len(chunk_asns_to_fetch))) as executor:
+                            futures = [executor.submit(_fetch_asn_info, asn) for asn in chunk_asns_to_fetch]
+                            for f in as_completed(futures):
+                                if dummy_hunter._cancel_event.is_set():
+                                    for remaining in futures: remaining.cancel()
+                                    executor._work_queue.queue.clear()
                                     break
-                                elif resp_html.status_code == 429:
-                                    time.sleep(3 + attempt * 2)
-                                else:
-                                    break
-                            except Exception:
-                                time.sleep(2)
-                        
-                        with asn_lock:
-                            checked_asn += 1
-                            pct = int((checked_asn / total_asn) * 100)
+                                    
+                    # Update UI for proxies belonging to this chunk
+                    with dummy_hunter._lock:
+                        for ip in chunk:
+                            ip_info = dummy_hunter.ip_cache.get(ip, {})
+                            if not ip_info: continue
                             
-                            def _update_asn_prog(p=pct, curr=checked_asn, tot=total_asn):
-                                if hasattr(self, 'checker_lbl_prog'):
-                                    base_t = self._t("chk_fetching_categories")
-                                    self.checker_lbl_prog.configure(text=f"{base_t} ASN ({curr}/{tot}) - {p}%")
-                                if hasattr(self, 'checker_progress'):
-                                    self.checker_progress.set(p / 100.0)
-                            self.after(0, _update_asn_prog)
-
-                    with ThreadPoolExecutor(max_workers=20) as executor:
-                        futures = [executor.submit(_check_single_asn, asn) for asn in unique_asns]
-                        for f in as_completed(futures):
-                            if dummy_hunter._cancel_event.is_set():
-                                for remaining in futures: remaining.cancel()
-                                executor._work_queue.queue.clear()
-                                break
-                        
-                if dummy_hunter._cancel_event.is_set(): return
-
-            def _update_done_fetching():
-                if hasattr(self, 'checker_lbl_prog'):
-                    self.checker_lbl_prog.configure(text="0%")
-            self.after(0, _update_done_fetching)
+                            mobile = ip_info.get("mobile", False)
+                            hosting = ip_info.get("datacenter", False)
+                            asn_str = ip_info.get("asn", "")
+                            asn_num = asn_str.split()[0] if asn_str else ""
+                            has_api_data = 'datacenter' in ip_info
+                            
+                            asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
+                            
+                            cat = "Unknown"
+                            if mobile:
+                                cat = self._t("checker_only_mob")
+                            elif asn_type == "isp":
+                                cat = self._t("checker_only_res")
+                            elif asn_type in ("hosting", "business"):
+                                cat = self._t("checker_only_dc")
+                            elif not has_api_data:
+                                cat = self._t("checker_only_dc")
+                            elif hosting:
+                                cat = self._t("checker_only_dc")
+                            else:
+                                cat = self._t("checker_only_res")
+                                
+                            for proxy in ip_to_proxies.get(ip, []):
+                                self._update_check_row(proxy, "category", cat)
+                                
+                    self.after(0, self._flush_checker_updates)
+                    time.sleep(4) # Respect rate limits for next chunk
+            
+            import threading
+            threading.Thread(target=_fetch_categories_bg, daemon=True).start()
 
         def check_one(proxy):
             if not getattr(self, 'checker_is_running', False):
@@ -4856,6 +4987,10 @@ class ProxyHunterApp(ctk.CTk):
                         port = int(port_str)
                     except ValueError:
                         self._update_check_row(proxy, "ping", self._t("chk_error"))
+                        self._update_check_row(proxy, "anon", self._t("chk_skip"))
+                        self._update_check_row(proxy, "speed", self._t("chk_skip"))
+                        self._update_check_row(proxy, "smtp", self._t("chk_skip"))
+                        self._update_check_row(proxy, "bl", self._t("chk_skip"))
                         return
                     is_ip_only = False
                     if protocol_prefix:
@@ -4886,31 +5021,7 @@ class ProxyHunterApp(ctk.CTk):
                     self._update_check_row(proxy, "country", self._format_country(country_iso))
                     
                     if getattr(self, "do_check_category", None) and self.do_check_category.get():
-                        cat = "Unknown"
-                        with dummy_hunter._lock:
-                            ip_info = dummy_hunter.ip_cache.get(ip, {})
-                        if ip_info:
-                            mobile = ip_info.get("mobile", False)
-                            hosting = ip_info.get("datacenter", False)
-                            asn_str = ip_info.get("asn", "")
-                            asn_num = asn_str.split()[0] if asn_str else ""
-                            
-                            has_api_data = 'datacenter' in ip_info
-                            asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
-                            
-                            if mobile:
-                                cat = self._t("checker_only_mob")
-                            elif asn_type == "isp":
-                                cat = self._t("checker_only_res")
-                            elif asn_type in ("hosting", "business"):
-                                cat = self._t("checker_only_dc")
-                            elif not has_api_data:
-                                cat = self._t("checker_only_dc")
-                            elif hosting:
-                                cat = self._t("checker_only_dc")
-                            else:
-                                cat = self._t("checker_only_res")
-                        self._update_check_row(proxy, "category", cat)
+                        pass # bg thread sets it
                     else:
                         self._update_check_row(proxy, "category", self._t("chk_skip"))
                         
@@ -4936,31 +5047,7 @@ class ProxyHunterApp(ctk.CTk):
                     self._update_check_row(proxy, "country", self._format_country(country_iso))
                     
                     if getattr(self, "do_check_category", None) and self.do_check_category.get():
-                        cat = "Unknown"
-                        with dummy_hunter._lock:
-                            ip_info = dummy_hunter.ip_cache.get(ip, {})
-                        if ip_info:
-                            mobile = ip_info.get("mobile", False)
-                            hosting = ip_info.get("datacenter", False)
-                            asn_str = ip_info.get("asn", "")
-                            asn_num = asn_str.split()[0] if asn_str else ""
-                            
-                            has_api_data = 'datacenter' in ip_info
-                            asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
-                            
-                            if mobile:
-                                cat = self._t("checker_only_mob")
-                            elif asn_type == "isp":
-                                cat = self._t("checker_only_res")
-                            elif asn_type in ("hosting", "business"):
-                                cat = self._t("checker_only_dc")
-                            elif not has_api_data:
-                                cat = self._t("checker_only_dc")
-                            elif hosting:
-                                cat = self._t("checker_only_dc")
-                            else:
-                                cat = self._t("checker_only_res")
-                        self._update_check_row(proxy, "category", cat)
+                        pass # bg thread sets it
                     else:
                         self._update_check_row(proxy, "category", self._t("chk_skip"))
 
@@ -4998,13 +5085,17 @@ class ProxyHunterApp(ctk.CTk):
                         if self.do_check_speed.get():
                             try:
                                 t0 = time.time()
-                                r = requests.get('http://speedtest.tele2.net/100KB.zip', proxies=proxies_dict, timeout=timeout)
-                                dl_time = max(0.001, time.time() - t0)  # BUG-15: Guard ZeroDivision
-                                mbps = round((100000 * 8) / dl_time / 1000000, 1)
-                                if mbps > 0.5:
-                                    self._update_check_row(proxy, "speed", self._t("chk_speed_ok").format(mbps))
+                                r = requests.get('http://speed.cloudflare.com/__down?bytes=100000', proxies=proxies_dict, timeout=timeout)
+                                if r.status_code == 200:
+                                    actual_size = len(r.content)
+                                    dl_time = max(0.001, time.time() - t0)
+                                    mbps = round((actual_size * 8) / dl_time / 1000000, 1)
+                                    if mbps > 0.5:
+                                        self._update_check_row(proxy, "speed", self._t("chk_speed_ok").format(mbps))
+                                    else:
+                                        self._update_check_row(proxy, "speed", self._t("chk_speed_bad").format(mbps))
                                 else:
-                                    self._update_check_row(proxy, "speed", self._t("chk_speed_bad").format(mbps))
+                                    self._update_check_row(proxy, "speed", self._t("chk_error"))
                             except Exception:
                                 self._update_check_row(proxy, "speed", self._t("chk_error"))
                         else:
@@ -5017,9 +5108,7 @@ class ProxyHunterApp(ctk.CTk):
                             try:
                                 import socket
                                 import socks
-                                
-                                s = socks.socksocket()
-                                s.settimeout(timeout)
+                                import ssl
                                 
                                 p_type = socks.PROXY_TYPE_HTTP
                                 if protocol_prefix:
@@ -5027,30 +5116,52 @@ class ProxyHunterApp(ctk.CTk):
                                         p_type = socks.PROXY_TYPE_SOCKS4
                                     elif protocol_prefix.lower() == 'socks5':
                                         p_type = socks.PROXY_TYPE_SOCKS5
+                                
+                                smtp_servers = [
+                                    ('gmail-smtp-in.l.google.com', 25, False),
+                                    ('smtp.gmail.com', 587, False),
+                                    ('smtp.gmail.com', 465, True),
+                                    ('smtp.mailgun.org', 2525, False)
+                                ]
+                                
+                                smtp_success = False
+                                for shost, sport, use_ssl in smtp_servers:
+                                    s_loop = None
+                                    try:
+                                        s_loop = socks.socksocket()
+                                        s_loop.settimeout(timeout)
+                                        s_loop.set_proxy(p_type, ip, port)
+                                        s_loop.connect((shost, sport))
                                         
-                                s.set_proxy(p_type, ip, port)
+                                        if use_ssl:
+                                            context = ssl.create_default_context()
+                                            s_loop = context.wrap_socket(s_loop, server_hostname=shost)
+                                            
+                                        banner = s_loop.recv(1024).decode('utf-8', errors='ignore')
+                                        if banner.startswith('220'):
+                                            s_loop.sendall(b'EHLO localhost\r\n')
+                                            ehlo_resp = s_loop.recv(1024).decode('utf-8', errors='ignore')
+                                            if '250' in ehlo_resp:
+                                                s_loop.sendall(b'QUIT\r\n')
+                                                smtp_success = True
+                                                break
+                                    except Exception:
+                                        pass
+                                    finally:
+                                        if s_loop:
+                                            try: s_loop.close()
+                                            except Exception: pass
                                 
-                                s.connect(('gmail-smtp-in.l.google.com', 25))
-                                banner = s.recv(1024).decode('utf-8', errors='ignore')
-                                
-                                if banner.startswith('220'):
-                                    s.sendall(b'EHLO localhost\r\n')
-                                    ehlo_resp = s.recv(1024).decode('utf-8', errors='ignore')
-                                    if '250' in ehlo_resp:
-                                        s.sendall(b'QUIT\r\n')
-                                        self._update_check_row(proxy, "smtp", self._t("chk_open"))
-                                    else:
-                                        self._update_check_row(proxy, "smtp", self._t("chk_closed") + " (Blacklisted)")
+                                if smtp_success:
+                                    self._update_check_row(proxy, "smtp", self._t("chk_open"))
                                 else:
-                                    self._update_check_row(proxy, "smtp", self._t("chk_closed") + " (Blocked)")
+                                    self._update_check_row(proxy, "smtp", self._t("chk_closed"))
                             except ImportError:
                                 self._update_check_row(proxy, "smtp", self._t("chk_skip") + " (No PySocks)")
                             except Exception:
                                 self._update_check_row(proxy, "smtp", self._t("chk_closed"))
                             finally:
-                                if s:
-                                    try: s.close()
-                                    except: pass
+                                pass
                         else:
                             self._update_check_row(proxy, "smtp", self._t("chk_skip"))
 
@@ -5090,18 +5201,7 @@ class ProxyHunterApp(ctk.CTk):
                     except Exception:
                         pass
                     break
-                with _checker_lock:
-                    self._checker_done += 1
-                try:
-                    pct = int((self._checker_done / self._checker_total) * 100)
-                    prog_val = self._checker_done / self._checker_total
-                    def _update_prog(p=prog_val, p_text=pct):
-                        if hasattr(self, 'checker_progress'):
-                            self.checker_progress.set(p)
-                            self.checker_lbl_prog.configure(text=f"{p_text}%")
-                    self.after(0, _update_prog)
-                except Exception:
-                    pass
+                pass
         finally:
             try: pool.shutdown(wait=False, cancel_futures=True)
             except TypeError: pool.shutdown(wait=False)
@@ -5145,8 +5245,12 @@ class ProxyHunterApp(ctk.CTk):
             if proxy_str not in self._checker_pending_updates:
                 self._checker_pending_updates[proxy_str] = {}
             self._checker_pending_updates[proxy_str][col_name] = value
-            
-        # UI updates are now handled safely by _periodic_flush in the main thread
+        
+        # Increment step counter OUTSIDE lock (int increment is atomic in CPython)
+        if col_name in ("ping", "anon", "speed", "smtp", "bl") and hasattr(self, '_checker_total'):
+            self._checker_done += 1
+        
+        # Progress bar is updated by _periodic_flush every 500ms on the main thread
 
     def _flush_checker_updates(self):
         
@@ -5160,20 +5264,19 @@ class ProxyHunterApp(ctk.CTk):
         
         # Batch apply updates to Tkinter and python cache
         for proxy_str, col_data in updates.items():
-            item_id = self.check_tree_items.get(proxy_str)
-            if not item_id: continue
-            
             # Update Python cache
             if getattr(self, "checker_data", None) is not None and proxy_str in self.checker_data:
                 vals = self.checker_data[proxy_str]
                 for c_name, val in col_data.items():
                     if c_name in col_indices:
                         vals[col_indices[c_name]] = val
-                
-                # Update Tkinter Treeview once per row
+                        
+            # Update Tkinter Treeview if item is on current page
+            item_id = self.check_tree_items.get(proxy_str)
+            if item_id:
                 try:
                     if self.check_tree.exists(item_id):
-                        self.check_tree.item(item_id, values=vals)
+                        self.check_tree.item(item_id, values=self.checker_data[proxy_str])
                 except Exception:
                     pass
                     
@@ -5240,7 +5343,7 @@ class ProxyHunterApp(ctk.CTk):
                 self._chk_cb_dc.configure(text=f"{self._t('checker_only_dc')} ({dc_count})")
 
         if hasattr(self, '_chk_lbl_total_save'):
-            vis_count = len(self.check_tree.get_children())
+            vis_count = len(getattr(self, "checker_filtered_proxies", []))
             self._chk_lbl_total_save.configure(text=self._t("proxies_count").format(vis_count))
             
         self.checker_all_countries = sorted(list(unique_countries))
@@ -5284,17 +5387,7 @@ class ProxyHunterApp(ctk.CTk):
 
     def _apply_checker_filter(self):
         """Instantly show/hide rows based on filter checkboxes"""
-        # BUG-17: Reattach in correct order (ascending index)
-        detached = getattr(self, '_checker_detached', [])
-        for item_id, orig_idx in sorted(detached, key=lambda x: x[1]):
-            try:
-                self.check_tree.reattach(item_id, '', orig_idx)
-            except Exception:
-                try:
-                    self.check_tree.reattach(item_id, '', 'end')
-                except Exception:
-                    pass
-        self._checker_detached = []
+        if not hasattr(self, "checker_all_proxies"): return
         
         active_c = set()
         if hasattr(self, "checker_selected_countries"):
@@ -5313,15 +5406,18 @@ class ProxyHunterApp(ctk.CTk):
                       (active_p and len(active_p) != len(self.checker_all_protos)))
         
         if not any_filter:
+            self.checker_filtered_proxies = list(self.checker_all_proxies)
+            self.checker_current_page = 0
+            self._render_checker_page()
             self._update_checker_metrics()
             return
         
-        # Collect items to detach with their original indices
-        to_detach = []
-        for item_id in list(self.check_tree.get_children()):
+        filtered = []
+        for proxy_str in self.checker_all_proxies:
             try:
-                vals = self.check_tree.item(item_id, "values")
+                vals = self.checker_data.get(proxy_str)
                 if not vals or len(vals) < 9:
+                    filtered.append(proxy_str)
                     continue
                 _, proxy, country, category, ping, anon, bl, speed, smtp = vals
                 
@@ -5364,17 +5460,14 @@ class ProxyHunterApp(ctk.CTk):
                     if proto not in active_p:
                         hide = True
                 
-                if hide:
-                    idx = self.check_tree.index(item_id)
-                    to_detach.append((item_id, idx))
+                if not hide:
+                    filtered.append(proxy_str)
             except Exception:
                 pass
         
-        # Detach from bottom to top so indices stay valid
-        for item_id, idx in reversed(to_detach):
-            self.check_tree.detach(item_id)
-        self._checker_detached = to_detach
-        
+        self.checker_filtered_proxies = filtered
+        self.checker_current_page = 0
+        self._render_checker_page()
         self._update_checker_metrics()
 
 
