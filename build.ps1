@@ -1,7 +1,7 @@
 # Локальная пересборка ProxyPulse: .exe + установщик. Запуск: .\build.ps1
 #
-# Собираем ВНЕ папки проекта: проект лежит в OneDrive, и тот залочивает файлы
-# прямо во время записи — сборка падает с "файл занят другим процессом".
+# Собираем ВНЕ папки проекта: он лежит в облачной синхронизируемой папке, а она
+# залочивает файлы прямо во время записи — сборка падает с "файл занят".
 # Заодно 60 МБ артефактов не уезжают в облако при каждой пересборке.
 #
 # То же самое, но на серверах GitHub, делает .github/workflows/release.yml —
@@ -10,7 +10,9 @@
 param([string]$Version = "")
 
 $ErrorActionPreference = "Stop"
-$out  = "C:\Users\Bog_1\ProxyPulse-build"
+# Каталог сборки в профиле пользователя, но вычисляется, а не вписан: иначе
+# логин ОС уехал бы в отслеживаемый файл (см. tools/verify_scrub.py).
+$out  = Join-Path $HOME "ProxyPulse-build"
 $iscc = "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
 
 if (-not $Version) { $Version = (Get-Content VERSION -Raw).Trim() }

@@ -26,6 +26,10 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      # Единое время сборки: часть тулчейна берёт отсюда дату вместо «сейчас»
+      # (раздел 16 — воспроизводимая сборка). 315532800 = 1980-01-01 UTC.
+      SOURCE_DATE_EPOCH: "315532800"
 
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +43,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller==6.22.2
+          pip install pyinstaller==6.22.2 pefile
 
       - name: Определить версию
         id: ver
@@ -57,6 +61,14 @@ jobs:
       - name: Собрать .exe
         run: python -m PyInstaller --noconfirm --clean --log-level WARN ProxyPulse.spec
 
+      - name: Обезличить метаданные .exe
+        # Чистим ДО упаковки, чтобы в установщик попал уже вычищенный .exe, и
+        # ДО смоук-запуска, чтобы он доказал: правка PE не сломала старт.
+        # Трогаем только свой ProxyPulse.exe; вендорские .dll/.pyd не трогаем.
+        run: |
+          python tools/scrub_pe.py --clean  dist/ProxyPulse/ProxyPulse.exe
+          python tools/scrub_pe.py --verify dist/ProxyPulse/ProxyPulse.exe
+
       - name: Собрать установщик
         shell: pwsh
         run: |
@@ -72,6 +84,12 @@ jobs:
           if (-not (Test-Path $iscc)) { throw "ISCC.exe не найден после установки" }
           & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" ProxyPulse.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+
+      - name: Обезличить метаданные установщика
+        # У самого setup.exe тоже есть PE-таймстемп момента сборки (раздел 10).
+        run: |
+          python tools/scrub_pe.py --clean  installer/ProxyPulse-setup.exe
+          python tools/scrub_pe.py --verify installer/ProxyPulse-setup.exe
 
       - name: Запустить собранную программу
         shell: pwsh
