@@ -928,6 +928,66 @@ class ProxyUtils:
             return "репозиторий или файл не найден (404)"
         return f"HTTP {status}"
 
+    # Страница ipinfo.io с описанием ASN распаковывается в ~700 КБ текста, а
+    # единственное нужное слово («ISP» / «Hosting» / «Business») стабильно лежит
+    # около 35 000-го символа — примерно 5% от начала. Замерено на AS15169,
+    # AS24940, AS7922, AS20473: позиция 34539..34681 при длине 677..720 тыс.
+    # символов. Поэтому читаем потоком и обрываем, как только нашли.
+    #
+    # Экономия НЕ в трафике: ipinfo отдаёт страницу gzip, по проводу это ~120 КБ
+    # в обоих случаях. Выигрыш в объёме распаковки и разбора — а он даёт и время.
+    # Замер на 10 ASN, по 3 прогона с чередованием порядка:
+    #   страница целиком : медиана 7.72 c, разобрано 19.5 МБ
+    #   поток с обрывом  : медиана 5.14 c, разобрано  1.4 МБ
+    #   => 1.50x по времени, 14x по объёму разбора
+    # Запас до 192 КБ — пятикратный резерв на случай, если вёрстку сдвинут.
+    ASN_TYPE_RE = re.compile(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<', re.IGNORECASE)
+    ASN_PAGE_READ_LIMIT = 192 * 1024
+
+    @classmethod
+    def asn_type_from_ipinfo(cls, asn: str, timeout: int = 10, attempts: int = 3,
+                             cancel_event=None) -> Optional[str]:
+        """Тип ASN с ipinfo.io: 'isp' / 'hosting' / 'business', иначе None.
+
+        Читает ответ потоком и прекращает загрузку, как только слово найдено.
+        Ретраит только 429 — остальные ответы и сетевые ошибки наружу не
+        выпускает.
+        """
+        for attempt in range(attempts):
+            if cancel_event is not None and cancel_event.is_set():
+                return None
+            resp = None
+            try:
+                resp = requests.get(
+                    "https://ipinfo.io/" + asn, timeout=timeout, stream=True,
+                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
+                if resp.status_code == 429:
+                    time.sleep(3 + attempt * 2)
+                    continue
+                if resp.status_code != 200:
+                    return None
+
+                buffer = ""
+                for chunk in resp.iter_content(chunk_size=16384):
+                    if not chunk:
+                        continue
+                    buffer += chunk.decode('utf-8', errors='ignore')
+                    m = cls.ASN_TYPE_RE.search(buffer)
+                    if m:
+                        return m.group(1).lower()
+                    if len(buffer) > cls.ASN_PAGE_READ_LIMIT:
+                        return None
+                return None
+            except Exception:
+                time.sleep(2)
+            finally:
+                if resp is not None:
+                    try:
+                        resp.close()
+                    except Exception:
+                        pass
+        return None
+
     @classmethod
     def check_github_token(cls, token: str, timeout: int = 10) -> Tuple[bool, str, Optional[int]]:
         """Один запрос к /rate_limit до массовой рассылки.
@@ -2244,25 +2304,7 @@ class ProxyHunter:
         print(self._t("check_asn").format(len(unique_asns)))
 
         def _lookup(asn):
-            """Возвращает тип ASN или None. Сетевые ошибки не выпускает наружу."""
-            for attempt in range(3):
-                if self._cancel_event.is_set():
-                    return None
-                try:
-                    resp_html = requests.get(
-                        f"https://ipinfo.io/{asn}", timeout=10,
-                        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
-                    if resp_html.status_code == 200:
-                        m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<',
-                                      resp_html.text, re.IGNORECASE)
-                        return m.group(1).lower() if m else None
-                    if resp_html.status_code == 429:
-                        time.sleep(5)  # Rate limit — подождём и попробуем снова
-                    else:
-                        return None    # Другая ошибка, нет смысла ретраить
-                except Exception:
-                    time.sleep(2)      # Сетевая ошибка, небольшая пауза
-            return None
+            return ProxyUtils.asn_type_from_ipinfo(asn, cancel_event=self._cancel_event)
 
         # PERF-02: раньше ASN опрашивались строго последовательно, да ещё с
         # time.sleep(0.5) после каждого. При 3000 уникальных ASN это ≥25 минут

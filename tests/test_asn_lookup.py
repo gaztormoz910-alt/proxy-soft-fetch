@@ -107,8 +107,14 @@ def test_lookups_run_in_parallel(hunter, monkeypatch):
     lock = threading.Lock()
 
     class Resp:
+        """Ответ читается потоком, поэтому нужен iter_content, а не .text."""
         status_code = 200
-        text = PAGE.format("ISP")
+
+        def iter_content(self, chunk_size=16384):
+            yield PAGE.format("ISP").encode()
+
+        def close(self):
+            pass
 
     def slow_get(url, **kwargs):
         with lock:
@@ -128,3 +134,110 @@ def test_lookups_run_in_parallel(hunter, monkeypatch):
     assert len(hunter.asn_cache) == 40
     # последовательно было бы >= 4 c (плюс прежние 0.5 c сна на каждый ASN)
     assert elapsed < 1.5, f"похоже на последовательный опрос: {elapsed:.2f} c"
+
+
+# ------------------------------- потоковое чтение вместо страницы целиком
+
+class _Streamed:
+    """Ответ, который считает, сколько чанков у него реально забрали."""
+
+    status_code = 200
+
+    def __init__(self, text, chunks_taken):
+        self._text = text
+        self._taken = chunks_taken
+
+    def iter_content(self, chunk_size=16384):
+        for i in range(0, len(self._text), chunk_size):
+            self._taken.append(1)
+            yield self._text[i:i + chunk_size].encode()
+
+    def close(self):
+        pass
+
+
+def test_reading_stops_as_soon_as_the_marker_is_found(monkeypatch):
+    """Нужное слово лежит в первых 5% страницы — остальное читать незачем."""
+    taken = []
+    page = ("x" * 30000) + PAGE.format("Hosting") + ("y" * 600000)
+    monkeypatch.setattr("fetch_proxy.requests.get",
+                        lambda *a, **kw: _Streamed(page, taken))
+
+    from fetch_proxy import ProxyUtils
+    assert ProxyUtils.asn_type_from_ipinfo("AS1") == "hosting"
+    assert len(taken) < 5, f"прочитано {len(taken)} чанков вместо пары первых"
+
+
+def test_a_page_without_the_marker_stops_at_the_read_limit(monkeypatch):
+    taken = []
+    from fetch_proxy import ProxyUtils
+    page = "z" * (ProxyUtils.ASN_PAGE_READ_LIMIT * 3)
+    monkeypatch.setattr("fetch_proxy.requests.get",
+                        lambda *a, **kw: _Streamed(page, taken))
+
+    assert ProxyUtils.asn_type_from_ipinfo("AS1") is None
+    read = len(taken) * 16384
+    assert read <= ProxyUtils.ASN_PAGE_READ_LIMIT + 16384, "лимит чтения не соблюдён"
+    assert read < len(page), "страница не должна вычитываться целиком"
+
+
+def test_non_200_is_not_retried(monkeypatch):
+    calls = []
+
+    class R:
+        status_code = 404
+
+        def iter_content(self, chunk_size=16384):
+            yield b""
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("fetch_proxy.requests.get",
+                        lambda *a, **kw: (calls.append(1), R())[1])
+    from fetch_proxy import ProxyUtils
+    assert ProxyUtils.asn_type_from_ipinfo("AS1") is None
+    assert len(calls) == 1, "404 ретраить незачем"
+
+
+def test_rate_limit_is_retried(monkeypatch):
+    calls = []
+
+    class R429:
+        status_code = 429
+
+        def iter_content(self, chunk_size=16384):
+            yield b""
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("fetch_proxy.time.sleep", lambda *_: None)
+    monkeypatch.setattr("fetch_proxy.requests.get",
+                        lambda *a, **kw: (calls.append(1), R429())[1])
+    from fetch_proxy import ProxyUtils
+    assert ProxyUtils.asn_type_from_ipinfo("AS1", attempts=3) is None
+    assert len(calls) == 3, "429 обязан ретраиться"
+
+
+def test_cancel_event_stops_before_the_request(monkeypatch):
+    import threading
+    calls = []
+    monkeypatch.setattr("fetch_proxy.requests.get",
+                        lambda *a, **kw: calls.append(1))
+    cancel = threading.Event()
+    cancel.set()
+    from fetch_proxy import ProxyUtils
+    assert ProxyUtils.asn_type_from_ipinfo("AS1", cancel_event=cancel) is None
+    assert calls == []
+
+
+def test_network_error_does_not_escape(monkeypatch):
+    monkeypatch.setattr("fetch_proxy.time.sleep", lambda *_: None)
+
+    def boom(*a, **kw):
+        raise ConnectionError("нет сети")
+
+    monkeypatch.setattr("fetch_proxy.requests.get", boom)
+    from fetch_proxy import ProxyUtils
+    assert ProxyUtils.asn_type_from_ipinfo("AS1") is None
