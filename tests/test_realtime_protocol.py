@@ -124,3 +124,42 @@ def test_regions_cover_the_same_countries_in_both_languages():
         return out
 
     assert isos("RU") == isos("EN")
+
+
+# ------------------------------------------------ COR-04: удаление из «живых»
+
+# Backend печатает этот маркер иначе, чем остальные: с ЛИДИРУЮЩИМ '|'.
+# Строка скопирована дословно из fetch_proxy.py — если формат там изменится,
+# тест ниже об этом сообщит.
+REMOVE_LINE = "    [REALTIME_REMOVE_LIVE]|http|1.2.3.4|8080"
+
+
+def test_remove_live_marker_fields_are_not_shifted():
+    app = parse(REMOVE_LINE)
+    assert app._proxy_queue == [
+        ({"protocol": "http", "ip": "1.2.3.4", "port": "8080"}, "remove_live"),
+    ]
+
+
+def test_remove_live_key_matches_the_key_used_when_adding():
+    """Ключ удаления обязан совпадать с ключом, под которым прокси добавлялся.
+
+    Именно это и было сломано: удаление строилось из сдвинутых полей и не
+    попадало ни в одну существующую запись.
+    """
+    added = parse("    [REALTIME_NEW_LIVE] 1.2.3.4|8080|HTTP|US")._proxy_queue[0][0]
+    removed = parse(REMOVE_LINE)._proxy_queue[0][0]
+
+    add_key = (added["protocol"].lower(), added["ip"], str(added["port"]))
+    del_key = (removed["protocol"].lower(), removed["ip"], str(removed["port"]))
+    assert add_key == del_key
+
+
+def test_backend_still_emits_the_leading_pipe_format():
+    """Ловит рассинхрон, если формат в fetch_proxy.py поменяют."""
+    import inspect
+    import fetch_proxy
+    src = inspect.getsource(fetch_proxy.ProxyHunter)
+    assert '[REALTIME_REMOVE_LIVE]|{proto}|{ip}|{port}' in src, (
+        "формат маркера в fetch_proxy.py изменился — поправьте разбор в gui._parse_stats"
+    )
