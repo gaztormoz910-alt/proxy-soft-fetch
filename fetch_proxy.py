@@ -64,62 +64,62 @@ SOURCES = [
     ('https://litport.net/api/free-proxy', 'http'),
     ('https://proxy-spider.com/api/proxies.example.txt', 'http'),
     ('https://proxyfreeonly.com/ru/free-proxy-list', 'http'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc', 'http'),
+
     ('https://proxymania.su/free-proxy', 'http'),
     ('https://proxyspace.pro/http.txt', 'http'),
     ('https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/http_proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/http_proxies.txt', 'all'),
     ('https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt', 'all'),
     ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/MrMarble/proxy-list/main/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/MrMarble/proxy-list/main/all.txt', 'all'),
     ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/http.txt', 'http'),
     ('https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-http.txt', 'http'),
     ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt', 'http'),
     ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/all.txt', 'all'),
     ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/top-http.txt', 'http'),
     ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/berkay-digital/Proxy-Scraper/main/proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/berkay-digital/Proxy-Scraper/main/proxies.txt', 'all'),
     ('https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/http.txt', 'http'),
     ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/http.txt', 'http'),
     ('https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/sources/auto.txt', 'http'),
     ('https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/sources/http.txt', 'http'),
     ('https://raw.githubusercontent.com/hendrikbgr/Free-Proxy-Repo/master/proxy_list.txt', 'http'),
-    ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/all-proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/all-proxies.txt', 'all'),
     ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/http.txt', 'http'),
     ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies.json', 'http'),
-    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies.json', 'all'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/all.txt', 'all'),
     ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.csv', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.csv', 'all'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.json', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/BR/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/CA/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/DE/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/FR/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/GB/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/IN/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/JP/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/NL/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/RU/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/SG/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/US/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/https/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/BR/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/CA/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/DE/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/FR/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/GB/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/IN/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/JP/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/NL/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/RU/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/SG/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/US/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt', 'all'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/https/data.txt', 'all'),
     ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt', 'http'),
-    ('https://raw.githubusercontent.com/stormsia/proxy-list/main/working_proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/sunny9577/proxy-scraper/master/proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/themiralay/Proxy-List-World/master/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/stormsia/proxy-list/main/working_proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/sunny9577/proxy-scraper/master/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/themiralay/Proxy-List-World/master/data.txt', 'all'),
     ('https://raw.githubusercontent.com/trio666/proxy-checker/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/http.txt', 'http'),
     ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/main/http.txt', 'http'),
@@ -130,7 +130,7 @@ SOURCES = [
     ('https://raw.githubusercontent.com/yuceltoluyag/GoodProxy/main/raw.txt', 'http'),
     ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/http.txt', 'http'),
     ('https://spys.me/proxy.txt', 'http'),
-    ('https://sunny9577.github.io/proxy-scraper/generated/http_proxies.txt', 'http'),
+    ('https://sunny9577.github.io/proxy-scraper/generated/http_proxies.txt', 'all'),
     ('https://toproxylab.com/ru/spisok-besplatnyh-proksi-serverov', 'http'),
     ('https://vakhov.github.io/fresh-proxy-list/http.txt', 'http'),
     ('https://vakhov.github.io/fresh-proxy-list/proxylist.txt', 'http'),
@@ -253,7 +253,7 @@ SOURCES.extend([(f'https://advanced.name/freeproxy?type=socks5&page={i}', 'socks
 SOURCES.extend([(f'https://proxylist.geonode.com/api/proxy-list?limit=500&page={i}&sort_by=lastChecked&sort_type=desc', 'http') for i in range(1, 21)])
 
 # PubProxy API (5 запросов - лимит для free-пользователей)
-SOURCES.extend([(f'http://pubproxy.com/api/proxy?limit=5&format=txt&http=true&level=anonymous,elite&type=http,socks4,socks5', 'http') for i in range(5)])
+SOURCES.append(('http://pubproxy.com/api/proxy?limit=5&format=txt&http=true&level=anonymous,elite&type=http,socks4,socks5', 'http'))
 
 SOURCES.append(('https://good-proxies.ru/proxy-list/free/us/', 'http'))
 class ProxyUtils:
@@ -266,16 +266,31 @@ class ProxyUtils:
     @staticmethod
     def is_valid(ip: str, port: int) -> bool:
         parts = ip.split('.')
-        return (len(parts) == 4 and all(p.isdigit() and 0 <= int(p) <= 255 for p in parts)
-                and 1 <= port <= 65535 and ip not in ('0.0.0.0', '127.0.0.1', '255.255.255.255'))
+        if not (len(parts) == 4 and all(p.isdigit() and 0 <= int(p) <= 255 for p in parts)
+                and 1 <= port <= 65535):
+            return False
+        # L-02 FIX: Block private/reserved IPs
+        first = int(parts[0])
+        if first in (0, 10, 127) or first >= 224:
+            return False
+        if first == 172 and 16 <= int(parts[1]) <= 31:
+            return False
+        if first == 192 and int(parts[1]) == 168:
+            return False
+        if first == 169 and int(parts[1]) == 254:
+            return False
+        return True
     @classmethod
     def parse_proxies(cls, content: str) -> List[str]:
-        # Автоматический декод Base64, если весь ответ это зашифрованная строка
+        # M-04 FIX: Stricter Base64 heuristic to avoid decoding plain text
         stripped = content.replace('\n', '').replace('\r', '').strip()
         if len(stripped) > 20 and re.match(r'^[A-Za-z0-9+/]+={0,2}$', stripped):
             import base64
             try:
-                content = base64.b64decode(stripped).decode('utf-8')
+                decoded = base64.b64decode(stripped).decode('utf-8')
+                # Require some proxy-like signature in decoded text
+                if re.search(r'\d{1,3}\.\d{1,3}\.', decoded) or '://' in decoded:
+                    content = decoded
             except Exception:
                 pass
         found = set()
@@ -374,7 +389,7 @@ class ProxyUtils:
             return [], {}
             
         import datetime
-        since_date = (datetime.datetime.utcnow() - datetime.timedelta(hours=hours_back)).isoformat() + 'Z'
+        since_date = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=hours_back)).strftime('%Y-%m-%dT%H:%M:%SZ')
         
         api_url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}&since={since_date}&per_page=100"
         headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
@@ -440,7 +455,20 @@ class ProxyUtils:
             return "Config", "N/A"
     @staticmethod
     def fetch_url(url: str, timeout: int = 10) -> str:
-        headers = {'User-Agent': 'Mozilla/5.0'}
+        import random, time
+        user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+        ]
+        headers = {'User-Agent': random.choice(user_agents)}
+        
+        # Stagger requests for sites with many pagination links to prevent 429 / DDoS blocks
+        if "advanced.name" in url:
+            time.sleep(random.uniform(0.5, 3.0))
+
         try:
             resp = requests.get(url, headers=headers, timeout=timeout, stream=True)
             resp.raise_for_status()
@@ -448,8 +476,8 @@ class ProxyUtils:
             for chunk in resp.iter_content(chunk_size=8192):
                 chunks.append(chunk.decode('utf-8', errors='ignore'))
                 size += len(chunk)
-                # Увеличен лимит до 2 МБ, чтобы не ломать крупные JSON ответы
-                if size > 2 * 1024 * 1024: break
+                # Увеличен лимит до 20 МБ, чтобы не ломать крупные JSON ответы и длинные списки
+                if size > 20 * 1024 * 1024: break
             resp.close()
             return ''.join(chunks)
         except Exception: 
@@ -479,7 +507,6 @@ class ProxyUtils:
         for proto in sorted(protos):
             if cls.http_check(ip, port, proto, timeout):
                 working_protos.add(proto)
-                break
         return working_protos
 
     @staticmethod
@@ -562,7 +589,6 @@ class ProxyUtils:
         for proto in sorted(protos):
             if await cls.async_http_check(ip, port, proto, timeout):
                 working_protos.add(proto)
-                break # If one works, we stop testing others (like original logic)
         return working_protos
 class RandomProxyGenerator:
     """Генератор рандомных IP:PORT для массовой проверки"""
@@ -585,6 +611,7 @@ class RandomProxyGenerator:
     ]
     POPULAR_PORTS = {
         'http': [80, 8080, 3128, 8888, 8000, 8443, 443, 8118, 9080, 8081, 8082, 8090, 1080, 3129, 8180, 9090, 8008, 8880, 8123, 8899],
+        'https': [443, 8443, 8080, 3128, 8888, 8000, 8118, 9443, 4443, 18443, 8880, 9080, 8081, 9090, 8123],
         'socks4': [1080, 4145, 1081, 1085, 4153, 10808, 9050, 9051, 31337, 50000, 4480, 1088, 1180, 5000, 6969],
         'socks5': [1080, 1081, 9050, 9051, 7777, 10808, 1085, 4145, 5555, 50000, 8889, 1088, 4480, 1180, 6969]
     }
@@ -595,50 +622,68 @@ class RandomProxyGenerator:
                 return True
         return False
     @classmethod
-    def generate(cls, count: int, protocol: str):
+    def generate(cls, count: int, protocol: str, patterns: Dict[str, List[tuple]] = None):
         pool = cls.POPULAR_PORTS.get(protocol.lower(), [80, 8080])
         generated_count = 0
         import socket
         import struct
         
+        protocol_patterns = patterns.get(protocol.lower(), []) if patterns else []
+        
         while generated_count < count:
-            ip_int = random.randint(1, 0xFFFFFFFF - 1)
-            b1 = ip_int >> 24
-            # Fast filter for reserved spaces
-            if b1 in {0, 10, 127} or b1 >= 224:
-                continue
-            b2 = (ip_int >> 16) & 0xFF
-            if b1 == 172 and 16 <= b2 <= 31:
-                continue
-            if b1 == 192 and b2 == 168:
-                continue
-            if b1 == 100 and 64 <= b2 <= 127:
-                continue
-            
-            try:
-                ip_str = socket.inet_ntoa(struct.pack('!I', ip_int))
-                # Микс портов: 50% из пула, 50% полностью рандомные
+            if protocol_patterns and random.random() < 0.95:
+                # 95% chance to use pattern, 5% full random for diversity
+                subnet24, subnet16, port = random.choice(protocol_patterns)
                 if random.random() < 0.5:
-                    port = random.choice(pool)
+                    ip_str = f"{subnet24}.{random.randint(1, 254)}"
                 else:
-                    port = random.randint(1, 65535)
-                    
+                    ip_str = f"{subnet16}.{random.randint(1, 254)}.{random.randint(1, 254)}"
+                # Quick reserved IP check for pattern-generated IPs
+                b1 = int(ip_str.split('.')[0])
+                if b1 in (0, 10, 127) or b1 >= 224:
+                    continue
                 yield f"{ip_str}:{port}"
                 generated_count += 1
-            except Exception:
-                pass
+            else:
+                ip_int = random.randint(1, 0xFFFFFFFF - 1)
+                b1 = ip_int >> 24
+                # Fast filter for reserved spaces
+                if b1 in {0, 10, 127} or b1 >= 224:
+                    continue
+                b2 = (ip_int >> 16) & 0xFF
+                if b1 == 172 and 16 <= b2 <= 31:
+                    continue
+                if b1 == 192 and b2 == 168:
+                    continue
+                if b1 == 100 and 64 <= b2 <= 127:
+                    continue
+                
+                try:
+                    ip_str = socket.inet_ntoa(struct.pack('!I', ip_int))
+                    # Микс портов: 50% из пула, 50% полностью рандомные
+                    if random.random() < 0.5:
+                        port = random.choice(pool)
+                    else:
+                        port = random.randint(1, 65535)
+                        
+                    yield f"{ip_str}:{port}"
+                    generated_count += 1
+                except Exception:
+                    pass
+
     @classmethod
-    def generate_all(cls, counts: Dict[str, int]):
+    def generate_all(cls, counts: Dict[str, int], patterns: Dict[str, List[tuple]] = None):
         for proto, count in counts.items():
             if count > 0:
-                for proxy in cls.generate(count, proto):
+                for proxy in cls.generate(count, proto, patterns):
                     yield proto, proxy
 TRANS = {
     "RU": {
         "log_unique_ip": "Уникальных IP:PORT",
         "step1": "ШАГ 1: Асинхронный сбор из {0} источников...",
-        "step1_5": "ШАГ 1.5: Генерация рандомных прокси...",
+        "step4": "ШАГ 4: Генерация рандомных прокси...",
         "step2": "ШАГ 2: Базовая проверка {0} прокси на живость...",
+        "step5": "ШАГ 5: Базовая проверка {0} сгенерированных прокси на живость...",
         "step3": "ШАГ 3: Классификация и фильтрация {0} рабочих прокси...",
         "tqdm_dl": "Загрузка",
         "tqdm_check": "Проверка",
@@ -677,10 +722,11 @@ TRANS = {
         "random_generated": "Random generated",
         "start": "[*] Starting proxy collection (Thread limit: {max_workers})",
         "step1": "STEP 1: Async fetching from {0} sources...",
-        "step1_5": "STEP 1.5: Generating random proxies...",
+        "step4": "STEP 4: Generating random proxies...",
         "fetch_err": "    [x] Error {source}: {e}",
         "raw_found": "    [+] Raw proxies collected: {0}",
         "step2": "STEP 2: Basic live check...",
+        "step5": "STEP 5: Basic live check for generated proxies...",
         "live_found": "    [✓] Live proxies: {0}",
         "step3": "STEP 3: Advanced filtering (Anon, Blacklists, Type)...",
         "tqdm_dl": "Downloading",
@@ -719,11 +765,14 @@ class ProxyHunter:
                  check_smtp: bool = False,
                  collect_dc: bool = True, collect_res: bool = True, collect_mob: bool = True,
                  random_counts: Optional[Dict[str, int]] = None, lang: str = "RU", output_dir: str = ".",
-                 github_token: str = ""):
+                 github_token: str = "", github_tm_enabled: bool = True, github_tm_days: int = 1, ipinfo_token: str = ""):
         
         self.output_dir = output_dir
         self.lang = lang
         self.github_token = github_token
+        self.github_tm_enabled = github_tm_enabled
+        self.github_tm_days = github_tm_days
+        self.ipinfo_token = ipinfo_token
         self.threads = min(threads, 5000)
         self.timeout = timeout
         
@@ -752,6 +801,7 @@ class ProxyHunter:
         self.ip_cache: Dict[str, dict] = {}
         self.asn_cache: Dict[str, str] = {}  # ASN → type (isp/hosting/business) from ipinfo.io
         self.db_reader = None
+        self.total_collected = 0
         
         self._pause_event = threading.Event()
         self._cancel_event = threading.Event()
@@ -772,6 +822,13 @@ class ProxyHunter:
     def cancel(self):
         self._cancel_event.set()
         self.resume()  # Unblock paused threads
+
+    def pause(self):
+        self._pause_event.set()
+
+    def resume(self):
+        self._pause_event.clear()
+
     def _wait_if_paused(self) -> bool:
         """Returns True if cancelled, False if ready to continue"""
         while self._pause_event.is_set() and not self._cancel_event.is_set():
@@ -794,24 +851,36 @@ class ProxyHunter:
             pbar = tqdm(total=len(SOURCES), desc=self._dynamic_t("tqdm_dl"))
         except ImportError:
             pbar = None
-            
-        with ThreadPoolExecutor(max_workers=min(len(SOURCES), 30)) as ex:
+        def _fetch_and_parse(url, proto, fetch_timeout):
+            content = ProxyUtils.fetch_url(url, fetch_timeout)
+            if content:
+                return proto, ProxyUtils.parse_proxies(content)
+            return proto, []
+
+        with ThreadPoolExecutor(max_workers=300) as ex:
             fmap = {}
             for url, proto in SOURCES:
-                fmap[ex.submit(ProxyUtils.fetch_url, url, 12)] = (url, proto)
+                fetch_timeout = max(15, self.timeout)
+                fmap[ex.submit(_fetch_and_parse, url, proto, fetch_timeout)] = url
                 
             for fut in as_completed(fmap):
                 if self._wait_if_paused(): break
                 if self._cancel_event.is_set(): break
-                url, proto = fmap[fut]
-                content = fut.result()
-                if content:
+                url = fmap[fut]
+                try:
+                    proto, proxies = fut.result()
+                except Exception:
+                    if pbar: pbar.update(1)
+                    continue
+                if proxies:
                     ok_sources += 1
-                    proxies = ProxyUtils.parse_proxies(content)
                     total_raw += len(proxies)
                     with self._lock:
                         for p in proxies:
-                            self.proxy_protocols[p].add(proto)
+                            if proto == 'all':
+                                self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
+                            else:
+                                self.proxy_protocols[p].add(proto)
                 if pbar: pbar.update(1)
         
         if pbar: pbar.close()
@@ -819,19 +888,28 @@ class ProxyHunter:
         print(f"    Уникальных IP:PORT после основного парсинга: {len(self.proxy_protocols)}")
 
         # МАШИНА ВРЕМЕНИ (отдельным шагом)
-        if getattr(self, 'github_token', None):
-            print(f"\n[*] Запуск Машины Времени GitHub (поиск коммитов за 24 часа)...")
+        if getattr(self, 'github_token', None) and getattr(self, 'github_tm_enabled', True):
+            tm_days = getattr(self, "github_tm_days", 1)
+            print(f"\n[*] Запуск Машины Времени GitHub (поиск коммитов за {tm_days*24} часа)...")
+            
+            limit_before = None
+            try:
+                r_before = requests.get("https://api.github.com/rate_limit", headers={"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}, timeout=5)
+                if r_before.status_code == 200:
+                    limit_before = r_before.json().get('resources', {}).get('core', {}).get('remaining')
+            except Exception: pass
+            
             history_sources = []
             rate_limits = []
             
             def _resolve_commits(item):
                 url, proto = item
                 if "raw.githubusercontent.com" in url or "cdn.jsdelivr.net" in url:
-                    commits, limit_info = ProxyUtils.fetch_github_commits(url, self.github_token, 24)
+                    commits, limit_info = ProxyUtils.fetch_github_commits(url, self.github_token, tm_days*24)
                     return [(c, proto) for c in commits], limit_info
                 return [], {}
 
-            with ThreadPoolExecutor(max_workers=10) as ex:
+            with ThreadPoolExecutor(max_workers=300) as ex:
                 futures = [ex.submit(_resolve_commits, item) for item in SOURCES]
                 for fut in as_completed(futures):
                     if self._cancel_event.is_set(): break
@@ -842,11 +920,29 @@ class ProxyHunter:
             
             history_sources = list(dict.fromkeys(history_sources))
             
+            limit_after, reset_time_epoch, total_limit = None, None, 5000
+            try:
+                r_after = requests.get("https://api.github.com/rate_limit", headers={"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}, timeout=5)
+                if r_after.status_code == 200:
+                    core = r_after.json().get('resources', {}).get('core', {})
+                    limit_after = core.get('remaining')
+                    reset_time_epoch = core.get('reset')
+                    total_limit = core.get('limit')
+            except Exception: pass
+            
             if rate_limits:
                 min_remaining = min(rate_limits, key=lambda x: int(x['remaining']))
                 import datetime
                 reset_time = datetime.datetime.fromtimestamp(int(min_remaining['reset'])).strftime('%H:%M:%S')
-                print(f"    [API INFO] Лимит: {min_remaining['limit']} | Осталось: {min_remaining['remaining']} | Сброс: {reset_time}")
+                limit_after_real = int(min_remaining['remaining'])
+                total_limit_real = min_remaining.get('limit', '5000')
+                used_session = (limit_before - limit_after_real) if (limit_before is not None and limit_before >= limit_after_real) else 0
+                print(f"    [API INFO] Потрачено за сеанс: {used_session} | Остаток лимита: {limit_after_real}/{total_limit_real} | Сброс: {reset_time}")
+            elif limit_after is not None and reset_time_epoch is not None:
+                import datetime
+                reset_time = datetime.datetime.fromtimestamp(int(reset_time_epoch)).strftime('%H:%M:%S')
+                used_session = (limit_before - limit_after) if (limit_before is not None and limit_before >= limit_after) else 0
+                print(f"    [API INFO] Потрачено за сеанс: {used_session} | Остаток лимита: {limit_after}/{total_limit} | Сброс: {reset_time}")
             
             print(f"    [+] Найдено {len(history_sources)} исторических файлов. Начинаем скачивание...")
             
@@ -857,48 +953,105 @@ class ProxyHunter:
                     pbar_hist = None
                     
                 ok_hist = 0
-                with ThreadPoolExecutor(max_workers=min(len(history_sources), 50)) as ex:
+                with ThreadPoolExecutor(max_workers=300) as ex:
                     fmap = {}
                     for url, proto in history_sources:
-                        fmap[ex.submit(ProxyUtils.fetch_url, url, 12)] = (url, proto)
+                        fetch_timeout = max(15, self.timeout)
+                        fmap[ex.submit(_fetch_and_parse, url, proto, fetch_timeout)] = url
                         
                     for fut in as_completed(fmap):
                         if self._wait_if_paused(): break
                         if self._cancel_event.is_set(): break
-                        url, proto = fmap[fut]
-                        content = fut.result()
-                        if content:
+                        url = fmap[fut]
+                        try:
+                            proto, proxies = fut.result()
+                        except Exception:
+                            if pbar_hist: pbar_hist.update(1)
+                            continue
+                        if proxies:
                             ok_hist += 1
-                            proxies = ProxyUtils.parse_proxies(content)
                             total_raw += len(proxies)
                             with self._lock:
                                 for p in proxies:
-                                    self.proxy_protocols[p].add(proto)
+                                    if proto == 'all':
+                                        self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
+                                    else:
+                                        self.proxy_protocols[p].add(proto)
                         if pbar_hist: pbar_hist.update(1)
                 
                 if pbar_hist: pbar_hist.close()
                 print(f"    Успешно скачано исторических файлов: {ok_hist}/{len(history_sources)}")
         print(f"    {self._t('log_unique_ip')}: {len(self.proxy_protocols)}")
+        
+        # Setup candidate generator for Pass 1
+        def pass1_generator():
+            for ip_port, protos in self.proxy_protocols.items():
+                yield ip_port, list(protos)
+        self.candidate_generator = pass1_generator()
+        self.candidate_total = len(self.proxy_protocols)
+        self.total_collected = self.candidate_total
     def collect_random(self):
-        print(f"\n[+] " + self._t("step1_5"))
-        # Не генерируем все IP в память, просто считаем их количество
+        print(f"\n[+] " + self._t("step4"))
         rand_total = sum(self.random_counts.values())
         print(f"    {self._t('random_generated')}: {rand_total}")
         
-        # Создаем ленивый генератор кандидатов (Pipeline)
-        def candidate_generator():
-            # Сначала отдаем собранные из источников
-            for ip_port, protos in self.proxy_protocols.items():
-                yield ip_port, list(protos)
-            # Затем генерируем рандомные на лету
-            for proto, ip_port in RandomProxyGenerator.generate_all(self.random_counts):
+        # Build patterns from filtered Pass 1 proxies
+        patterns = {'http': [], 'https': [], 'socks4': [], 'socks5': []}
+        if rand_total > 0:
+            # BUG-FIX: Используем ВСЕ живые прокси для паттернов, а не только elite.
+            # Раньше при выключенном DC сотни живых DC-прокси не попадали в паттерны,
+            # и генератор "слепнул" — сканировал только резидентные подсети, где нечего ловить.
+            pass1_final = []
+            if hasattr(self, '_pass1_live_backup'):
+                pass1_final.extend(self._pass1_live_backup)
+            # Добавляем элитные тоже (могут содержать прокси, которых нет в live_backup)
+            if hasattr(self, 'elite_results'):
+                pass1_final.extend(self.elite_results)
+            if hasattr(self, 'results_residential'):
+                pass1_final.extend(self.results_residential)
+            if hasattr(self, 'results_mobile'):
+                pass1_final.extend(self.results_mobile)
+            if hasattr(self, 'results_datacenter'):
+                pass1_final.extend(self.results_datacenter)
+                
+            for uri in pass1_final:
+                try:
+                    if '://' in uri:
+                        proto, ip_port = uri.split('://', 1)
+                        # Безопасный парсинг: rsplit чтобы корректно обработать URI с @
+                        if '@' in ip_port:
+                            ip_port = ip_port.split('@', 1)[1]
+                        # Отрезаем query string если есть
+                        if '?' in ip_port:
+                            ip_port = ip_port.split('?', 1)[0]
+                        if '#' in ip_port:
+                            ip_port = ip_port.split('#', 1)[0]
+                        ip, port = ip_port.rsplit(':', 1)
+                        parts = ip.split('.')
+                        if len(parts) == 4 and all(p.isdigit() for p in parts):
+                            subnet24 = f"{parts[0]}.{parts[1]}.{parts[2]}"
+                            subnet16 = f"{parts[0]}.{parts[1]}"
+                            if proto in patterns:
+                                patterns[proto].append((subnet24, subnet16, port))
+                except Exception:
+                    pass
+            # Deduplicate
+            for p in patterns:
+                patterns[p] = list(set(patterns[p]))
+        
+        # Создаем ленивый генератор кандидатов (Pipeline) только для рандомных
+        def pass2_generator():
+            for proto, ip_port in RandomProxyGenerator.generate_all(self.random_counts, patterns):
                 yield ip_port, [proto]
                 
-        self.candidate_generator = candidate_generator()
-        self.candidate_total = len(self.proxy_protocols) + rand_total
+        self.candidate_generator = pass2_generator()
+        self.candidate_total = rand_total
 
-    def validate(self):
-        print(f"\n[+] " + self._t("step2").format(self.candidate_total))
+    def validate(self, is_second_pass=False):
+        if is_second_pass:
+            print(f"\n[+] " + self._t("step5").format(self.candidate_total))
+        else:
+            print(f"\n[+] " + self._t("step2").format(self.candidate_total))
         import asyncio
         
         total = self.candidate_total
@@ -927,12 +1080,16 @@ class ProxyHunter:
                 return (ip_port, {scheme})
                 
             ip, port_s = ip_port.rsplit(':', 1)
+            
+            # GeoIP Filter (moved BEFORE network ping to massively speed up filtering)
+            if self.countries:
+                country = self._get_country(ip)
+                if country.upper() not in self.countries:
+                    return None
+                    
             working = await ProxyUtils.async_check_proxy(ip, int(port_s), protos, self.timeout)
             if working:
                 if self._cancel_event.is_set(): return None
-                country = self._get_country(ip)
-                if self.countries and country.upper() not in self.countries:
-                    return None
                 if self._wait_if_paused(): return None
                 return (ip_port, working)
             return None
@@ -1008,7 +1165,24 @@ class ProxyHunter:
                 w.cancel()
             if pbar: pbar.close()
             
-        asyncio.run(main_loop())
+        # H-03 FIX: Safely run asyncio loops without conflicting with existing ones
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            asyncio.run(main_loop())
+        else:
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                new_loop.run_until_complete(main_loop())
+            finally:
+                new_loop.close()
+                asyncio.set_event_loop(loop)
         self.live_results = sorted(set(self.live_results))
         print(f"    {self._t('live_proxies')} {len(self.live_results)}")
     def _download_mmdb_if_needed(self):
@@ -1117,47 +1291,42 @@ class ProxyHunter:
         for asn in unique_asns:
             if self._cancel_event.is_set(): break
             
-            try:
-                resp = requests.get(f"https://ipinfo.io/{asn}/json", timeout=5,
-                                    headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
-                if resp.status_code == 200:
-                    data = resp.json()
-                    asn_type = data.get('type', '').lower()  # "isp", "hosting", "business"
-                    if asn_type:
-                        self.asn_cache[asn] = asn_type
-                        checked += 1
-                elif resp.status_code == 429:
-                    # Rate limit — подождём и продолжим
-                    time.sleep(5)
-                    try:
-                        resp = requests.get(f"https://ipinfo.io/{asn}/json", timeout=5,
-                                            headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            asn_type = data.get('type', '').lower()
-                            if asn_type:
-                                self.asn_cache[asn] = asn_type
+            for attempt in range(3):
+                try:
+                    url = f"https://ipinfo.io/{asn}/json"
+                    if getattr(self, 'ipinfo_token', ''):
+                        url += f"?token={self.ipinfo_token}"
+                    resp = requests.get(url, timeout=5,
+                                        headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        asn_type = data.get('type', '').lower()  # "isp", "hosting", "business"
+                        if asn_type:
+                            self.asn_cache[asn] = asn_type
+                            checked += 1
+                        break  # Успешно, выходим из цикла retry
+                    elif resp.status_code in (400, 401, 403):
+                        # Бесплатный Lite токен не имеет доступа к /json ASN API.
+                        # Парсим HTML страницу напрямую.
+                        html_url = f"https://ipinfo.io/{asn}"
+                        resp_html = requests.get(html_url, timeout=10,
+                                                 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
+                        if resp_html.status_code == 200:
+                            import re
+                            m = re.search(r'ASN type.*?>(ISP|Hosting|Business)<', resp_html.text, re.IGNORECASE)
+                            if m:
+                                self.asn_cache[asn] = m.group(1).lower()
                                 checked += 1
-                        elif resp.status_code == 429:
-                            # Rate limit — подождём и продолжим
-                            time.sleep(5)
-                            try:
-                                resp = requests.get(f"https://ipinfo.io/{asn}/json", timeout=5,
-                                                    headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
-                                if resp.status_code == 200:
-                                    data = resp.json()
-                                    asn_type = data.get('type', '').lower()
-                                    if asn_type:
-                                        self.asn_cache[asn] = asn_type
-                                        checked += 1
-                            except Exception:
-                                pass
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+                        break  # Выходим из цикла retry
+                    elif resp.status_code == 429:
+                        time.sleep(5)  # Rate limit — подождём и попробуем снова
+                    else:
+                        break  # Другая ошибка, нет смысла ретраить
+                except Exception:
+                    time.sleep(2)  # Сетевая ошибка, небольшая пауза
             
-            time.sleep(0.3)  # Мягкий rate-limit для ipinfo.io
+            time.sleep(0.5)  # Мягкий rate-limit для ipinfo.io
+
         
         print(self._t("ipinfo", checked=checked, total=len(unique_asns)))
     def _check_rdns_and_bl(self, ip: str) -> dict:
@@ -1204,10 +1373,13 @@ class ProxyHunter:
             if ProxyUtils.tcp_ping(ip, port, timeout=1):
                 has_bad_port = True
                 break
+        # H-04 FIX: Добавляем rdns_dirty для обнаружения подозрительных hostname
+        DIRTY_KEYWORDS = ['proxy', 'vpn', 'tor', 'exit', 'relay', 'anon', 'scan', 'bot', 'spam', 'abuse']
+        rdns_dirty = any(kw in rdns for kw in DIRTY_KEYWORDS) if rdns else False
         # Защита от состояния гонки при записи из множества потоков
         with self._lock:
             if ip not in self.ip_cache: self.ip_cache[ip] = {}
-            self.ip_cache[ip].update({'rdns': rdns, 'dnsbl': is_bl, 'bad_ports': has_bad_port})
+            self.ip_cache[ip].update({'rdns': rdns, 'rdns_dirty': rdns_dirty, 'dnsbl': is_bl, 'bad_ports': has_bad_port})
             return self.ip_cache[ip].copy()
     async def async_run_single_filter(self, item: str) -> Optional[Tuple[str, str]]:
         if self._wait_if_paused(): return None
@@ -1271,7 +1443,7 @@ class ProxyHunter:
             try:
                 ping_start = time.time()
                 fut = asyncio.open_connection(ip, port)
-                reader, writer = await asyncio.wait_for(fut, timeout=min(3.0, self.timeout))
+                reader, writer = await asyncio.wait_for(fut, timeout=self.max_ping / 1000.0)
                 writer.close()
                 try: await writer.wait_closed()
                 except Exception: pass
@@ -1323,7 +1495,7 @@ class ProxyHunter:
                 return None
         
         return (item, category)
-    def advanced_filter(self):
+    def advanced_filter(self, is_second_pass=False):
         if not self.live_results: return
         print(f"\n[+] " + self._t("step3").format(len(self.live_results)))
         
@@ -1343,9 +1515,29 @@ class ProxyHunter:
         self._batch_asn_type()
         print(self._t("classify_filter"))
         
+        # ЖЕСТКИЙ ФИЛЬТР СТРАН ПОСЛЕ ОБНОВЛЕНИЯ ДАННЫХ ИЗ API
+        if self.countries:
+            valid_live = []
+            for p in self.live_results:
+                proto, ipp = p.split('://', 1)
+                if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                    ext_ip, _ = ProxyUtils.extract_ip_port(p)
+                    c = self.ip_cache.get(ext_ip, {}).get('country') or self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
+                else:
+                    ip, _ = ipp.rsplit(':', 1)
+                    c = self.ip_cache.get(ip, {}).get('country') or self._get_country(ip)
+                if c.upper() in self.countries:
+                    valid_live.append(p)
+                else:
+                    # Страна изменилась и теперь не подходит
+                    pass
+            self.live_results = valid_live
+
         import asyncio
         try: from tqdm import tqdm
         except ImportError: tqdm = None
+        
+        strict_remove = set()
         
         async def main_loop():
             loop = asyncio.get_running_loop()
@@ -1389,6 +1581,7 @@ class ProxyHunter:
                             if self.countries and chk_country.upper() not in self.countries:
                                 with self._lock:
                                     to_remove_live.add(res)
+                                    strict_remove.add(res)
                             else:
                                 with self._lock:
                                     self.elite_results.append(res)
@@ -1436,18 +1629,41 @@ class ProxyHunter:
             
             return to_remove_live
             
-        to_remove_live = asyncio.run(main_loop())
+        # H-03 FIX: Safely run asyncio loops without conflicting with existing ones
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            to_remove_live = asyncio.run(main_loop())
+        else:
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                to_remove_live = new_loop.run_until_complete(main_loop())
+            finally:
+                new_loop.close()
+                asyncio.set_event_loop(loop)
         
-        if to_remove_live:
-            self.live_results = [r for r in self.live_results if r not in to_remove_live]
+        # We purposefully DO NOT remove to_remove_live from self.live_results.
+        # Even if a proxy fails the anonymity/SMTP check (or timeouts during advanced check), 
+        # it successfully passed the basic check and therefore is genuinely "Рабочий".
+        # This keeps the "Рабочие" metrics and exported lists perfectly aligned with what was found.
+        # HOWEVER: We MUST remove proxies that failed the strict secondary Country filter!
+        self.live_results = [p for p in self.live_results if p not in strict_remove]
             
         self.results_datacenter = sorted(set(self.results_datacenter))
         self.results_residential = sorted(set(self.results_residential))
         self.results_mobile = sorted(set(self.results_mobile))
         self.elite_results = sorted(set(self.elite_results))
+        self.live_results = sorted(set(self.live_results))
         
         total_elite = len(self.elite_results)
         print(f"    {self._t('elite_proxies')} {total_elite} (DC: {len(self.results_datacenter)}, Res: {len(self.results_residential)}, Mob: {len(self.results_mobile)})")
+
     def _save_category(self, folder_name: str, results_list: List[str], description: str):
         full_path = os.path.join(self.output_dir, folder_name)
         os.makedirs(full_path, exist_ok=True)
@@ -1463,7 +1679,8 @@ class ProxyHunter:
             
         with open(os.path.join(full_path, 'all.csv'), 'w', encoding='utf-8', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['Протокол', 'IP/Config', 'Port', 'Страна'])
+            # M-09 FIX: Non-hardcoded CSV headers
+            writer.writerow(['Protocol', 'IP/Config', 'Port', 'Country'])
             for p in results_list:
                 proto, ipp = p.split('://', 1)
                 if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
@@ -1471,7 +1688,7 @@ class ProxyHunter:
                     ext_country = self.ip_cache.get(ext_ip, {}).get('country', 'Unknown') if ext_ip != "Config" else "Unknown"
                     writer.writerow([proto.upper(), ext_ip, ext_port, ext_country])
                 else:
-                    ip, port = ipp.split(':', 1)
+                    ip, port = ipp.rsplit(':', 1)
                     country = self.ip_cache.get(ip, {}).get('country', 'Unknown') or 'Unknown'
                     writer.writerow([proto.upper(), ip, port, country])
                 
@@ -1479,7 +1696,7 @@ class ProxyHunter:
         for p in results_list:
             proto, ipp = p.split('://', 1)
             if proto.lower() not in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
-                unique_ips.add(ipp.split(':', 1)[0])
+                unique_ips.add(ipp.rsplit(':', 1)[0])
         unique_ips = sorted(unique_ips)
         with open(os.path.join(full_path, 'all_ips.txt'), 'w', encoding='utf-8') as f:
             f.write(f"# {description} (Только уникальные IP): {len(unique_ips)}\n")
@@ -1500,7 +1717,7 @@ class ProxyHunter:
                         country = self.ip_cache.get(ext_ip, {}).get('country') or self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
                         writer.writerow([proto.upper(), ipp, 'N/A', country])
                     else:
-                        ip, port = ipp.split(':', 1)
+                        ip, port = ipp.rsplit(':', 1)
                         country = self.ip_cache.get(ip, {}).get('country') or self._get_country(ip)
                         writer.writerow([proto.upper(), ip, port, country])
                     
@@ -1508,7 +1725,7 @@ class ProxyHunter:
             for p in items:
                 _, ipp = p.split('://', 1)
                 if proto.lower() not in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
-                    proto_ips.add(ipp.split(':', 1)[0])
+                    proto_ips.add(ipp.rsplit(':', 1)[0])
             proto_ips = sorted(proto_ips)
             with open(os.path.join(full_path, f'{proto}_ips.txt'), 'w', encoding='utf-8') as f:
                 f.write(f"# {description} ({proto.upper()} - Только уникальные IP): {len(proto_ips)}\n")
@@ -1543,7 +1760,8 @@ class ProxyHunter:
             self._download_mmdb_if_needed()
             try:
                 if os.path.exists('GeoLite2-Country.mmdb'):
-                    self.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
+                    import maxminddb as _mmdb
+                    self.db_reader = _mmdb.open_database('GeoLite2-Country.mmdb')
                     break # Успешно открыли, выходим из цикла
             except Exception as e:
                 print(self._t("db_load_err").format(attempt+1, e))
@@ -1555,15 +1773,37 @@ class ProxyHunter:
                     pass
             
         self.collect()
-        if not self._cancel_event.is_set(): self.collect_random()
-        if not self._cancel_event.is_set(): self.validate()
-        if not self._cancel_event.is_set(): self.advanced_filter()
+        if not self._cancel_event.is_set(): self.validate(is_second_pass=False)
+        if not self._cancel_event.is_set(): self.advanced_filter(is_second_pass=False)
+        
+        # Save Pass 1 live results and clear them for Pass 2 so we don't re-filter them
+        pass1_live = list(self.live_results)
+        self._pass1_live_backup = list(pass1_live)  # backup for collect_random fallback
+        self.live_results.clear()
+        
+        if not self._cancel_event.is_set() and sum(self.random_counts.values()) > 0:
+            self.collect_random()
+            if self.candidate_total > 0:
+                self.validate(is_second_pass=True)
+                if not self._cancel_event.is_set(): self.advanced_filter(is_second_pass=True)
+        
+        # Combine back
+        self.live_results.extend(pass1_live)
+        self.live_results = sorted(set(self.live_results))  # Fix duplicate discrepancy between GUI card and table
+        
         if not self._cancel_event.is_set():  # BUG-FP35 FIX: не сохраняем при отмене
             self.save()
         m, s = divmod(int(time.time() - t0), 60)
         print("\n⏱   " + self._t("time_total").format(m, s))
         if self._cancel_event.is_set():
             print("❌ " + self._t("user_abort"))
+        # C-02 FIX: Закрываем db_reader чтобы не было утечки файловых дескрипторов
+        if hasattr(self, 'db_reader') and self.db_reader:
+            try:
+                self.db_reader.close()
+            except Exception:
+                pass
+            self.db_reader = None
 def main():
     parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
     parser.add_argument('--threads', type=int, default=300, help='Количество потоков')

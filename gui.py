@@ -73,8 +73,6 @@ class MEMORYSTATUSEX(ctypes.Structure):
         ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
     ]
     def __init__(self):
-        import queue
-        self._fast_queue = queue.Queue()
         self.dwLength = ctypes.sizeof(self)
         super(MEMORYSTATUSEX, self).__init__()
 
@@ -148,8 +146,28 @@ class _FakeTqdm:
     def set_postfix(self, *a, **kw): pass
 _tqdm_mock.tqdm = _FakeTqdm
 _tqdm_mock.trange = lambda *a, **kw: range(*a)
-sys.modules['tqdm'] = _tqdm_mock
-sys.modules['tqdm.auto'] = _tqdm_mock
+import contextlib
+
+@contextlib.contextmanager
+def patch_tqdm():
+    original_tqdm = sys.modules.get('tqdm')
+    original_tqdm_auto = sys.modules.get('tqdm.auto')
+    
+    sys.modules['tqdm'] = _tqdm_mock
+    sys.modules['tqdm.auto'] = _tqdm_mock
+    
+    try:
+        yield
+    finally:
+        if original_tqdm is not None:
+            sys.modules['tqdm'] = original_tqdm
+        else:
+            sys.modules.pop('tqdm', None)
+            
+        if original_tqdm_auto is not None:
+            sys.modules['tqdm.auto'] = original_tqdm_auto
+        else:
+            sys.modules.pop('tqdm.auto', None)
 
 from fetch_proxy import ProxyHunter
 
@@ -720,10 +738,15 @@ LANG = {
         "tab_countries": "Countries",
         "tab_proxies": "Proxies",
         "tab_github": "GitHub API",
+        "github_tm_label": "Use GitHub API (Time Machine)",
         "github_token_label": "Personal Access Token:",
         "github_token_placeholder": "ghp_...",
         "github_token_save": "Save Token",
         "github_token_status": "Token saved!",
+        "ipinfo_token_label": "IPinfo.io Token:",
+        "ipinfo_token_placeholder": "Enter API token...",
+        "ipinfo_token_save": "Save Token",
+        "ipinfo_token_status": "Token saved!",
         "threads": "Threads",
         "timeout": "Timeout (sec)",
         "ping": "Max Ping (ms)",
@@ -765,6 +788,11 @@ LANG = {
         "txt_saved": "✓ TXT saved!",
         "txt_ip_saved": "✓ TXT (IP) saved!",
         "no_data": "No data",
+        "error_no_countries": "Select at least 1 country!",
+        "error_no_folder": "Select a save folder!",
+        "output_dir_save": "Save",
+        "output_dir_saved": "✓ Saved!",
+        "github_days": "Time Machine Days (1-7):",
         "europe": "Europe",
         "hw_title": "💻 PC SPECIFICATIONS",
         "hw_cores": "• Processor: {0} Cores",
@@ -970,7 +998,11 @@ LANG = {
         "log_live_found": "[+] Рабочий прокси: {0}:{1} ({2} - {3})",
         "log_elite_found": "[+] 💎 Элитный прокси: {0}:{1} ({2} - {3})",
         "error_no_countries": "Выберите хотя бы 1 страну!",
+        "error_no_folder": "Выберите папку для сохранения!",
+        "output_dir_save": "Сохранить",
+        "output_dir_saved": "✓ Сохранено!",
         "error_no_proxies": "Нет валидных прокси!",
+        "github_days": "Глубина поиска (1-7 дней):",
         "error_file_size": "Файл слишком большой (макс 10МБ)!",
         "error_file_type": "Неверный формат файла!",
         "checker_placeholder_text": "Прокси (полная проверка):\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nТолько IP (проверка репутации):\n192.168.x.x\n10.0.x.x",
@@ -1006,10 +1038,15 @@ LANG = {
         "output_dir_lbl": "Папка сохранения:",
         "output_dir_btn": "Выбрать",
         "tab_github": "API ГитХаба",
+        "github_tm_label": "Использовать GitHub API (Машина Времени)",
         "github_token_label": "Токен (Personal Access Token):",
         "github_token_placeholder": "ghp_...",
         "github_token_save": "Сохранить",
-        "github_token_status": "Сохранено!"
+        "github_token_status": "Сохранено!",
+        "ipinfo_token_label": "Токен IPinfo.io:",
+        "ipinfo_token_placeholder": "Введите API токен...",
+        "ipinfo_token_save": "Сохранить",
+        "ipinfo_token_status": "Сохранено!"
     }
 }
 import os
@@ -1058,7 +1095,6 @@ class ProxyHunterApp(ctk.CTk):
         self.checker_is_running = False
         self.country_vars = {}
         self._countries_built = False
-        self._my_country = self._detect_my_country()
         self._region_btns = []  # for translation of per-category 'All' buttons
         self._region_reset_btns = []  # for translation of per-category 'Reset' buttons
 
@@ -1072,13 +1108,28 @@ class ProxyHunterApp(ctk.CTk):
         self.root_frame.grid_rowconfigure(0, weight=1)
 
         self.current_lang = "RU"
+        self._my_country = self._detect_my_country() # L-06 FIX: Move here after current_lang is set
         self.interactive_widgets = []
 
         self._build_sidebar()
         self._build_main()
 
+        self.protocol("WM_DELETE_WINDOW", self._on_closing)
         self.bind_all("<Button-1>", self._on_click_outside)
         
+    def _on_closing(self):
+        try:
+            self.is_running = False
+            self.checker_is_running = False
+            if hasattr(self, "hunter_instance") and self.hunter_instance:
+                self.hunter_instance.is_running = False
+                self.hunter_instance.is_checking = False
+            self.destroy()
+        except Exception:
+            pass
+        finally:
+            import os
+            os._exit(0)
     
     def _load_settings(self):
         try:
@@ -1092,13 +1143,22 @@ class ProxyHunterApp(ctk.CTk):
     def _save_settings(self):
         try:
             settings = self._load_settings()
+            if hasattr(self, "output_dir"):
+                settings["output_dir"] = self.output_dir.get()
             if hasattr(self, "github_token_var"):
                 settings["github_token"] = self.github_token_var.get()
+            if hasattr(self, "ipinfo_token_var"):
+                settings["ipinfo_token"] = self.ipinfo_token_var.get()
+            if hasattr(self, "github_tm_enabled"):
+                settings["github_tm_enabled"] = self.github_tm_enabled.get()
+            if hasattr(self, "github_tm_days_var"):
+                try:
+                    val = int(self.github_tm_days_var.get())
+                    settings["github_tm_days"] = max(1, min(7, val))
+                except ValueError:
+                    settings["github_tm_days"] = 1
             with open("settings.json", "w", encoding="utf-8") as f:
                 json.dump(settings, f, indent=4)
-            if hasattr(self, "lbl_github_status"):
-                self.lbl_github_status.configure(text=self._t("github_token_status"))
-                self.lbl_github_status.after(3000, lambda: self.lbl_github_status.configure(text=""))
         except Exception as e:
             print(f"Error saving settings: {e}")
 
@@ -1132,18 +1192,49 @@ class ProxyHunterApp(ctk.CTk):
                 
     def _on_click_outside(self, event):
         try:
-            widget_type = str(event.widget).lower()
-            if "entry" not in widget_type and "text" not in widget_type:
+            w = event.widget
+            # Не сбрасываем фокус, если кликнули по вводу, тексту, самому Treeview или его холсту
+            # (CTkTtkTreeview использует внутренние Canvas/Treeview)
+            exclusions = (tk.Entry, tk.Text, ctk.CTkEntry, ctk.CTkTextbox, tk.ttk.Treeview, tk.Canvas, ctk.CTkScrollbar, tk.Scrollbar, tk.ttk.Scrollbar)
+            if not isinstance(w, exclusions):
                 self.focus_set()
+                
+            # Дополнительно: если кликнули мимо таблиц, принудительно снимаем выделение с них
+            # Исключаем фреймы и основное окно, так как при скролле (через колесико или ползунок)
+            # могут генерироваться события или клик может попадать в промежутки
+            deselect_exclusions = exclusions + (ctk.CTkFrame, ctk.CTkScrollableFrame, tk.Frame, tk.Tk, tk.Toplevel, tk.Label, ctk.CTkLabel, tk.Canvas)
+            if not isinstance(w, deselect_exclusions):
+                if hasattr(self, 'proxy_tree'):
+                    self.proxy_tree.selection_remove(self.proxy_tree.selection())
+                if hasattr(self, 'check_tree'):
+                    self.check_tree.selection_remove(self.check_tree.selection())
+            elif isinstance(w, tk.ttk.Treeview):
+                # Если кликнули по самому Treeview, проверим куда именно
+                # x и y в событии относительны виджета
+                try:
+                    region = w.identify_region(event.x, event.y)
+                    # Если кликнули в пустую область (nothing) внутри treeview, снимаем выделение
+                    if region == "nothing":
+                        w.selection_remove(w.selection())
+                except:
+                    pass
         except Exception:
             pass
 
     def _flash_error_widget(self, widget, temp_text=None):
         if not widget.winfo_exists(): return
+        if getattr(widget, "_is_flashing", False): return
         try:
+            widget._is_flashing = True
             orig_fg = widget.cget("fg_color")
-            orig_hover = widget.cget("hover_color") if hasattr(widget, "cget") and "hover_color" in widget.configure() else None
-            orig_text = widget.cget("text") if hasattr(widget, "cget") and "text" in widget.configure() else None
+            try:
+                orig_hover = widget.cget("hover_color")
+            except:
+                orig_hover = None
+            try:
+                orig_text = widget.cget("text")
+            except:
+                orig_text = None
             
             widget.configure(fg_color="#7F1D1D")
             if orig_hover: widget.configure(hover_color="#7F1D1D")
@@ -1154,9 +1245,39 @@ class ProxyHunterApp(ctk.CTk):
                 widget.configure(fg_color=orig_fg)
                 if orig_hover: widget.configure(hover_color=orig_hover)
                 if temp_text and orig_text: widget.configure(text=orig_text)
+                widget._is_flashing = False
             self.after(800, restore)
-        except Exception: pass
+        except Exception:
+            widget._is_flashing = False
 
+    def _flash_success_widget(self, widget, temp_text=None):
+        if not widget.winfo_exists(): return
+        if getattr(widget, "_is_flashing", False): return
+        try:
+            widget._is_flashing = True
+            orig_fg = widget.cget("fg_color")
+            try:
+                orig_hover = widget.cget("hover_color")
+            except:
+                orig_hover = None
+            try:
+                orig_text = widget.cget("text")
+            except:
+                orig_text = None
+            
+            widget.configure(fg_color="#059669")
+            if orig_hover: widget.configure(hover_color="#047857")
+            if temp_text and orig_text: widget.configure(text=temp_text)
+            
+            def restore():
+                if not widget.winfo_exists(): return
+                widget.configure(fg_color=orig_fg)
+                if orig_hover: widget.configure(hover_color=orig_hover)
+                if temp_text and orig_text: widget.configure(text=orig_text)
+                widget._is_flashing = False
+            self.after(3000, restore)
+        except Exception:
+            widget._is_flashing = False
 
     def _apply_language(self):
         self._safe_config(self.lbl_cfg, text="  " + self._t("cfg"))
@@ -1183,9 +1304,15 @@ class ProxyHunterApp(ctk.CTk):
         if hasattr(self, "dc_switch"): self._safe_config(self.dc_switch, text=self._t("source_datacenter"))
         if hasattr(self, "mob_switch"): self._safe_config(self.mob_switch, text=self._t("source_mobile"))
         
+        if hasattr(self, "lbl_github_tm"): self._safe_config(self.lbl_github_tm, text=self._t("github_tm_label"))
         if hasattr(self, "lbl_github_token"): self._safe_config(self.lbl_github_token, text=self._t("github_token_label"))
         if hasattr(self, "entry_github_token"): self._safe_config(self.entry_github_token, placeholder_text=self._t("github_token_placeholder"))
         if hasattr(self, "btn_save_github"): self._safe_config(self.btn_save_github, text=self._t("github_token_save"))
+        
+        if hasattr(self, "lbl_ipinfo_token"): self._safe_config(self.lbl_ipinfo_token, text=self._t("ipinfo_token_label"))
+        if hasattr(self, "entry_ipinfo_token"): self._safe_config(self.entry_ipinfo_token, placeholder_text=self._t("ipinfo_token_placeholder"))
+        if hasattr(self, "btn_save_ipinfo"): self._safe_config(self.btn_save_ipinfo, text=self._t("ipinfo_token_save"))
+        if hasattr(self, "lbl_github_days"): self._safe_config(self.lbl_github_days, text=self._t("github_days"))
         
         if not self.is_running:
             self._safe_config(self.start_btn, text="", image=self.icons["play"])
@@ -1235,6 +1362,7 @@ class ProxyHunterApp(ctk.CTk):
         # --- MISSING APPLY LANGUAGE UPDATES ---
         if hasattr(self, "lbl_out_dir"): self._safe_config(self.lbl_out_dir, text=self._t("output_dir_lbl"))
         if hasattr(self, "btn_out_dir"): self._safe_config(self.btn_out_dir, text=self._t("output_dir_btn"))
+        if hasattr(self, "btn_save_out_dir"): self._safe_config(self.btn_save_out_dir, text=self._t("output_dir_save"))
         
         if hasattr(self, "country_count_label"):
             txt = self.country_count_label.cget("text")
@@ -1475,9 +1603,9 @@ class ProxyHunterApp(ctk.CTk):
                 # Update placeholder
                 old_ph = getattr(self, "proxy_placeholder_text", "")
                 new_ph = self._t("proxy_placeholder")
-                if hasattr(self, "proxy_text") and self.proxy_text.get("0.0", "end-1c").strip() == old_ph.strip():
-                    self.proxy_text.delete("0.0", "end")
-                    self.proxy_text.insert("0.0", new_ph)
+                if hasattr(self, "proxy_text") and self.proxy_text.get("1.0", "end-1c").strip() == old_ph.strip():
+                    self.proxy_text.delete("1.0", "end")
+                    self.proxy_text.insert("1.0", new_ph)
                 self.proxy_placeholder_text = new_ph
                 
             except Exception:
@@ -1622,17 +1750,6 @@ class ProxyHunterApp(ctk.CTk):
             pass
 
     def _bind_treeview_events(self, tree):
-        def on_click(event):
-            region = tree.identify("region", event.x, event.y)
-            if region == "heading" or region == "separator":
-                return
-            item = tree.identify_row(event.y)
-            if not item:
-                tree.selection_remove(tree.selection())
-            elif item in tree.selection():
-                tree.selection_remove(item)
-                return "break"
-
         def on_double_click(event):
             item = tree.identify_row(event.y)
             column = tree.identify_column(event.x)
@@ -1648,7 +1765,7 @@ class ProxyHunterApp(ctk.CTk):
                 entry = tk.Entry(tree, font=tree.cget("font"), justify="center", bg="#060B14", fg="white", readonlybackground="#1A202C")
                 entry.place(x=x, y=y, width=width, height=height)
                 entry.insert(0, text)
-                entry.configure(state="readonly")
+                entry.configure(state="normal") # Позволяем выделение и копирование
                 entry.selection_range(0, 'end')
                 entry.focus_set()
                 def destroy_entry(e=None):
@@ -1656,17 +1773,47 @@ class ProxyHunterApp(ctk.CTk):
                 entry.bind("<FocusOut>", destroy_entry)
                 entry.bind("<Return>", destroy_entry)
                 entry.bind("<Escape>", destroy_entry)
+                
+                # Стандартные комбинации для копирования в Entry (Windows)
+                def copy_and_destroy(e):
+                    tree.clipboard_clear()
+                    try:
+                        sel_text = entry.selection_get()
+                    except tk.TclError:
+                        sel_text = text # Если ничего не выделено - копируем всё
+                    tree.clipboard_append(sel_text)
+                    destroy_entry()
+                    return "break"
+                    
+                entry.bind("<Control-c>", copy_and_destroy)
+                entry.bind("<Control-C>", copy_and_destroy)
+                try:
+                    entry.bind("<Control-с>", copy_and_destroy) # Кириллица
+                    entry.bind("<Control-С>", copy_and_destroy)
+                except: pass
+
             except: pass
 
         def on_ctrl_c(event):
             sel = tree.selection()
             if not sel: return
-            item = sel[0]
-            vals = tree.item(item, "values")
+            lines = []
+            for item in sel:
+                vals = tree.item(item, "values")
+                lines.append("\t".join(str(v) for v in vals))
             tree.clipboard_clear()
-            tree.clipboard_append("\t".join(str(v) for v in vals))
+            tree.clipboard_append("\n".join(lines))
 
-        tree.bind("<Button-1>", on_click)
+        def on_click(event):
+            region = tree.identify("region", event.x, event.y)
+            if region == "heading" or region == "separator":
+                return
+            item = tree.identify_row(event.y)
+            if not item:
+                # Кликнули в пустую область таблицы -> снимаем выделение
+                tree.selection_remove(tree.selection())
+
+        tree.bind("<ButtonRelease-1>", on_click, add="+")
         tree.bind("<Double-Button-1>", on_double_click)
         tree.bind("<Control-c>", on_ctrl_c)
         tree.bind("<Control-C>", on_ctrl_c)
@@ -1701,6 +1848,8 @@ class ProxyHunterApp(ctk.CTk):
             if not hasattr(frame, "_scrollbar"): return
             try:
                 bbox = frame._parent_canvas.bbox("all")
+                if bbox:
+                    frame._parent_canvas.configure(scrollregion=bbox)
                 content_height = (bbox[3] - bbox[1]) if bbox else frame._parent_frame.winfo_reqheight()
                 canvas_height = frame._parent_canvas.winfo_height()
                 if content_height > canvas_height and canvas_height > 10:
@@ -1748,6 +1897,7 @@ class ProxyHunterApp(ctk.CTk):
         self.mob_switch = ctk.CTkSwitch(frame, text=self._t("source_mobile"), variable=self.mob_var, fg_color=BORDER, progress_color=BLUE, font=("Segoe UI", 13), text_color=TEXT)
         self.mob_switch.pack(anchor="w", padx=10, pady=4)
         self.interactive_widgets.append(self.mob_switch)
+        settings = self._load_settings()
 
         # Output Directory
         ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
@@ -1755,7 +1905,7 @@ class ProxyHunterApp(ctk.CTk):
         out_frame.pack(fill="x", padx=10, pady=4)
         
         if not hasattr(self, "output_dir"):
-            self.output_dir = tk.StringVar(value=os.getcwd())
+            self.output_dir = tk.StringVar(value=settings.get("output_dir", ""))
             
         self.lbl_out_dir = ctk.CTkLabel(out_frame, text=self._t("output_dir_lbl"), font=("Segoe UI", 12, "bold"), text_color=MUTED)
         self.lbl_out_dir.pack(anchor="w", pady=(0, 5))
@@ -1766,16 +1916,32 @@ class ProxyHunterApp(ctk.CTk):
         # Text color white so it's readable when disabled (using a trick or just read-only)
         self.entry_out_dir = ctk.CTkEntry(dir_inner, textvariable=self.output_dir, state="readonly", fg_color="#060B14", border_color=BORDER, text_color="#E2E8F0")
         self.entry_out_dir.pack(side="left", fill="x", expand=True, padx=(0, 5))
-        
-        self.btn_out_dir = ctk.CTkButton(dir_inner, text=self._t("output_dir_btn"), width=60, fg_color=CARD2, hover_color=BORDER, command=self._select_output_dir)
-        self.btn_out_dir.pack(side="left")
+
+        self.btn_out_dir = ctk.CTkButton(dir_inner, text=self._t("output_dir_btn"), width=80, fg_color=BORDER, hover_color="#4A5568", command=self._select_output_dir)
+        self.btn_out_dir.pack(side="right")
         self.interactive_widgets.append(self.btn_out_dir)
+
+        dir_save_frame = ctk.CTkFrame(out_frame, fg_color="transparent")
+        dir_save_frame.pack(fill="x", pady=(5, 0))
+
+        self.btn_save_out_dir = ctk.CTkButton(
+            dir_save_frame, 
+            text=self._t("output_dir_save"), 
+            fg_color=BLUE, hover_color="#2563EB", 
+            command=lambda: (self._save_settings(), self._flash_success_widget(self.btn_save_out_dir, self._t("output_dir_saved")))
+        )
+        self.btn_save_out_dir.pack(fill="x", expand=True)
+        self.interactive_widgets.append(self.btn_save_out_dir)
 
         # GitHub API Token
         ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
         gh_frame = ctk.CTkFrame(frame, fg_color="transparent")
         gh_frame.pack(fill="x", padx=10, pady=4)
-        
+
+        self.github_tm_enabled = ctk.BooleanVar(value=settings.get("github_tm_enabled", True))
+        self.lbl_github_tm = ctk.CTkSwitch(gh_frame, text=self._t("github_tm_label"), variable=self.github_tm_enabled, font=("Segoe UI", 12))
+        self.lbl_github_tm.pack(anchor="w", pady=(0, 15))
+
         self.lbl_github_token = ctk.CTkLabel(gh_frame, text=self._t("github_token_label"), font=("Segoe UI", 12, "bold"), text_color=MUTED)
         self.lbl_github_token.pack(anchor="w", pady=(0, 5))
         
@@ -1784,10 +1950,10 @@ class ProxyHunterApp(ctk.CTk):
         
         self.github_token_var = tk.StringVar()
         
-        settings = self._load_settings()
         if "github_token" in settings:
             self.github_token_var.set(settings["github_token"])
             
+
         self.entry_github_token = ctk.CTkEntry(
             gh_inner, 
             textvariable=self.github_token_var,
@@ -1796,11 +1962,28 @@ class ProxyHunterApp(ctk.CTk):
             fg_color="#060B14", border_color=BORDER, text_color="#E2E8F0",
             show="*"
         )
+        self.interactive_widgets.append(self.lbl_github_tm)
+        self.interactive_widgets.append(self.entry_github_token)
+        self.btn_save_github = ctk.CTkButton(
+            gh_inner, 
+            text=self._t("github_token_save"),
+            font=("Segoe UI", 12),
+            width=100,
+            fg_color=BLUE, hover_color="#2563EB",
+            command=lambda: (self._save_settings(), self._flash_success_widget(self.btn_save_github, self._t("github_token_status")))
+        )
+        # Pack button on the right first to prevent it being pushed out
+        self.btn_save_github.pack(side="right")
+        self.interactive_widgets.append(self.btn_save_github)
+
         self.entry_github_token.pack(side="left", fill="x", expand=True, padx=(0, 5))
-        
+
         def _gh_paste(e):
             try:
-                self.entry_github_token.insert("insert", self.entry_github_token.clipboard_get())
+                text = self.entry_github_token.clipboard_get().strip()
+                if self.entry_github_token.select_present():
+                    self.entry_github_token.delete("sel.first", "sel.last")
+                self.entry_github_token.insert("insert", text)
                 return "break"
             except: pass
         
@@ -1817,23 +2000,115 @@ class ProxyHunterApp(ctk.CTk):
                     return "break"
             except: pass
 
-        for key in ["<Control-v>", "<Control-V>"]: self.entry_github_token.bind(key, _gh_paste)
+        for key in ["<Control-v>", "<Control-V>", "<<Paste>>", "<Control-KeyPress-m>", "<Control-KeyPress-M>", "<Control-Cyrillic_em>", "<Control-Cyrillic_EM>"]: self.entry_github_token.bind(key, _gh_paste)
         for key in ["<Control-c>", "<Control-C>"]: self.entry_github_token.bind(key, _gh_copy)
         for key in ["<Control-a>", "<Control-A>"]: self.entry_github_token.bind(key, _gh_select_all)
+
+        gh_days_frame = ctk.CTkFrame(gh_frame, fg_color="transparent")
+        gh_days_frame.pack(fill="x", pady=(10, 0))
         
-        self.btn_save_github = ctk.CTkButton(
-            gh_inner, 
-            text=self._t("github_token_save"),
+        self.lbl_github_days = ctk.CTkLabel(gh_days_frame, text=self._t("github_days"), font=("Segoe UI", 12, "bold"), text_color=MUTED)
+        self.lbl_github_days.pack(side="left", padx=(0, 10))
+        
+        self.github_tm_days_var = tk.StringVar(value=str(settings.get("github_tm_days", 1)))
+        
+        def _validate_days(*args):
+            val = self.github_tm_days_var.get()
+            if val == "": return
+            if not val.isdigit():
+                self.github_tm_days_var.set("1")
+                return
+            v = int(val)
+            if v < 1: self.github_tm_days_var.set("1")
+            elif v > 7: self.github_tm_days_var.set("7")
+            
+        self.github_tm_days_var.trace_add("write", _validate_days)
+        
+        self.entry_github_days = ctk.CTkEntry(
+            gh_days_frame, 
+            textvariable=self.github_tm_days_var,
+            width=60,
+            font=("Consolas", 12),
+            fg_color="#060B14", border_color=BORDER, text_color="#E2E8F0"
+        )
+        self.entry_github_days.pack(side="left")
+        self.interactive_widgets.append(self.entry_github_days)
+        
+        def toggle_github_options(*args):
+            state = "normal" if self.github_tm_enabled.get() else "disabled"
+            try:
+                self.entry_github_token.configure(state=state)
+                self.btn_save_github.configure(state=state)
+                self.entry_github_days.configure(state=state)
+                self.lbl_github_token.configure(text_color=TEXT if state=="normal" else MUTED)
+                self.lbl_github_days.configure(text_color=TEXT if state=="normal" else MUTED)
+            except Exception: pass
+
+        self.github_tm_enabled.trace_add("write", toggle_github_options)
+        self.after(100, toggle_github_options)
+        
+        # Removed lbl_github_status as we now flash the button instead
+
+        # Spacer + HW info
+        # IPinfo API Token
+        ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
+        ipi_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        ipi_frame.pack(fill="x", padx=10, pady=4)
+        
+        self.lbl_ipinfo_token = ctk.CTkLabel(ipi_frame, text=self._t("ipinfo_token_label"), font=("Segoe UI", 12, "bold"), text_color=MUTED)
+        self.lbl_ipinfo_token.pack(anchor="w", pady=(0, 5))
+        
+        ipi_inner = ctk.CTkFrame(ipi_frame, fg_color="transparent")
+        ipi_inner.pack(fill="x")
+        
+        self.ipinfo_token_var = tk.StringVar()
+        if "ipinfo_token" in settings:
+            self.ipinfo_token_var.set(settings["ipinfo_token"])
+            
+        self.entry_ipinfo_token = ctk.CTkEntry(
+            ipi_inner, 
+            textvariable=self.ipinfo_token_var,
+            placeholder_text=self._t("ipinfo_token_placeholder"),
+            font=("Consolas", 12),
+            fg_color="#060B14", border_color=BORDER, text_color="#E2E8F0",
+            show="*"
+        )
+        self.interactive_widgets.append(self.entry_ipinfo_token)
+        self.btn_save_ipinfo = ctk.CTkButton(
+            ipi_inner, 
+            text=self._t("ipinfo_token_save"),
             font=("Segoe UI", 12),
             width=100,
-            fg_color=CARD2, hover_color=BORDER,
-            command=self._save_settings
+            fg_color=BLUE, hover_color="#2563EB",
+            command=lambda: (self._save_settings(), self._flash_success_widget(self.btn_save_ipinfo, self._t("ipinfo_token_status")))
         )
-        self.btn_save_github.pack(side="left")
-        self.interactive_widgets.append(self.btn_save_github)
+        self.btn_save_ipinfo.pack(side="right")
+        self.interactive_widgets.append(self.btn_save_ipinfo)
+        self.entry_ipinfo_token.pack(side="left", fill="x", expand=True, padx=(0, 5))
         
-        self.lbl_github_status = ctk.CTkLabel(gh_frame, text="", font=("Segoe UI", 12, "bold"), text_color="#00FF00")
-        self.lbl_github_status.pack(anchor="e")
+        def _ipi_paste(e):
+            try:
+                text = self.entry_ipinfo_token.clipboard_get().strip()
+                if self.entry_ipinfo_token.select_present():
+                    self.entry_ipinfo_token.delete("sel.first", "sel.last")
+                self.entry_ipinfo_token.insert("insert", text)
+                return "break"
+            except: pass
+        def _ipi_select_all(e):
+            self.entry_ipinfo_token.select_range(0, "end")
+            self.entry_ipinfo_token.icursor("end")
+            return "break"
+        def _ipi_copy(e):
+            try:
+                if self.entry_ipinfo_token.select_present():
+                    self.entry_ipinfo_token.clipboard_clear()
+                    self.entry_ipinfo_token.clipboard_append(self.entry_ipinfo_token.selection_get())
+                    return "break"
+            except: pass
+            
+        for key in ["<Control-v>", "<Control-V>", "<<Paste>>", "<Control-KeyPress-m>", "<Control-KeyPress-M>", "<Control-Cyrillic_em>", "<Control-Cyrillic_EM>"]: self.entry_ipinfo_token.bind(key, _ipi_paste)
+        for key in ["<Control-c>", "<Control-C>"]: self.entry_ipinfo_token.bind(key, _ipi_copy)
+        for key in ["<Control-a>", "<Control-A>"]: self.entry_ipinfo_token.bind(key, _ipi_select_all)
 
         # Spacer + HW info
         ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
@@ -2097,6 +2372,11 @@ class ProxyHunterApp(ctk.CTk):
         entry.bind("<FocusIn>", _on_focus_in)
         entry.bind("<Control-v>", _on_paste)
         entry.bind("<Control-V>", _on_paste)
+        entry.bind("<<Paste>>", _on_paste)
+        entry.bind("<Control-KeyPress-m>", _on_paste)
+        entry.bind("<Control-KeyPress-M>", _on_paste)
+        entry.bind("<Control-Cyrillic_em>", _on_paste)
+        entry.bind("<Control-Cyrillic_EM>", _on_paste)
         entry.bind("<Shift-Insert>", _on_paste)          # Shift+Insert paste
         entry.bind("<Button-2>", _block)                  # Middle mouse button paste (Linux)
         entry.bind("<Button-3>", _block)                  # Right-click context menu — заблокировано
@@ -2136,7 +2416,7 @@ class ProxyHunterApp(ctk.CTk):
 
         setattr(self, f"slider_{attr}", slider)
         setattr(self, f"entry_{attr}", entry)
-        self.interactive_widgets.extend([slider, entry])
+        self.interactive_widgets.extend([slider, entry, btn_minus, btn_plus])
 
     def _add_number_input(self, parent, label_text, from_, to, default, step, var):
         row = ctk.CTkFrame(parent, fg_color="transparent")
@@ -2314,17 +2594,24 @@ class ProxyHunterApp(ctk.CTk):
         entry.bind("<KeyRelease>", _sanitize_and_sync)
         entry.bind("<FocusOut>", _on_focus_out)
         entry.bind("<FocusIn>", _on_focus_in)
-        entry.bind("<Control-v>", _on_paste)
-        entry.bind("<Control-V>", _on_paste)
+        def _on_ctrl_key_num(e):
+            if getattr(e, 'keycode', 0) in (65, 97):
+                entry.select_range(0, "end")
+                return "break"
+            elif getattr(e, 'keycode', 0) in (86, 118):
+                _on_paste(e)
+                return "break"
+            elif getattr(e, 'keycode', 0) in (90, 122, 89, 121):
+                _block(e)
+                return "break"
+
+        entry.bind("<Control-KeyPress>", _on_ctrl_key_num)
+        entry.bind("<<Paste>>", _on_paste)
         entry.bind("<Shift-Insert>", _on_paste)
+        entry.bind("<Command-v>", _on_paste)
+        entry.bind("<Command-a>", lambda e: entry.select_range(0, "end"))
         entry.bind("<Button-2>", _block)
         entry.bind("<Button-3>", _block)
-        entry.bind("<Control-z>", _block)
-        entry.bind("<Control-Z>", _block)
-        entry.bind("<Control-y>", _block)
-        entry.bind("<Control-Y>", _block)
-        entry.bind("<Control-a>", lambda e: entry.select_range(0, "end"))
-        entry.bind("<Control-A>", lambda e: entry.select_range(0, "end"))
         entry.bind("<MouseWheel>", _on_mousewheel)
         entry.bind("<Up>", lambda e: update_val(step))
         entry.bind("<Down>", lambda e: update_val(-step))
@@ -2348,7 +2635,7 @@ class ProxyHunterApp(ctk.CTk):
         entry.bind("<Enter>", _show_tip)
         entry.bind("<Leave>", _hide_tip)
 
-        self.interactive_widgets.append(entry)
+        self.interactive_widgets.extend([entry, btn_minus, btn_plus])
         return lbl
 
     @staticmethod
@@ -2639,6 +2926,8 @@ class ProxyHunterApp(ctk.CTk):
             if not hasattr(scroll, "_scrollbar"): return
             try:
                 bbox = scroll._parent_canvas.bbox("all")
+                if bbox:
+                    scroll._parent_canvas.configure(scrollregion=bbox)
                 content_height = (bbox[3] - bbox[1]) if bbox else scroll._parent_frame.winfo_reqheight()
                 canvas_height = scroll._parent_canvas.winfo_height()
                 if content_height > canvas_height and canvas_height > 10:
@@ -2679,12 +2968,12 @@ class ProxyHunterApp(ctk.CTk):
             setattr(self, f"lbl_random_{proto}", lbl)
         
     def _clear_proxy_placeholder(self):
-        if self.proxy_text.get("0.0", "end-1c").strip() == self._t("proxy_placeholder").strip():
-            self.proxy_text.delete("0.0", "end")
+        if self.proxy_text.get("1.0", "end-1c").strip() == self._t("proxy_placeholder").strip():
+            self.proxy_text.delete("1.0", "end")
             
     def _restore_proxy_placeholder(self):
-        if not self.proxy_text.get("0.0", "end-1c").strip():
-            self.proxy_text.insert("0.0", self._t("proxy_placeholder"))
+        if not self.proxy_text.get("1.0", "end-1c").strip():
+            self.proxy_text.insert("1.0", self._t("proxy_placeholder"))
 
     def _update_chain_count(self, event=None):
         proxies = self._parse_chain_proxies(silent=True)
@@ -2698,15 +2987,15 @@ class ProxyHunterApp(ctk.CTk):
         try:
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
-            if self.proxy_text.get("0.0", "end-1c").strip() == self._t("proxy_placeholder").strip():
-                self.proxy_text.delete("0.0", "end")
+            if self.proxy_text.get("1.0", "end-1c").strip() == self._t("proxy_placeholder").strip():
+                self.proxy_text.delete("1.0", "end")
             self.proxy_text.insert("end", content + "\n")
             self._update_chain_count()
         except Exception as e:
             pass
 
     def _parse_chain_proxies(self, silent=False) -> list:
-        content = self.proxy_text.get("0.0", "end")
+        content = self.proxy_text.get("1.0", "end")
         from fetch_proxy import ProxyUtils
         import re
         URI_RE = re.compile(r'(?:http|https|socks4|socks5|socks5h)://\S+', re.IGNORECASE)
@@ -3550,28 +3839,60 @@ class ProxyHunterApp(ctk.CTk):
                 f_val = self.proto_filter.get()
                 if f_val not in ("Все", self._t("all_short")): current_filter = f_val.lower()
                 
+            sel_protos = getattr(self, "selected_protos", set())
+            sel_countries = getattr(self, "selected_countries", set())
+            active_protos = {p for p in sel_protos if p in getattr(self, "all_protos_in_db", set())}
+            all_p = not sel_protos or len(active_protos) == len(getattr(self, "all_protos_in_db", set()))
+            active_countries = {c for c in sel_countries if c in getattr(self, "all_countries_in_db", set())}
+            all_c = not sel_countries or len(active_countries) == len(getattr(self, "all_countries_in_db", set()))
+                
             inserted = 0
             if hasattr(self, "proxy_tree"):
                 tree_len = len(self.proxy_tree.get_children())
             else:
                 tree_len = 0
                 
+            updated_filtered = False
             for data, source in p_queue:
                 self.realtime_proxies.setdefault(source, []).append(data)
                 
                 if mapped_src == source:
-                    if current_filter == "all" or current_filter == data["protocol"].lower():
+                    country_name = self._format_country(data["country"])
+                    row_tuple = (data["protocol"].upper(), data["ip"], data["port"], country_name)
+                    
+                    if not hasattr(self, "_current_raw_data"): self._current_raw_data = []
+                    self._current_raw_data.append(row_tuple)
+                    
+                    # Backwards compatibility for combobox filters if checkboxes aren't present
+                    match_proto = all_p or row_tuple[0] in sel_protos
+                    match_country = all_c or row_tuple[3] in sel_countries
+                    if current_filter != "all" and current_filter != data["protocol"].lower():
+                        match_proto = False
+                        
+                    if match_proto and match_country:
+                        if not hasattr(self, "_filtered_data"): self._filtered_data = []
+                        self._filtered_data.append(row_tuple)
+                        updated_filtered = True
+                        
                         if hasattr(self, "proxy_tree"):
                             if tree_len < 1000 and inserted < 50:
-                                country_name = self._format_country(data["country"])
-                                self.proxy_tree.insert("", "end", values=(data["protocol"], data["ip"], data["port"], country_name))
+                                self.proxy_tree.insert("", "end", values=row_tuple)
                                 tree_len += 1
                                 inserted += 1
                                 
+            if updated_filtered and hasattr(self, "_filtered_data") and hasattr(self, "result_count_lbl"):
+                self.result_count_lbl.configure(text=self._t("proxies_count").format(len(self._filtered_data)))
+                                
             # BUG FIX: Accurate GUI metrics directly from tables
+            # Remove set() deduplication here because self.realtime_proxies already contains purely unique elements thanks to _seen_proxies.
+            # And it properly counts different protocols on the same IP as distinct, matching the backend's set() logic exactly.
             self.stat_live.configure(text=str(len(self.realtime_proxies.get("live", []))))
-            total_elite = len(self.realtime_proxies.get("elite", [])) + len(self.realtime_proxies.get("datacenter", [])) + len(self.realtime_proxies.get("residential", [])) + len(self.realtime_proxies.get("mobile", []))
-            self.stat_elite.configure(text=str(total_elite))
+            
+            total_elite_count = 0
+            for cat in ["elite", "datacenter", "residential", "mobile"]:
+                total_elite_count += len(self.realtime_proxies.get(cat, []))
+            self.stat_elite.configure(text=str(total_elite_count))
+            
             if hasattr(self, 'stat_dc'):
                 self.stat_dc.configure(text=str(len(self.realtime_proxies.get("datacenter", []))))
                 self.stat_res.configure(text=str(len(self.realtime_proxies.get("residential", []))))
@@ -3605,27 +3926,35 @@ class ProxyHunterApp(ctk.CTk):
         if "Уникальных IP:PORT:" in text or "log_unique_ip:" in text or "Unique IP:PORT:" in text:
             try:
                 num = int(text.split(":")[-1].strip())
-                self._stat_updates['base_total'] = num
-                self._stat_updates['total'] = str(num + self._stat_updates.get('gen_total', 0))
+                self._base_total_persistent = num
+                self._stat_updates['total'] = str(num + getattr(self, '_gen_total_persistent', 0))
             except: pass
         elif "Сгенерировано рандомных:" in text or "random_generated:" in text or "Generated random:" in text:
             try:
                 num = int(text.split(":")[-1].strip())
-                self._stat_updates['gen_total'] = num
-                self._stat_updates['total'] = str(num + self._stat_updates.get('base_total', 0))
+                self._gen_total_persistent = num
+                self._stat_updates['total'] = str(num + getattr(self, '_base_total_persistent', 0))
             except: pass
         elif "[REALTIME_NEW_LIVE]" in text:
             try:
                 parts = text.split("[REALTIME_NEW_LIVE]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3]}
-                self._proxy_queue.append((data, "live"))
+                uniq_id = f"live:{data['protocol']}:{data['ip']}:{data['port']}"
+                if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
+                if uniq_id not in self._seen_proxies:
+                    self._seen_proxies.add(uniq_id)
+                    self._proxy_queue.append((data, "live"))
             except: pass
         elif "[REALTIME_NEW_ELITE]" in text:
             try:
                 parts = text.split("[REALTIME_NEW_ELITE]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3], "category": parts[4]}
-                cat = data.get("category", "Elite").lower()
-                self._proxy_queue.append((data, cat))
+                uniq_id = f"elite:{data['protocol']}:{data['ip']}:{data['port']}"
+                if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
+                if uniq_id not in self._seen_proxies:
+                    self._seen_proxies.add(uniq_id)
+                    cat = data.get("category", "Elite").lower()
+                    self._proxy_queue.append((data, cat))
             except: pass
     def _toggle_pause(self):
         if not self.is_running or not self.hunter_thread: return
@@ -3647,6 +3976,8 @@ class ProxyHunterApp(ctk.CTk):
             self.hunter_instance.cancel()
             
         # Полное мгновенное обнуление всего интерфейса
+        self._base_total_persistent = 0
+        self._gen_total_persistent = 0
         self.stat_total.configure(text="0")
         self.stat_live.configure(text="0")
         self.stat_elite.configure(text="0")
@@ -3679,6 +4010,12 @@ class ProxyHunterApp(ctk.CTk):
         if self.is_running: return
         
         # Тотальная валидация перед запуском
+        out_dir = self.output_dir.get().strip()
+        import os
+        if not out_dir or not os.path.isdir(out_dir):
+            self._flash_error_widget(self.start_btn, temp_text=self._t("error_no_folder"))
+            return
+
         if not self._get_selected_countries():
             self._flash_error_widget(self.start_btn, temp_text=self._t("error_no_countries"))
             return
@@ -3698,6 +4035,7 @@ class ProxyHunterApp(ctk.CTk):
         self._live_count = 0
         self._elite_count = 0
         self.realtime_proxies = {"live": [], "elite": [], "datacenter": [], "residential": [], "mobile": []}
+        self._seen_proxies = set()
         
         self._set_ui_state("disabled")
         self.start_btn.configure(text="", image=self.icons["stop"], fg_color=RED, hover_color="#B91C1C", state="disabled")
@@ -3707,6 +4045,8 @@ class ProxyHunterApp(ctk.CTk):
         self.terminal.configure(state="normal")
         self.terminal.delete("1.0", "end")
         self.terminal.configure(state="disabled")
+        self._base_total_persistent = 0
+        self._gen_total_persistent = 0
         self.stat_total.configure(text="0")
         self.stat_live.configure(text="0")
         self.stat_elite.configure(text="0")
@@ -3740,17 +4080,19 @@ class ProxyHunterApp(ctk.CTk):
         class Redir:
             def write(self, text):
                 if getattr(app, "_is_cancelling", False): return
-                clean = text.strip()
-                if not clean: return
                 
-                is_realtime = clean.startswith("[REALTIME")
-                
-                # Push everything to the fast queue to be processed by the main thread
-                app._fast_queue.put(clean)
-                
-                if not is_realtime and not clean.startswith(("    [Загрузка", "    [Проверка", "    [Фильтрация", "[Загрузка", "[Проверка", "[Фильтрация", "    [Downloading", "    [Checking", "    [Filtering", "[Downloading", "[Checking", "[Filtering")):
-                    try: sys.__stdout__.write(text)
-                    except: pass
+                for line in text.split('\n'):
+                    clean = line.strip()
+                    if not clean: continue
+                    
+                    is_realtime = clean.startswith("[REALTIME")
+                    
+                    # Push everything to the fast queue to be processed by the main thread
+                    app._fast_queue.put(clean)
+                    
+                    if not is_realtime and not clean.startswith(("    [Загрузка", "    [Проверка", "    [Фильтрация", "[Загрузка", "[Проверка", "[Фильтрация", "    [Downloading", "    [Checking", "    [Filtering", "[Downloading", "[Checking", "[Filtering")):
+                        try: sys.__stdout__.write(line + "\n")
+                        except: pass
             
             def flush(self):
                 try: sys.__stdout__.flush()
@@ -3780,6 +4122,11 @@ class ProxyHunterApp(ctk.CTk):
             old = sys.stdout
             sys.stdout = Redir()
             try:
+                try:
+                    gh_days = int(self.github_tm_days_var.get())
+                except Exception:
+                    gh_days = 1
+                    
                 self.hunter_instance = ProxyHunter(
                     threads=threads_val,
                     timeout=timeout_val,
@@ -3793,9 +4140,13 @@ class ProxyHunterApp(ctk.CTk):
                     random_counts=random_counts_val,
                     output_dir=self.output_dir.get(),
                     lang=self.current_lang,
-                    github_token=self.github_token_var.get() if hasattr(self, 'github_token_var') else ""
+                    github_token=self.github_token_var.get() if hasattr(self, 'github_token_var') else "",
+                    github_tm_enabled=self.github_tm_enabled.get() if hasattr(self, 'github_tm_enabled') else True,
+                    github_tm_days=gh_days,
+                    ipinfo_token=self.ipinfo_token_var.get() if hasattr(self, 'ipinfo_token_var') else ""
                 )
-                self.hunter_instance.run()
+                with patch_tqdm():
+                    self.hunter_instance.run()
                 if hasattr(self, "_delayed_live_logs") and self._delayed_live_logs:
                     with self._log_lock:
                         for msg, tag in self._delayed_live_logs:
@@ -3905,7 +4256,7 @@ class ProxyHunterApp(ctk.CTk):
                 self.checker_input.configure(fg="#E2E8F0")
                 
         def _on_focus_out(e):
-            if not self.checker_input.get("1.0", "end-1c").strip():
+            if str(self.checker_input.cget("state")) == "normal" and not self.checker_input.get("1.0", "end-1c").strip():
                 self.checker_input.delete("1.0", "end")
                 self.checker_input.insert("1.0", self.checker_placeholder)
                 self.checker_input.configure(fg=MUTED)
@@ -3913,28 +4264,28 @@ class ProxyHunterApp(ctk.CTk):
         self.checker_input.bind("<FocusIn>", _on_focus_in)
         self.checker_input.bind("<FocusOut>", _on_focus_out)
         self.checker_input.bind("<KeyRelease>", self._update_checker_count)
-        self.checker_input.bind("<<Paste>>", lambda e: self.after(50, self._update_checker_count), add="+")
-        self.checker_input.bind("<<Paste>>", self._smart_paste, add="+")
-        self.checker_input.bind("<Control-v>", self._smart_paste)
+        self.checker_input.bind("<<Paste>>", self._smart_paste)
+        def _on_ctrl_key(e):
+            if getattr(e, 'keycode', 0) in (65, 97):
+                self._select_all(e)
+                return "break"
+            elif getattr(e, 'keycode', 0) in (67, 99):
+                self._smart_copy(e)
+                return "break"
+            elif getattr(e, 'keycode', 0) in (86, 118):
+                self._smart_paste(e)
+                return "break"
+            elif getattr(e, 'keycode', 0) in (88, 120):
+                self.checker_input.event_generate("<<Cut>>")
+                return "break"
+
+        self.checker_input.bind("<Control-KeyPress>", _on_ctrl_key)
+        self.checker_input.bind("<<Paste>>", self._smart_paste)
+        self.checker_input.bind("<Shift-Insert>", self._smart_paste)
         self.checker_input.bind("<Command-v>", self._smart_paste)
-        try:
-            self.checker_input.bind("<Control-м>", self._smart_paste)
-            self.checker_input.bind("<Control-М>", self._smart_paste)
-        except Exception: pass
-        
-        self.checker_input.bind("<Control-a>", self._select_all)
         self.checker_input.bind("<Command-a>", self._select_all)
-        try:
-            self.checker_input.bind("<Control-ф>", self._select_all)
-            self.checker_input.bind("<Control-Ф>", self._select_all)
-            self.checker_input.bind("<Control-c>", self._smart_copy)
-            self.checker_input.bind("<Control-C>", self._smart_copy)
-            self.checker_input.bind("<Control-с>", self._smart_copy)
-            self.checker_input.bind("<Control-С>", self._smart_copy)
-            self.checker_input.bind("<Control-x>", lambda e: self.checker_input.event_generate("<<Cut>>"))
-            self.checker_input.bind("<Control-ч>", lambda e: self.checker_input.event_generate("<<Cut>>"))
-            self.checker_input.bind("<Control-Ч>", lambda e: self.checker_input.event_generate("<<Cut>>"))
-        except Exception: pass
+        self.checker_input.bind("<Command-c>", self._smart_copy)
+        self.checker_input.bind("<Command-x>", lambda e: self.checker_input.event_generate("<<Cut>>"))
 
         right_panel = ctk.CTkFrame(parent, fg_color="#060B14", corner_radius=10)
         right_panel.grid(row=0, column=1, sticky="nsew")
@@ -4273,7 +4624,8 @@ class ProxyHunterApp(ctk.CTk):
             except Exception:
                 pass
 
-        max_workers = min(30, len(proxies))
+        max_threads = int(self.thread_slider.get()) if hasattr(self, 'thread_slider') else 300
+        max_workers = min(max_threads, len(proxies))
         
         def check_one(proxy):
             if not getattr(self, 'checker_is_running', False):
@@ -4294,7 +4646,20 @@ class ProxyHunterApp(ctk.CTk):
                         return
                     is_ip_only = False
                     if protocol_prefix:
-                        proxies_dict = {'http': f"{protocol_prefix}://{clean_proxy}", 'https': f"{protocol_prefix}://{clean_proxy}"}
+                        # H-08 FIX: Proper SOCKS support in checker
+                        if 'socks' in protocol_prefix.lower():
+                            try:
+                                import socks
+                                proxies_dict = {'http': f"{protocol_prefix}://{clean_proxy}", 'https': f"{protocol_prefix}://{clean_proxy}"}
+                            except ImportError:
+                                self._update_check_row(proxy, "ping", self._t("chk_skip"))
+                                self._update_check_row(proxy, "anon", self._t("chk_skip") + " (No PySocks)")
+                                self._update_check_row(proxy, "speed", self._t("chk_skip"))
+                                self._update_check_row(proxy, "smtp", self._t("chk_skip"))
+                                self._update_check_row(proxy, "bl", self._t("chk_skip"))
+                                return
+                        else:
+                            proxies_dict = {'http': f"{protocol_prefix}://{clean_proxy}", 'https': f"{protocol_prefix}://{clean_proxy}"}
                     else:
                         proxies_dict = {'http': f"http://{clean_proxy}", 'https': f"http://{clean_proxy}"}
                 else:
@@ -4310,6 +4675,18 @@ class ProxyHunterApp(ctk.CTk):
                     self._update_check_row(proxy, "anon", self._t("chk_skip"))
                     self._update_check_row(proxy, "speed", self._t("chk_skip"))
                     self._update_check_row(proxy, "smtp", self._t("chk_skip"))
+                    # C-03 FIX: BL check for IP-only entries
+                    if self.do_check_bl.get():
+                        try:
+                            res = dummy_hunter._check_rdns_and_bl(ip)
+                            if res.get('rdns_dirty') or res.get('dnsbl'):
+                                self._update_check_row(proxy, "bl", self._t("chk_blacklisted"))
+                            else:
+                                self._update_check_row(proxy, "bl", self._t("chk_clean"))
+                        except Exception:
+                            self._update_check_row(proxy, "bl", self._t("chk_error"))
+                    else:
+                        self._update_check_row(proxy, "bl", self._t("chk_skip"))
                 else:
                     if not self.checker_is_running: return
                     country_iso = dummy_hunter._get_country(ip)
@@ -4371,32 +4748,40 @@ class ProxyHunterApp(ctk.CTk):
                         else:
                             self._update_check_row(proxy, "smtp", self._t("chk_skip"))
 
-                if not self.checker_is_running: return
-                # 5. Blacklists
-                if self.do_check_bl.get():
-                    try:
-                        res = dummy_hunter._check_rdns_and_bl(ip)
-                        if res.get('rdns_dirty') or res.get('dnsbl'):
-                            self._update_check_row(proxy, "bl", self._t("chk_blacklisted"))
+                        # C-03 FIX: BL check INSIDE alive block (не тратим DNS на мёртвые прокси)
+                        if not self.checker_is_running: return
+                        if self.do_check_bl.get():
+                            try:
+                                res = dummy_hunter._check_rdns_and_bl(ip)
+                                if res.get('rdns_dirty') or res.get('dnsbl'):
+                                    self._update_check_row(proxy, "bl", self._t("chk_blacklisted"))
+                                else:
+                                    self._update_check_row(proxy, "bl", self._t("chk_clean"))
+                            except Exception:
+                                self._update_check_row(proxy, "bl", self._t("chk_error"))
                         else:
-                            self._update_check_row(proxy, "bl", self._t("chk_clean"))
-                    except Exception:
-                        self._update_check_row(proxy, "bl", self._t("chk_error"))
-                else:
-                    self._update_check_row(proxy, "bl", self._t("chk_skip"))
+                            self._update_check_row(proxy, "bl", self._t("chk_skip"))
                     
             except Exception:
                 pass
+        
+        # M-05 FIX: Lock for thread-safe counter increment
+        import threading as _thr
+        _checker_lock = _thr.Lock()
         
         # BUG-21: Parallel execution with ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             futures = [pool.submit(check_one, p) for p in proxies]
             for f in as_completed(futures):
                 if not self.checker_is_running:
+                    # M-07 FIX: Cancel all futures and stop processing results
                     for remaining in futures:
                         remaining.cancel()
+                    # Clear futures list to allow garbage collection
+                    pool._work_queue.queue.clear()
                     break
-                self._checker_done += 1
+                with _checker_lock:
+                    self._checker_done += 1
                 try:
                     pct = int((self._checker_done / self._checker_total) * 100)
                     prog_val = self._checker_done / self._checker_total
@@ -4407,6 +4792,14 @@ class ProxyHunterApp(ctk.CTk):
                     self.after(0, _update_prog)
                 except Exception:
                     pass
+
+        # H-05 FIX: Закрываем db_reader чтобы не было утечки файловых дескрипторов
+        if hasattr(dummy_hunter, 'db_reader') and dummy_hunter.db_reader:
+            try:
+                dummy_hunter.db_reader.close()
+            except Exception:
+                pass
+            dummy_hunter.db_reader = None
 
         self.checker_is_running = False
         def _reset_ui():
@@ -4465,6 +4858,9 @@ class ProxyHunterApp(ctk.CTk):
         unique_countries = set()
         unique_protos = set()
         
+        self.checker_country_counts = {}
+        self.checker_proto_counts = {}
+        
         all_items = list(self.check_tree.get_children()) + [item_id for item_id, _ in getattr(self, '_checker_detached', [])]
         for item_id in all_items:
             try:
@@ -4472,21 +4868,30 @@ class ProxyHunterApp(ctk.CTk):
                 if not vals or len(vals) < 8:
                     continue
                 _, proxy, country, ping, anon, bl, speed, smtp = vals
-                unique_countries.add(str(country))
+                
+                c_str = str(country)
+                unique_countries.add(c_str)
+                self.checker_country_counts[c_str] = self.checker_country_counts.get(c_str, 0) + 1
                 
                 p_str = str(proxy)
                 proto = "http"
                 if "://" in p_str:
                     proto = p_str.split("://")[0].lower()
                 unique_protos.add(proto)
-                
-                if "❌" not in str(ping) and "⏳" not in str(ping) and "—" not in str(ping):
+                self.checker_proto_counts[proto] = self.checker_proto_counts.get(proto, 0) + 1
+                # M-02 FIX: Locale-independent status checking
+                # "ping" ok format: "X ms"
+                # anon: chk_elite
+                # bl: chk_clean
+                # smtp: chk_open
+                ping_str = str(ping)
+                if ping_str and ping_str != self._t("chk_timeout") and ping_str != self._t("chk_skip") and ping_str != self._t("chk_error"):
                     alive_count += 1
-                if "💎" in str(anon):
+                if str(anon) == self._t("chk_elite"):
                     elite_count += 1
-                if "✨" in str(bl):
+                if str(bl) == self._t("chk_clean"):
                     clean_count += 1
-                if "■" in str(smtp):
+                if str(smtp) == self._t("chk_open"):
                     smtp_count += 1
             except:
                 pass
