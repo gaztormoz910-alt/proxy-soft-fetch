@@ -1306,6 +1306,22 @@ class ProxyUtils:
                     resp = await asyncio.wait_for(reader.read(1024), timeout=timeout)
                     return b"204 No Content" in resp
                     
+                elif proto == 'https':
+                    # В списках прокси метка «https» означает не отдельный
+                    # протокол, а HTTP-прокси, умеющий CONNECT — то есть
+                    # туннелировать TLS. Ветки для него не было вовсе, и такой
+                    # прокси проваливался мимо всех условий: функция возвращала
+                    # None, то есть «не работает», каким бы живым он ни был.
+                    # В SOURCES 104 источника помечены https.
+                    req = b"CONNECT gstatic.com:443 HTTP/1.1\r\nHost: gstatic.com:443\r\n\r\n"
+                    writer.write(req)
+                    await writer.drain()
+                    resp = await asyncio.wait_for(reader.read(1024), timeout=timeout)
+                    # Успех — «HTTP/1.1 200 Connection established». Смотрим
+                    # только статусную строку: тело может содержать что угодно.
+                    status_line = resp.split(b"\r\n", 1)[0]
+                    return status_line.startswith(b"HTTP/") and b" 200" in status_line
+
                 elif proto == 'socks4':
                     # SOCKS4 connect request to 142.250.186.99:80
                     req = b"\x04\x01\x00\x50\x8E\xFA\xBA\x63\x00"
@@ -1344,6 +1360,12 @@ class ProxyUtils:
                     await writer.drain()
                     resp2 = await asyncio.wait_for(reader.read(1024), timeout=timeout)
                     return b"204 No Content" in resp2
+
+                # Явный возврат вместо неявного None: именно «провалиться мимо
+                # всех веток» и было багом с https — тихое None читалось как
+                # «не работает», и отличить его от настоящего отказа было
+                # невозможно ни в коде, ни в логе.
+                return False
             finally:
                 writer.close()
                 try: await writer.wait_closed()
