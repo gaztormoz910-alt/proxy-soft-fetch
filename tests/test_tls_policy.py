@@ -37,16 +37,29 @@ def _fake_response(url, body):
     return resp
 
 
+class FakeCookies:
+    def __init__(self):
+        self.cleared = 0
+
+    def clear(self):
+        self.cleared += 1
+
+
 class Recorder:
-    """Подменяет requests.get и запоминает, с каким verify его звали."""
+    """Подменяет сессию ProxyUtils и запоминает, с каким verify её звали.
+
+    Патчим именно сессию, а не requests.get: fetch_url ходит через
+    потоко-локальную requests.Session ради переиспользования соединений.
+    """
 
     def __init__(self, monkeypatch, fail_first_with_ssl_error=False, body="8.8.8.8:8080"):
         self.calls = []
         self.fail_first = fail_first_with_ssl_error
         self.body = body
-        monkeypatch.setattr(requests, "get", self)
+        self.cookies = FakeCookies()
+        monkeypatch.setattr(ProxyUtils, "_session", classmethod(lambda cls: self))
 
-    def __call__(self, url, **kwargs):
+    def get(self, url, **kwargs):
         self.calls.append(kwargs.get("verify", "default"))
         if self.fail_first and len(self.calls) == 1:
             raise requests.exceptions.SSLError("certificate verify failed")
@@ -81,7 +94,7 @@ def test_insecure_warning_is_printed_once_per_host(monkeypatch, capsys):
     # Оба запроса к одному хосту падают по SSL и оба уходят в повтор,
     # но предупреждение должно быть напечатано ровно один раз.
     class TwoFailures(Recorder):
-        def __call__(self, url, **kwargs):
+        def get(self, url, **kwargs):
             self.calls.append(kwargs.get("verify", "default"))
             if kwargs.get("verify", "default") == "default":
                 raise requests.exceptions.SSLError("certificate verify failed")
@@ -96,12 +109,15 @@ def test_insecure_warning_is_printed_once_per_host(monkeypatch, capsys):
 def test_non_ssl_errors_are_never_retried(monkeypatch):
     calls = []
 
-    def boom(url, **kwargs):
-        calls.append(kwargs.get("verify", "default"))
-        raise requests.exceptions.ConnectTimeout("timeout")
+    class Timeout:
+        cookies = FakeCookies()
+
+        def get(self, url, **kwargs):
+            calls.append(kwargs.get("verify", "default"))
+            raise requests.exceptions.ConnectTimeout("timeout")
 
     ProxyUtils.ALLOW_INSECURE_SOURCES = True
-    monkeypatch.setattr(requests, "get", boom)
+    monkeypatch.setattr(ProxyUtils, "_session", classmethod(lambda cls: Timeout()))
     assert ProxyUtils.fetch_url("https://slow.test/list.txt", timeout=5) == ""
     assert calls == ["default"], "таймаут — не повод отключать проверку сертификата"
 
@@ -133,3 +149,46 @@ def test_fetch_url_still_returns_body_over_plain_http():
                   content_type="text/plain")
     body = ProxyUtils.fetch_url("http://plain.test/list.txt", timeout=5)
     assert sorted(ProxyUtils.parse_proxies(body)) == ["1.1.1.1:3128", "8.8.8.8:8080"]
+
+
+# ------------------------------------------- PERF-03: переиспользование соединений
+
+def test_session_is_reused_within_a_thread():
+    """Пул соединений имеет смысл, только если сессия одна на поток."""
+    ProxyUtils._thread_state.__dict__.pop("session", None)
+    first = ProxyUtils._session()
+    assert ProxyUtils._session() is first
+
+
+def test_each_thread_gets_its_own_session():
+    """requests.Session не потокобезопасна, а сбор идёт из пула на 50 воркеров."""
+    import threading
+
+    ProxyUtils._thread_state.__dict__.pop("session", None)
+    main_session = ProxyUtils._session()
+    other = {}
+
+    def grab():
+        other["session"] = ProxyUtils._session()
+
+    t = threading.Thread(target=grab)
+    t.start()
+    t.join()
+
+    assert other["session"] is not main_session
+
+
+def test_session_mounts_a_pooled_adapter():
+    ProxyUtils._thread_state.__dict__.pop("session", None)
+    session = ProxyUtils._session()
+    for prefix in ("http://", "https://"):
+        adapter = session.get_adapter(prefix + "example.test")
+        assert adapter._pool_maxsize >= 20, prefix
+
+
+def test_cookies_do_not_leak_between_sources(monkeypatch):
+    """requests.get() куки не хранил — сессия не должна менять это поведение."""
+    rec = Recorder(monkeypatch)
+    ProxyUtils.fetch_url("https://a.test/list.txt", timeout=5)
+    ProxyUtils.fetch_url("https://b.test/list.txt", timeout=5)
+    assert rec.cookies.cleared == 2, "куки должны сбрасываться перед каждым запросом"

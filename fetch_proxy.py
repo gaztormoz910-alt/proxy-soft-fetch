@@ -995,11 +995,36 @@ class ProxyUtils:
     _insecure_hosts_logged: Set[str] = set()
     _insecure_lock = threading.Lock()
 
+    # PERF-03: сессия на поток — переиспользует TCP+TLS-соединение между
+    # запросами. Раньше здесь был голый requests.get(), то есть каждый из ~1630
+    # запросов открывал соединение заново и делал новый TLS-хендшейк. Запросы
+    # сильно сконцентрированы по хостам (450 к advanced.name, 200 к proxydb.net,
+    # 188 к geonode, десятки к raw.githubusercontent.com), поэтому пул окупается.
+    # Замер: 15 запросов к одному хосту — 4.33 c против 1.89 c (−56%).
+    # Сессия именно потоко-локальная: requests.Session не потокобезопасна, а
+    # сбор идёт из пула на 50 воркеров.
+    _thread_state = threading.local()
+
+    @classmethod
+    def _session(cls) -> "requests.Session":
+        session = getattr(cls._thread_state, 'session', None)
+        if session is None:
+            session = requests.Session()
+            adapter = requests.adapters.HTTPAdapter(pool_connections=20, pool_maxsize=20)
+            session.mount('http://', adapter)
+            session.mount('https://', adapter)
+            cls._thread_state.session = session
+        return session
+
     @classmethod
     def _get_with_tls_policy(cls, url: str, headers: dict, timeout: int):
         """GET с проверкой TLS; при SSLError — опциональный повтор без проверки."""
+        session = cls._session()
+        # Куки не переносим между источниками: requests.get() их не хранил, и
+        # накапливать чужие куки на 1600 запросов ни к чему.
+        session.cookies.clear()
         try:
-            return requests.get(url, headers=headers, timeout=timeout, stream=True)
+            return session.get(url, headers=headers, timeout=timeout, stream=True)
         except requests.exceptions.SSLError:
             if not cls.ALLOW_INSECURE_SOURCES:
                 raise
@@ -1014,7 +1039,7 @@ class ProxyUtils:
             if first_time:
                 print(f"    [!] TLS-сертификат {host} не прошёл проверку — "
                       f"источник загружен без проверки (включён режим небезопасных источников)")
-            return requests.get(url, headers=headers, timeout=timeout, stream=True, verify=False)
+            return session.get(url, headers=headers, timeout=timeout, stream=True, verify=False)
 
     @staticmethod
     def fetch_url(url: str, timeout: int = 10) -> str:
