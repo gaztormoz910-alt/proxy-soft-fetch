@@ -3,24 +3,29 @@ import customtkinter as ctk
 app = ctk.CTk()
 app.geometry("400x400")
 
-def check_scrollbar(*args):
-    # inner frame height
-    inner_h = frame._parent_frame.winfo_reqheight()
-    # canvas (visible area) height
-    canvas_h = frame._parent_canvas.winfo_height()
-    print(f"Inner: {inner_h}, Canvas: {canvas_h}")
-    if inner_h > canvas_h and canvas_h > 10:
-        frame._scrollbar.grid(row=0, column=1, sticky="ns")
+scroll = ctk.CTkScrollableFrame(app, fg_color="red")
+scroll.pack(fill="both", expand=True)
+
+inner = ctk.CTkFrame(scroll, fg_color="blue", height=100)
+inner.pack(fill="x")
+
+def stretch(e):
+    canvas = scroll._parent_canvas
+    frame = scroll._parent_frame
+    req_h = frame.winfo_reqheight()
+    h = e.height
+    print(f"Canvas height: {h}, req_h: {req_h}")
+    if h > req_h:
+        canvas.itemconfig(scroll._parent_canvas_window_id, height=h)
     else:
-        frame._scrollbar.grid_remove()
+        canvas.itemconfig(scroll._parent_canvas_window_id, height="")
 
-frame = ctk.CTkScrollableFrame(app)
-frame.pack(fill="both", expand=True)
+scroll.bind("<Configure>", stretch)
 
-frame._parent_canvas.bind("<Configure>", check_scrollbar, add="+")
-frame._parent_frame.bind("<Configure>", check_scrollbar, add="+")
+app.update()
+print("Stretching height to 400 manually...")
+scroll._parent_canvas.itemconfig(scroll._parent_canvas_window_id, height=400)
+app.update()
+print(f"Frame height after stretch: {scroll._parent_frame.winfo_height()}")
 
-btn = ctk.CTkButton(app, text="Add Label", command=lambda: ctk.CTkLabel(frame, text="Hello").pack())
-btn.pack()
-
-app.mainloop()
+app.destroy()
