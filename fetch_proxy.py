@@ -242,6 +242,146 @@ SOURCES = [
     ('https://spys.me/socks.txt', 'socks5'),
     ('https://sunny9577.github.io/proxy-scraper/generated/socks5_proxies.txt', 'socks5'),
     ('https://vakhov.github.io/fresh-proxy-list/socks5.txt', 'socks5'),
+    # --- NEW SOCKS5 SOURCES ADDED ---
+    ('https://raw.githubusercontent.com/proxylist-to/proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Ian-Lusule/Proxies/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/zevtyardt/proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/officialputuid/ProxyForEveryone/main/socks5/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5.txt', 'socks5'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolipport&format=text&anonymity=elite', 'socks5'),
+    ('https://raw.githubusercontent.com/casals-ar/proxy-list/main/socks5', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=UA', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=PL', 'socks5'),
+    ('https://raw.githubusercontent.com/fate0/proxylist/master/proxy.list', 'socks5'),
+    ('https://api.proxyscrape.com/proxytable.php?type=socks5', 'socks5'),
+    ('https://proxyscrape.com/free-proxy-list/germany#free-proxy-table', 'socks5'),
+    ('https://databay.com/free-proxy-list/socks5', 'socks5'),
+    ('https://proxyscrape.com/free-proxy-list', 'socks5'),
+    ('https://wproxy.org/en/docs/rules/socks.html', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=7&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt', 'socks5'),
+    ('https://httpie.io/docs/cli/other-notes', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=8&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=6&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://mullvad.net/en/help/socks5-proxy', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=5&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://aimultiple.com/socks5-proxies', 'socks5'),
+    ('https://cocalc.com/github/TheSpeedX/PROXY-List/blob/master/socks5.txt', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=4&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=4&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=6&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/scraped_proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/socks5.txt', 'socks5'),
+    # --- RATE LIMITED BUT VALID (GEONODE/PROXYSCRAPE) ---
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=ipport&format=text&timeout=3000', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=9&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=10&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=11&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=12&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=13&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=14&sort_by=lastChecked&sort_type=desc&protocols=socks5', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=all&anonymity=elite', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=all&anonymity=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=5&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=7&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=8&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=9&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=4&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=5&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=6&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=7&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=8&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=9&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=anonymous', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=US', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=GB', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=DE', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=FR', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=CA', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=BR', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=RU', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=IN', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=ID', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=CN', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=JP', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=KR', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=VN', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=IR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=US', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=US', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=US', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=GB', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=GB', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=GB', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=DE', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=DE', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=DE', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=FR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=FR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=FR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ID', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ID', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ID', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=JP', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=JP', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=JP', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=KR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=KR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=KR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=VN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=VN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=VN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=TR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=TR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=TR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IT', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IT', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IT', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ES', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ES', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ES', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=NL', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=NL', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=NL', 'socks5'),
+    # --- PASTEBIN/RENTRY SEARCH DORKING (DuckDuckGo HTML) ---
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.com+"socks5"+intext:"1080"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.com+"socks5://"+IP+PORT&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.com+"proxy+list"+"socks5"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:rentry.co+"socks5"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:ghostbin.com+"socks5"&df=d', 'socks5'),
 ]
 # === ПАГИНАЦИЯ (ДИНАМИЧЕСКИЕ ИСТОЧНИКИ) ===
 # Advanced.name (до 150 страниц)
@@ -256,6 +396,103 @@ SOURCES.extend([(f'https://proxylist.geonode.com/api/proxy-list?limit=500&page={
 SOURCES.append(('http://pubproxy.com/api/proxy?limit=5&format=txt&http=true&level=anonymous,elite&type=http,socks4,socks5', 'http'))
 
 SOURCES.append(('https://good-proxies.ru/proxy-list/free/us/', 'http'))
+
+# --- NEW VALIDATED AI SOURCES ---
+SOURCES.extend([
+    ('https://t.me/s/v2ray_free_conf', 'all'),
+    ('https://raw.githubusercontent.com/VPSLabCloud/VPSLab-Free-Proxy-List/main/http_elite.txt', 'http'),
+    ('https://raw.githubusercontent.com/VPSLabCloud/VPSLab-Free-Proxy-List/main/all_elite.txt', 'all'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=ipport&format=text&timeout=3000', 'http'),
+    ('https://raw.githubusercontent.com/scidam/proxy-list/master/proxy.json', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&speed=fast', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=https&speed=fast', 'https'),
+    ('https://raw.githubusercontent.com/officialputuid/ProxyForEveryone/main/xResults/RAW.txt', 'all'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/im-razvan/proxy_list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/KUTLime/ProxyList/main/ProxyList.txt', 'all'),
+    ('https://raw.githubusercontent.com/officialputuid/ProxyForEveryone/main/xResults/Proxies.txt', 'all'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&anonymity=elite', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks4&speed=fast', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&speed=fast', 'socks5'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks5.txt', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5&timeout=2000&country=GB&anonymity=elite', 'socks5'),
+    ('https://spys.me/socks.txt', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=2000&country=FR&ssl=yes&anonymity=elite', 'http'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5&timeout=2000&country=IN&anonymity=elite', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=2000&country=IN&ssl=yes&anonymity=elite', 'http'),
+    ('https://t.me/s/daily_free_proxy', 'all'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=US&protocols=https', 'https'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=RU&protocols=http', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=GB&protocols=https', 'https'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=DE&protocols=http', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=DE&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=FR&protocols=http', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=FR&protocols=https', 'https'),
+    ('https://t.me/s/v2ray_proxies', 'all'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=IN&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=BR&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=IN&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=ID&protocols=http', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=GB&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=GB&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=RU&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=DE&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=FR&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=BR&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=FR&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=CN&protocols=socks5', 'socks5'),
+    ('https://litport.net/api/free-proxy?format=txt&protocol=http&country=PL', 'http'),
+    ('https://litport.net/api/free-proxy?format=txt&protocol=socks4&country=CA', 'socks4'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks4&country=IR', 'socks4'),
+    ('https://litport.net/api/free-proxy?format=txt&protocol=http&country=SG', 'http'),
+    ('https://litport.net/api/free-proxy?format=txt&protocol=http&country=IN', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=https&country=IR', 'https'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=JP', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks5&country=IR', 'socks5'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=UA', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=IN', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=CA', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=IT', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks4&country=ES', 'socks4'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks5&country=ES', 'socks5'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=SG', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks4&country=SG', 'socks4'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=KR', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=US&protocols=socks5', 'socks5'),
+    ('https://hidemy.io/en/proxy-list/', 'all'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=US&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=RU&protocols=socks5', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=CN&protocols=socks4', 'socks4'),
+    ('https://premiumproxy.net/full-proxy-list', 'all'),
+    ('https://proxydb.net/?protocol=http&offset=360', 'http'),
+    ('https://proxydb.net/?protocol=http&offset=375', 'http'),
+    ('https://www.my-proxy.com/free-anonymous-proxy.html', 'http'),
+    ('https://www.my-proxy.com/free-socks-5-proxy.html', 'socks5'),
+    ('https://www.my-proxy.com/free-proxy-list-6.html', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=FR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=ID', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=KR', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=JP', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=SG', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=VN', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=GB', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=US', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=DE', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=NL', 'socks5'),
+    ('https://advanced.name/freeproxy?type=socks5&page=2', 'socks5'),
+    ('https://advanced.name/freeproxy?type=socks5&page=1', 'socks5'),
+    ('https://www.my-proxy.com/free-transparent-proxy.html', 'http'),
+])
+
 class ProxyUtils:
     """Утилиты для работы с сетью и парсинга прокси"""
     
@@ -351,6 +588,17 @@ class ProxyUtils:
             except Exception:
                 pass
             if i % 1000 == 0: time.sleep(0.001)
+            
+        for i, match in enumerate(re.finditer(r"Proxy\(['\"]([A-Za-z0-9+/=]+)['\"]\)", content)):
+            try:
+                decoded = base64.b64decode(match.group(1)).decode('utf-8').strip()
+                if ':' in decoded:
+                    ip, port = decoded.split(':', 1)
+                    if port.isdigit() and cls.is_valid(ip, int(port)):
+                        found.add(f"{ip}:{port}")
+            except Exception:
+                pass
+            if i % 1000 == 0: time.sleep(0.001)
 
         for i, match in enumerate(cls.TABLE_RE.finditer(content)):
             ip, port = match.groups()
@@ -373,7 +621,7 @@ class ProxyUtils:
             
         return list(found)
     @classmethod
-    def fetch_github_commits(cls, url: str, token: str, hours_back: int = 24) -> tuple:
+    def fetch_github_commits(cls, url: str, token: str, hours_back: int = 24, cancel_event=None, pause_event=None) -> tuple:
         owner, repo, branch, path = None, None, None, None
         
         m_raw = re.match(r'https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
@@ -773,7 +1021,7 @@ class ProxyHunter:
         self.github_tm_enabled = github_tm_enabled
         self.github_tm_days = github_tm_days
 
-        self.threads = min(threads, 5000)
+        self.threads = threads
         self.timeout = timeout
         
         default_countries = ['US','CA','GB','AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE',
@@ -853,9 +1101,34 @@ class ProxyHunter:
             pbar = None
         def _fetch_and_parse(url, proto, fetch_timeout):
             content = ProxyUtils.fetch_url(url, fetch_timeout)
+            responded = bool(content)
+            proxies = []
             if content:
-                return proto, ProxyUtils.parse_proxies(content)
-            return proto, []
+                if 'html.duckduckgo.com' in url:
+                    import urllib.parse
+                    # Extract target URLs (Pastebin, Rentry, Ghostbin)
+                    links = re.findall(r'href="([^"]+)"', content)
+                    real_links = []
+                    for l in links:
+                        if 'uddg=' in l:
+                            try:
+                                parsed = urllib.parse.urlparse("https://html.duckduckgo.com" + l)
+                                uddg = urllib.parse.parse_qs(parsed.query).get('uddg', [None])[0]
+                                if uddg: real_links.append(urllib.parse.unquote(uddg))
+                            except: pass
+                        else:
+                            real_links.append(l)
+                            
+                    # Filter for our targets
+                    targets = [l for l in real_links if 'pastebin.com' in l or 'rentry.co' in l or 'ghostbin.com' in l]
+                    for t_url in set(targets):
+                        if 'rentry.co' in t_url and not t_url.endswith('/raw'): t_url += '/raw'
+                        sub_content = ProxyUtils.fetch_url(t_url, fetch_timeout)
+                        if sub_content:
+                            proxies.extend(ProxyUtils.parse_proxies(sub_content))
+                else:
+                    proxies.extend(ProxyUtils.parse_proxies(content))
+            return proto, proxies, responded
 
         with ThreadPoolExecutor(max_workers=50) as ex:
             fmap = {}
@@ -868,12 +1141,14 @@ class ProxyHunter:
                 if self._cancel_event.is_set(): break
                 url = fmap[fut]
                 try:
-                    proto, proxies = fut.result()
+                    proto, proxies, responded = fut.result()
+                    if responded:
+                        ok_sources += 1
                 except Exception:
                     if pbar: pbar.update(1)
                     continue
+                
                 if proxies:
-                    ok_sources += 1
                     total_raw += len(proxies)
                     with self._lock:
                         for p in proxies:
@@ -881,11 +1156,13 @@ class ProxyHunter:
                                 self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
                             else:
                                 self.proxy_protocols[p].add(proto)
+                    if sys.stdout.isatty() or hasattr(sys.stdout, 'write'):
+                        print(f"[REALTIME_TOTAL] {len(self.proxy_protocols)}")
                 if pbar: pbar.update(1)
         
         if pbar: pbar.close()
         print(f"    {self._t('sources_replied')}: {ok_sources}")
-        print(f"    Уникальных IP:PORT после основного парсинга: {len(self.proxy_protocols)}")
+        print(f"    Уникальных IP:PORT: {len(self.proxy_protocols)}")
 
         # МАШИНА ВРЕМЕНИ (отдельным шагом)
         if getattr(self, 'github_token', None) and getattr(self, 'github_tm_enabled', True):
@@ -1073,8 +1350,10 @@ class ProxyHunter:
                 ext_ip, _ = ProxyUtils.extract_ip_port(ip_port)
                 if not re.match(r'^\d{1,3}(?:\.\d{1,3}){3}$', ext_ip):
                     return None
+                country = self._get_country(ext_ip)
+                if country.upper() in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"):
+                    return None
                 if self.countries:
-                    country = self._get_country(ext_ip)
                     if country.upper() not in self.countries:
                         return None
                 return (ip_port, {scheme})
@@ -1082,8 +1361,10 @@ class ProxyHunter:
             ip, port_s = ip_port.rsplit(':', 1)
             
             # GeoIP Filter (moved BEFORE network ping to massively speed up filtering)
+            country = self._get_country(ip)
+            if country.upper() in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"):
+                return None
             if self.countries:
-                country = self._get_country(ip)
                 if country.upper() not in self.countries:
                     return None
                     
@@ -1438,6 +1719,40 @@ class ProxyHunter:
             except Exception:
                 return None
         
+        if self.min_speed > 0.0 and proto.lower() not in encrypted_protos:
+            speed_ok = False
+            proxy_url = f"{proto.lower()}://{ip}:{port}"
+            try:
+                import time
+                import aiohttp
+                start_time = time.time()
+                # 100KB payload from Cloudflare speed test
+                speed_url = "http://speed.cloudflare.com/__down?bytes=100000"
+                if proto.lower() in ('socks4', 'socks5', 'socks5h'):
+                    from aiohttp_socks import ProxyConnector
+                    connector = ProxyConnector.from_url(proxy_url)
+                    async with aiohttp.ClientSession(connector=connector) as session:
+                        async with session.get(speed_url, timeout=self.timeout) as resp:
+                            if resp.status == 200:
+                                data = await resp.read()
+                                duration = time.time() - start_time
+                                speed_mbps = (len(data) * 8) / (1024 * 1024) / duration if duration > 0 else 0
+                                if speed_mbps >= self.min_speed: speed_ok = True
+                else:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(speed_url, proxy=f"http://{ip}:{port}", timeout=self.timeout) as resp:
+                            if resp.status == 200:
+                                data = await resp.read()
+                                duration = time.time() - start_time
+                                speed_mbps = (len(data) * 8) / (1024 * 1024) / duration if duration > 0 else 0
+                                if speed_mbps >= self.min_speed: speed_ok = True
+            except Exception:
+                pass
+            
+            if not speed_ok:
+                return None
+
+        
         if self.check_smtp and proto.lower() not in encrypted_protos:
             proxy_proto = proto.lower()
             smtp_ok = False
@@ -1788,6 +2103,11 @@ class ProxyHunter:
         # Combine back
         self.live_results.extend(pass1_live)
         self.live_results = sorted(set(self.live_results))  # Fix duplicate discrepancy between GUI card and table
+        
+        if hasattr(self, 'elite_results'): self.elite_results = sorted(set(self.elite_results))
+        if hasattr(self, 'results_datacenter'): self.results_datacenter = sorted(set(self.results_datacenter))
+        if hasattr(self, 'results_residential'): self.results_residential = sorted(set(self.results_residential))
+        if hasattr(self, 'results_mobile'): self.results_mobile = sorted(set(self.results_mobile))
         
         if not self._cancel_event.is_set():  # BUG-FP35 FIX: не сохраняем при отмене
             self.save()

@@ -226,8 +226,7 @@ REGIONS = {
         "BA": "Босния",
         "ME": "Черногория",
         "MK": "Сев. Македония",
-        "RS": "Сербия",
-        "MD": "Молдова"
+        "RS": "Сербия"
     },
     "🌎 Сев. Америка": {
         "US": "США",
@@ -272,11 +271,7 @@ REGIONS = {
         "HK": "Гонконг",
         "BD": "Бангладеш",
         "PK": "Пакистан",
-        "KZ": "Казахстан",
-        "UZ": "Узбекистан",
-        "AZ": "Азербайджан",
         "GE": "Грузия",
-        "AM": "Армения",
         "IL": "Израиль",
         "TR": "Турция",
         "AE": "ОАЭ",
@@ -292,14 +287,6 @@ REGIONS = {
         "NP": "Непал",
         "LK": "Шри-Ланка",
         "MN": "Монголия"
-    },
-    "🇷🇺 СНГ": {
-        "RU": "Россия",
-        "UA": "Украина",
-        "BY": "Беларусь",
-        "KG": "Кыргызстан",
-        "TJ": "Таджикистан",
-        "TM": "Туркменистан"
     },
     "🌍 Африка": {
         "ZA": "ЮАР",
@@ -490,8 +477,7 @@ REGIONS = {
         "BA": "Bosnia",
         "ME": "Montenegro",
         "MK": "North Macedonia",
-        "RS": "Serbia",
-        "MD": "Moldova"
+        "RS": "Serbia"
     },
     "🌎 North America": {
         "US": "USA",
@@ -536,11 +522,7 @@ REGIONS = {
         "HK": "Hong Kong",
         "BD": "Bangladesh",
         "PK": "Pakistan",
-        "KZ": "Kazakhstan",
-        "UZ": "Uzbekistan",
-        "AZ": "Azerbaijan",
         "GE": "Georgia",
-        "AM": "Armenia",
         "IL": "Israel",
         "TR": "Turkey",
         "AE": "UAE",
@@ -556,14 +538,6 @@ REGIONS = {
         "NP": "Nepal",
         "LK": "Sri Lanka",
         "MN": "Mongolia"
-    },
-    "🇷🇺 CIS": {
-        "RU": "Russia",
-        "UA": "Ukraine",
-        "BY": "Belarus",
-        "KG": "Kyrgyzstan",
-        "TJ": "Tajikistan",
-        "TM": "Turkmenistan"
     },
     "🌍 Africa": {
         "ZA": "South Africa",
@@ -738,16 +712,16 @@ LANG = {
         "tab_countries": "Countries",
         "tab_proxies": "Proxies",
         "tab_github": "GitHub API",
-        "github_tm_label": "Use GitHub API (Time Machine)",
-        "github_token_label": "Personal Access Token:",
+        "github_tm_label": "Use GitHub API",
+        "github_token_label": "Token:",
         "github_token_placeholder": "ghp_...",
         "github_token_save": "Save Token",
         "github_token_status": "Token saved!",
 
         "threads": "Threads",
-        "timeout": "Timeout (sec)",
-        "ping": "Max Ping (ms)",
-        "speed": "Min Speed (Mbps)",
+        "timeout": "Timeout",
+        "ping": "Max Ping",
+        "speed": "Min Speed",
         "smtp": "Check SMTP",
         "res": "Residential Only",
         "all": "✓ All",
@@ -776,30 +750,30 @@ LANG = {
         "copy": "📋 Copy",
         "refresh": "🔄 Refresh",
         "download": "📥 Download:",
-        "csv": "CSV (Full)",
+        "csv": "CSV",
         "txt_proto": "Protocol://IP:Port",
         "txt1": "IP:Port",
         "txt2": "IP Only",
         "copied": "✓ Copied!",
         "csv_saved": "✓ CSV saved!",
         "txt_saved": "✓ TXT saved!",
-        "txt_ip_saved": "✓ TXT (IP) saved!",
+        "txt_ip_saved": "✓ TXT saved!",
         "no_data": "No data",
         "error_no_countries": "Select at least 1 country!",
         "error_no_folder": "Select a save folder!",
         "output_dir_save": "Save",
         "output_dir_saved": "✓ Saved!",
-        "github_days": "Time Machine Days (1-7):",
+        "github_days": "Time Machine Days:",
         "europe": "Europe",
         "hw_title": "💻 PC SPECIFICATIONS",
         "hw_cores": "• Processor: {0} Cores",
         "hw_ram": "• RAM: {0} GB",
         "hw_threads": "• Safe thread limit: {0}",
         "hw_class": "• Class: ",
-        "tier_ultra": "ULTRA (Beast 🚀)",
-        "tier_high": "HIGH (Gaming ⚡)",
-        "tier_medium": "MEDIUM (Office 🖥️)",
-        "tier_low": "LOW (Potato 🥔)",
+        "tier_ultra": "ULTRA",
+        "tier_high": "HIGH",
+        "tier_medium": "MEDIUM",
+        "tier_low": "LOW",
         "proxies_count": "{0} proxies",
         "subtitle": "v4.0 · Advanced Filtration",
         "source_live": "Live",
@@ -815,11 +789,12 @@ LANG = {
         "copied_terminal": "✓ Copied",
         "all_protocols": "All Protocols",
         "all_countries_filter": "All Countries",
-        "protocols_n": "Protocols ({0}) ▼",
-        "countries_n": "Countries ({0}) ▼",
+        "protocols_n": "Protocols ▼",
         "apply_filter": "Apply Filter",
+        "reset_filter": "Reset Filter",
+        "select_all_btn": "Select All",
         "tab_checker": "Checker",
-        "checker_input_lbl": "Paste proxies (IP:PORT):",
+        "checker_input_lbl": "Paste proxies:",
         "checker_start": "START CHECK",
         "checker_stopping": "STOPPING...",
         "checker_running": "CHECKING...",
@@ -846,30 +821,28 @@ LANG = {
         "checker_only_res": "Residential",
         "checker_only_mob": "Mobile",
         "checker_only_dc": "Datacenter",
-        "checker_download": "Download .txt",
-        "checker_saved": "✓ Saved ({0})",
+        "checker_download": "Download",
+        "checker_saved": "✓ Saved",
         "checker_copy": "Copy",
         "checker_copied": "✓ Copied",
         "chk_unique_0": "Unique: 0",
         "chk_unique_n": "Unique: {0}",
-        "chk_unique_n_total": "Unique: {0} (Total: {1})",
+        "chk_unique_n_total": "Unique: {0}",
         "chk_selected": "To copy/save: {0}",
-        "log_live_found": "[+] Live proxy: {0}:{1} ({2} - {3})",
-        "log_elite_found": "[+] 💎 Elite proxy: {0}:{1} ({2} - {3})",
-        "error_no_countries": "Select at least 1 country!",
+        "log_live_found": "[+] Live proxy: {0}:{1}",
+        "log_elite_found": "[+] 💎 Elite proxy: {0}:{1}",
+        "log_user_abort": "Task was aborted by user.",
         "error_no_proxies": "No valid proxies found!",
-        "error_file_size": "File too large (max 10MB)!",
+        "error_file_size": "File too large!",
         "error_file_type": "Invalid file type!",
-        "checker_placeholder_text": "Proxies (full check):\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nOnly IP (reputation check):\n192.168.x.x\n10.0.x.x",
-        "tab_proxies": "Proxies",
+        "checker_placeholder_text": "Proxies:\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nOnly IP:\n192.168.x.x\n10.0.x.x",
         "proxy_title": "🔗 Proxies for scanning",
-        "reset_filter": "Reset Filter",
         "search": "Search...",
         "copy_lbl": "📋 Copy:",
         "proxy_load": "Load",
         "proxy_clear": "Clear",
         "proxy_scan_via": "Scan through proxies",
-        "proxy_rotation": "Auto-rotation (round-robin)",
+        "proxy_rotation": "Auto-rotation",
         "proxy_remove_dead": "Remove dead automatically",
         "proxy_loaded": "Loaded: {0}",
         "terminal_empty": "[ Terminal empty ]",
@@ -900,9 +873,9 @@ LANG = {
         "tab_settings": "Параметры",
         "tab_countries": "Страны",
         "threads": "Потоки",
-        "timeout": "Таймаут (сек)",
-        "ping": "Макс Пинг (мс)",
-        "speed": "Мин Скор. (Мбит/с)",
+        "timeout": "Таймаут",
+        "ping": "Макс Пинг",
+        "speed": "Мин Скор.",
         "smtp": "Проверять SMTP",
         "res": "Только Residential",
         "all": "✓ Все",
@@ -918,10 +891,10 @@ LANG = {
         "elite": "Элитные",
         "wait": "Ожидание запуска...",
         "step1": "Сбор из источников...",
-        "step2": "Базовая проверка на живость...",
+        "step2": "Базовая проверка...",
         "step3": "Расширенная фильтрация...",
         "step4": "Завершено!",
-        "done_msg": "[✓] Готово! Результаты в папках results_elite и results_live.",
+        "done_msg": "[✓] Готово! Результаты в папках.",
         "tab_terminal": "Терминал",
         "tab_results": "Результаты",
         "proto": "Протокол",
@@ -931,25 +904,25 @@ LANG = {
         "copy": "📋 Копировать",
         "refresh": "🔄 Обновить",
         "download": "📥 Скачать:",
-        "csv": "CSV (Полный)",
+        "csv": "CSV",
         "txt_proto": "Protocol://IP:Port",
         "txt1": "IP:Port",
         "txt2": "Только IP",
         "copied": "✓ Скопировано!",
         "csv_saved": "✓ CSV сохранен!",
         "txt_saved": "✓ TXT сохранен!",
-        "txt_ip_saved": "✓ TXT (IP) сохранен!",
+        "txt_ip_saved": "✓ TXT сохранен!",
         "no_data": "Нет данных",
         "europe": "Европа",
         "hw_title": "💻 ХАРАКТЕРИСТИКИ ПК",
         "hw_cores": "• Процессор: {0} Ядер",
         "hw_ram": "• ОЗУ: {0} GB",
-        "hw_threads": "• Безопасный лимит потоков: {0}",
+        "hw_threads": "• Лимит потоков: {0}",
         "hw_class": "• Класс: ",
-        "tier_ultra": "ULTRA (Монстр 🚀)",
-        "tier_high": "HIGH (Игровой ⚡)",
-        "tier_medium": "MEDIUM (Офисный 🖥️)",
-        "tier_low": "LOW (Картошка 🥔)",
+        "tier_ultra": "ULTRA",
+        "tier_high": "HIGH",
+        "tier_medium": "MEDIUM",
+        "tier_low": "LOW",
         "proxies_count": "{0} прокси",
         "subtitle": "v4.0 · Продвинутая фильтрация",
         "source_live": "Рабочие",
@@ -961,15 +934,15 @@ LANG = {
         "pause": "Пауза",
         "resume": "▶ Продолжить",
         "cancel": "Отмена",
-        "copy_terminal": "Копировать терминал",
+        "copy_terminal": "Копировать",
         "copied_terminal": "✓ Скопировано",
         "all_protocols": "Все протоколы",
         "all_countries_filter": "Все страны",
-        "protocols_n": "Протоколы ({0}) ▼",
-        "countries_n": "Страны ({0}) ▼",
+        "protocols_n": "Протоколы ▼",
+        "countries_n": "Страны ▼",
         "apply_filter": "Задать фильтр",
         "tab_checker": "Проверка",
-        "checker_input_lbl": "Вставьте прокси (IP:PORT):",
+        "checker_input_lbl": "Вставьте прокси:",
         "checker_start": "НАЧАТЬ ПРОВЕРКУ",
         "checker_stopping": "ОСТАНОВКА...",
         "checker_running": "ПРОВЕРКА...",
@@ -991,40 +964,42 @@ LANG = {
         "checker_save_criteria": "Сохранить по критериям:",
         "checker_only_alive": "Рабочие",
         "checker_only_elite": "Элитные",
-        "checker_only_clean": "Чистые (без спама)",
+        "checker_only_clean": "Чистые",
         "checker_only_smtp": "SMTP",
         "checker_only_res": "Резидентный",
         "checker_only_mob": "Мобильный",
         "checker_only_dc": "Датацентр",
-        "checker_download": "Скачать .txt",
-        "checker_saved": "✓ Сохранено ({0})",
+        "checker_download": "Скачать",
+        "checker_saved": "✓ Сохранено",
         "checker_copy": "Копировать",
         "checker_copied": "✓ Скопировано",
         "chk_unique_0": "Уникальных: 0",
         "chk_unique_n": "Уникальных: {0}",
-        "chk_unique_n_total": "Уникальных: {0} (Всего: {1})",
-        "chk_selected": "К копированию/сохранению: {0}",
-        "log_live_found": "[+] Рабочий прокси: {0}:{1} ({2} - {3})",
-        "log_elite_found": "[+] 💎 Элитный прокси: {0}:{1} ({2} - {3})",
+        "chk_unique_n_total": "Уникальных: {0}",
+        "chk_selected": "К сохранению: {0}",
+        "log_live_found": "[+] Рабочий прокси: {0}:{1}",
+        "log_elite_found": "[+] 💎 Элитный прокси: {0}:{1}",
+        "log_user_abort": "Работа прервана.",
         "error_no_countries": "Выберите хотя бы 1 страну!",
-        "error_no_folder": "Выберите папку для сохранения!",
+        "error_no_folder": "Выберите папку!",
         "output_dir_save": "Сохранить",
         "output_dir_saved": "✓ Сохранено!",
         "error_no_proxies": "Нет валидных прокси!",
-        "github_days": "Глубина поиска (1-7 дней):",
-        "error_file_size": "Файл слишком большой (макс 10МБ)!",
-        "error_file_type": "Неверный формат файла!",
-        "checker_placeholder_text": "Прокси (полная проверка):\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nТолько IP (проверка репутации):\n192.168.x.x\n10.0.x.x",
+        "github_days": "Глубина поиска:",
+        "error_file_size": "Файл слишком большой!",
+        "error_file_type": "Неверный формат!",
+        "checker_placeholder_text": "Прокси:\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nТолько IP:\n192.168.x.x\n10.0.x.x",
         "tab_proxies": "Прокси",
         "proxy_title": "🔗 Прокси для сканирования",
         "reset_filter": "Сбросить фильтр",
+        "select_all_btn": "Выбрать всё",
         "search": "Поиск...",
         "copy_lbl": "📋 Скопировать:",
         "proxy_load": "Загрузить",
         "proxy_clear": "Очистить",
         "proxy_scan_via": "Сканировать через прокси",
-        "proxy_rotation": "Авто-ротация (round-robin)",
-        "proxy_remove_dead": "Удалять мёртвые автоматически",
+        "proxy_rotation": "Авто-ротация",
+        "proxy_remove_dead": "Удалять мёртвые",
         "proxy_loaded": "Загружено: {0}",
         "terminal_empty": "[ Терминал пуст ]",
         "proxy_alive": "Живых: {0}",
@@ -1047,12 +1022,11 @@ LANG = {
         "output_dir_lbl": "Папка сохранения:",
         "output_dir_btn": "Выбрать",
         "tab_github": "API ГитХаба",
-        "github_tm_label": "Использовать GitHub API (Машина Времени)",
-        "github_token_label": "Токен (Personal Access Token):",
+        "github_tm_label": "Машина Времени",
+        "github_token_label": "Токен:",
         "github_token_placeholder": "ghp_...",
         "github_token_save": "Сохранить",
-        "github_token_status": "Сохранено!",
-
+        "github_token_status": "Сохранено!"
     }
 }
 import os
@@ -1072,6 +1046,8 @@ class ProxyHunterApp(ctk.CTk):
         import queue
         self._fast_queue = queue.Queue()
         super().__init__()
+        import threading
+        self._log_lock = threading.Lock()
         
         # Load all minimalist SVG-like icons
         self.icons = {
@@ -1152,13 +1128,13 @@ class ProxyHunterApp(ctk.CTk):
             if hasattr(self, "output_dir"):
                 settings["output_dir"] = self.output_dir.get()
             if hasattr(self, "github_token_var"):
-                settings["github_token"] = self.github_token_var.get()
+                settings["github_token"] = self.github_token_var.get().strip().replace('\n', '').replace('\r', '')
             if hasattr(self, "github_tm_enabled"):
                 settings["github_tm_enabled"] = self.github_tm_enabled.get()
             if hasattr(self, "github_tm_days_var"):
                 try:
                     val = int(self.github_tm_days_var.get())
-                    settings["github_tm_days"] = max(1, min(7, val))
+                    settings["github_tm_days"] = max(1, min(15, val))
                 except ValueError:
                     settings["github_tm_days"] = 1
             with open("settings.json", "w", encoding="utf-8") as f:
@@ -1404,6 +1380,9 @@ class ProxyHunterApp(ctk.CTk):
                 for k, btn in self.source_seg._buttons_dict.items():
                     if k == "Live": self._safe_config(btn, text=self._t("source_live"))
                     elif k == "Elite": self._safe_config(btn, text=self._t("source_elite"))
+                    elif k == "Datacenter": self._safe_config(btn, text=self._t("source_datacenter"))
+                    elif k == "Residential": self._safe_config(btn, text=self._t("source_residential"))
+                    elif k == "Mobile": self._safe_config(btn, text=self._t("source_mobile"))
             except Exception: pass
         
         self.proxy_tree.heading("proto", text=self._t("proto"))
@@ -1452,6 +1431,20 @@ class ProxyHunterApp(ctk.CTk):
                 self._safe_config(self.btn_country_filter, text=self._t("all_countries_filter"))
             else:
                 self._safe_config(self.btn_country_filter, text=self._t("countries_n").format(len(a_c)))
+                
+        # Checker tab filters
+        if hasattr(self, "btn_checker_proto_filter"):
+            a_p = {p for p in getattr(self, "checker_selected_protos", set()) if p in getattr(self, "checker_all_protos", set())}
+            if not getattr(self, "checker_selected_protos", set()) or len(a_p) == len(getattr(self, "checker_all_protos", set())):
+                self._safe_config(self.btn_checker_proto_filter, text=self._t("all_protocols"))
+            else:
+                self._safe_config(self.btn_checker_proto_filter, text=self._t("protocols_n").format(len(a_p)))
+        if hasattr(self, "btn_checker_country_filter"):
+            a_c = {c for c in getattr(self, "checker_selected_countries", set()) if c in getattr(self, "checker_all_countries", set())}
+            if not getattr(self, "checker_selected_countries", set()) or len(a_c) == len(getattr(self, "checker_all_countries", set())):
+                self._safe_config(self.btn_checker_country_filter, text=self._t("all_countries_filter"))
+            else:
+                self._safe_config(self.btn_checker_country_filter, text=self._t("countries_n").format(len(a_c)))
 
         # Checker tab — full update
         if hasattr(self, "btn_check_start") and self.btn_check_start.cget("state") != "disabled":
@@ -1459,11 +1452,6 @@ class ProxyHunterApp(ctk.CTk):
         if hasattr(self, "_chk_btn_load"):
             self._safe_config(self._chk_btn_load, text=self._t("checker_load"))
             self._safe_config(self._chk_btn_clear, text=self._t("checker_clear"))
-            self._safe_config(self._chk_lbl_what, text=self._t("checker_what"))
-            self._safe_config(self._chk_cb_anon, text=self._t("checker_anon"))
-            self._safe_config(self._chk_cb_bl, text=self._t("checker_bl"))
-            self._safe_config(self._chk_cb_speed, text=self._t("checker_speed"))
-            if hasattr(self, "_chk_cb_category"): self._safe_config(self._chk_cb_category, text=self._t("checker_category"))
             self._safe_config(self._chk_lbl_input, text=self._t("checker_input_lbl"))
             self._safe_config(self._chk_lbl_criteria, text=self._t("checker_save_criteria"))
             
@@ -1888,10 +1876,10 @@ class ProxyHunterApp(ctk.CTk):
         self._hw_cores, self._hw_ram, self._hw_max_threads, self._hw_tier_key, self._hw_tier_color = get_hardware_limits()
         default_threads = min(500, self._hw_max_threads)
 
-        self._add_slider(frame, "Threads", 10, self._hw_max_threads, default_threads, 1, "threads")
-        self._add_slider(frame, "Timeout", 1, 300, 5, 1, "timeout")
-        self._add_slider(frame, "Max Ping", 50, 2000, 700, 10, "ping")
-        self._add_slider(frame, "Min Speed", 0.1, 10, 1.0, 0.1, "speed")
+        self._add_slider(frame, self._t("threads"), 10, self._hw_max_threads, default_threads, 1, "threads")
+        self._add_slider(frame, self._t("timeout"), 1, 300, 5, 1, "timeout")
+        self._add_slider(frame, self._t("ping"), 50, 2000, 700, 10, "ping")
+        self._add_slider(frame, self._t("speed"), 0.1, 10, 1.0, 0.1, "speed")
 
         ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
 
@@ -1968,7 +1956,7 @@ class ProxyHunterApp(ctk.CTk):
         self.github_token_var = tk.StringVar()
         
         if "github_token" in settings:
-            self.github_token_var.set(settings["github_token"])
+            self.github_token_var.set(settings["github_token"].strip().replace('\n', '').replace('\r', ''))
             
 
         self.entry_github_token = ctk.CTkEntry(
@@ -2037,7 +2025,7 @@ class ProxyHunterApp(ctk.CTk):
                 return
             v = int(val)
             if v < 1: self.github_tm_days_var.set("1")
-            elif v > 7: self.github_tm_days_var.set("7")
+            elif v > 15: self.github_tm_days_var.set("15")
             
         self.github_tm_days_var.trace_add("write", _validate_days)
         
@@ -2324,7 +2312,7 @@ class ProxyHunterApp(ctk.CTk):
         slider.configure(command=on_slide)
 
         # ═══ ПРИВЯЗКА ВСЕХ СОБЫТИЙ ═══
-        entry.bind("<KeyRelease>", _sanitize_and_sync)
+        entry.bind("<KeyRelease>", _sanitize_and_sync, add="+")
         entry.bind("<FocusOut>", _on_focus_out)
         entry.bind("<FocusIn>", _on_focus_in)
         entry.bind("<Control-v>", _on_paste)
@@ -2548,7 +2536,7 @@ class ProxyHunterApp(ctk.CTk):
         btn_plus.bind("<ButtonRelease-1>", _stop_repeat)
         btn_plus.bind("<Leave>", _stop_repeat)
 
-        entry.bind("<KeyRelease>", _sanitize_and_sync)
+        entry.bind("<KeyRelease>", _sanitize_and_sync, add="+")
         entry.bind("<FocusOut>", _on_focus_out)
         entry.bind("<FocusIn>", _on_focus_in)
         def _on_ctrl_key_num(e):
@@ -2672,7 +2660,7 @@ class ProxyHunterApp(ctk.CTk):
 
         self.tab_country_search = ctk.CTkEntry(search_frame, placeholder_text=self._t("search"), height=28)
         self.tab_country_search.pack(side="left", fill="x", expand=True, padx=(0, 5))
-        self.tab_country_search.bind("<KeyRelease>", self._filter_countries_tab)
+        self.tab_country_search.bind("<KeyRelease>", self._filter_countries_tab, add="+")
 
         def clear_search():
             self.tab_country_search.delete(0, "end")
@@ -2744,7 +2732,7 @@ class ProxyHunterApp(ctk.CTk):
             for idx, (iso, name) in enumerate(sorted(countries.items(), key=lambda x: x[1])):
                 var = ctk.BooleanVar(value=False)
                 self.country_vars[iso] = var
-                cb = ctk.CTkCheckBox(grid, text=f"{name} ({iso})", variable=var,
+                cb = ctk.CTkCheckBox(grid, text=name, variable=var,
                                  fg_color=BORDER, hover_color="#2D3748", checkmark_color="white",
                                  border_color=BORDER, font=("Segoe UI", 11), text_color=TEXT,
                                  command=self._update_count, width=130)
@@ -3224,7 +3212,7 @@ class ProxyHunterApp(ctk.CTk):
         if self.is_running and hasattr(self, "realtime_proxies"):
             data_list = self.realtime_proxies.get(mapped_src, [])
             for data in data_list:
-                if data["country"] in ("AF", "KP", "SO"):
+                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"):
                     continue
                 c_name = self._format_country(data["country"])
                 p_name = data["protocol"].upper()
@@ -3244,7 +3232,7 @@ class ProxyHunterApp(ctk.CTk):
                         next(reader)
                         for row in reader:
                             if len(row) >= 4:
-                                if row[3] in ("AF", "KP", "SO"):
+                                if row[3] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"):
                                     continue
                                 c_name = self._format_country(row[3])
                                 p_name = row[0].upper()
@@ -3311,28 +3299,46 @@ class ProxyHunterApp(ctk.CTk):
             
         # Родитель кнопки это toolbar. Его родитель это вкладка results_tab.
         results_tab = btn_widget.master.master
-        menu_frame = ctk.CTkFrame(results_tab, fg_color=CARD2, corner_radius=8, border_width=1, border_color=BORDER)
+        menu_frame = ctk.CTkFrame(btn_widget.winfo_toplevel(), fg_color=CARD2, corner_radius=8, border_width=1, border_color=BORDER)
         self._active_menu = menu_frame
         
         # Решение проблемы сдвига при масштабировании экрана (DPI) в Windows.
-        # winfo_x() возвращает физические пиксели, а place() ждет логические.
-        # Поэтому делим физические координаты на масштаб CustomTkinter.
         scale = ctk.ScalingTracker.get_widget_scaling(btn_widget)
         
-        phys_right_x = btn_widget.winfo_x() + btn_widget.master.winfo_x() + btn_widget.winfo_width()
-        phys_y = btn_widget.winfo_y() + btn_widget.master.winfo_y() + btn_widget.winfo_height() + int(5 * scale)
+        toplevel = btn_widget.winfo_toplevel()
         
-        logic_right_x = phys_right_x / scale
+        phys_x = btn_widget.winfo_rootx() - toplevel.winfo_rootx()
+        phys_y = btn_widget.winfo_rooty() - toplevel.winfo_rooty() + btn_widget.winfo_height() + int(5 * scale)
+        
         logic_y = phys_y / scale
         
-        menu_frame.place(x=logic_right_x, y=logic_y, anchor="ne")
+        is_checker_tab = False
+        if hasattr(self, 'btn_checker_proto_filter') and btn_widget == self.btn_checker_proto_filter:
+            is_checker_tab = True
+        if hasattr(self, 'btn_checker_country_filter') and btn_widget == self.btn_checker_country_filter:
+            is_checker_tab = True
+
+        if is_checker_tab:
+            phys_right_x = phys_x + btn_widget.winfo_width()
+            logic_right_x = phys_right_x / scale
+            menu_frame.place(x=logic_right_x, y=logic_y, anchor="ne")
+        else:
+            logic_x = phys_x / scale
+            menu_frame.place(x=logic_x, y=logic_y, anchor="nw")
+            
         menu_frame.lift()
         
-        search_entry = ctk.CTkEntry(menu_frame, placeholder_text=self._t("search"), height=28)
+        search_entry = ctk.CTkEntry(menu_frame, placeholder_text=self._t("search"), height=24, font=("Segoe UI", 11))
         search_entry.pack(fill="x", padx=5, pady=(5, 0))
         search_entry.after(10, search_entry.focus)
 
-        scroll = ctk.CTkScrollableFrame(menu_frame, fg_color="transparent", width=180, height=min(200, max(50, len(items)*30)))
+        scroll_h = min(65, max(40, len(items)*22))
+        scroll = ctk.CTkScrollableFrame(menu_frame, fg_color="transparent", width=180, height=scroll_h)
+        # У кастомного скроллбара минимальная высота 200, поэтому он не дает блоку стать меньше!
+        # Фиксим это принудительно задавая высоту самого скроллбара:
+        if hasattr(scroll, "_scrollbar"):
+            scroll._scrollbar.configure(height=scroll_h)
+            
         scroll.pack(padx=5, pady=5)
         
         check_vars = {}
@@ -3343,8 +3349,8 @@ class ProxyHunterApp(ctk.CTk):
             display_text = f"{item} ({counts[item]})" if counts and item in counts else item
             
             cb = ctk.CTkCheckBox(scroll, text=display_text, variable=var, font=("Segoe UI", 11), 
-                                 checkbox_width=20, checkbox_height=20, corner_radius=4)
-            cb.pack(anchor="w", pady=4, padx=2)
+                                 checkbox_width=18, checkbox_height=18, corner_radius=4)
+            cb.pack(anchor="w", pady=2, padx=2)
             check_vars[item] = var
             cb_widgets[item] = cb
             
@@ -3369,11 +3375,14 @@ class ProxyHunterApp(ctk.CTk):
                     translations.append(ISO_TO_NAME["RU"][iso_code].lower())
                 
                 if any(query in t for t in translations):
-                    cb.pack(anchor="w", pady=4, padx=2)
+                    cb.pack(anchor="w", pady=2, padx=2)
                 else:
                     cb.pack_forget()
                     
-        search_entry.bind("<KeyRelease>", filter_items)
+            if hasattr(scroll, '_parent_canvas'):
+                scroll.after(10, lambda: scroll._parent_canvas.yview_moveto(0.0))
+                    
+        search_entry.bind("<KeyRelease>", filter_items, add="+")
             
         def apply():
             selected_set.clear()
@@ -3388,10 +3397,11 @@ class ProxyHunterApp(ctk.CTk):
                 try:
                     self.unbind("<Button-1>", self._active_menu_bind)
                 except Exception: pass
-            
-        btn = ctk.CTkButton(menu_frame, text=self._t("apply_filter"), fg_color=BLUE, hover_color="#2563EB", height=28, command=apply)
-        btn.pack(fill="x", padx=5, pady=(0, 5))
-        
+                
+        def select_all():
+            for item, var in check_vars.items():
+                var.set(True)
+                
         def reset():
             selected_set.clear()
             on_apply()
@@ -3401,8 +3411,14 @@ class ProxyHunterApp(ctk.CTk):
                 try:
                     self.unbind("<Button-1>", self._active_menu_bind)
                 except Exception: pass
-                
-        btn_reset = ctk.CTkButton(menu_frame, text=self._t("reset_filter") if hasattr(self, "_t") else "Reset Filter", fg_color=BORDER, hover_color="#4A5568", height=28, command=reset)
+            
+        btn_select_all = ctk.CTkButton(menu_frame, text=self._t("select_all_btn"), fg_color="#059669", hover_color="#047857", height=24, font=("Segoe UI", 11), command=select_all)
+        btn_select_all.pack(fill="x", padx=5, pady=(0, 2))
+            
+        btn = ctk.CTkButton(menu_frame, text=self._t("apply_filter"), fg_color=BLUE, hover_color="#2563EB", height=24, font=("Segoe UI", 11), command=apply)
+        btn.pack(fill="x", padx=5, pady=(0, 2))
+        
+        btn_reset = ctk.CTkButton(menu_frame, text=self._t("reset_filter") if hasattr(self, "_t") else "Reset Filter", fg_color=BORDER, hover_color="#4A5568", height=24, font=("Segoe UI", 11), command=reset)
         btn_reset.pack(fill="x", padx=5, pady=(0, 5))
         
         def on_click(e):
@@ -3692,7 +3708,9 @@ class ProxyHunterApp(ctk.CTk):
         self._log_buffer = deque(maxlen=500)
         self._proxy_queue = []
         self._stat_updates = {}
-        self._log_lock = threading.Lock()
+        if not hasattr(self, '_log_lock'):
+            import threading
+            self._log_lock = threading.Lock()
         self._live_log_counter = 0  # Троттлинг логов Live-прокси
         self._delayed_live_logs = deque(maxlen=500)
         self._flush_log()
@@ -3701,8 +3719,10 @@ class ProxyHunterApp(ctk.CTk):
         """Сбрасываем накопленные логи из быстрой очереди каждые 100мс"""
         import queue
         processed = 0
+        qsize = self._fast_queue.qsize()
+        limit = max(500, min(qsize, 5000))
         
-        while processed < 500:  # Process up to 500 logs per tick to avoid freezing
+        while processed < limit:  # Process up to 5000 logs per tick based on load
             try:
                 clean = self._fast_queue.get_nowait()
                 processed += 1
@@ -3811,29 +3831,41 @@ class ProxyHunterApp(ctk.CTk):
                 tree_len = 0
                 
             updated_filtered = False
+            
+            # --- BATCH REMOVE LIVE PROXIES ---
+            to_remove = set()
             for data, source in p_queue:
                 if source == "remove_live":
-                    # Remove from realtime_proxies["live"]
-                    if hasattr(self, "realtime_proxies"):
-                        live_list = self.realtime_proxies.get("live", [])
-                        new_live = [d for d in live_list if not (d["ip"] == data["ip"] and str(d["port"]) == str(data["port"]) and d["protocol"].lower() == data["protocol"].lower())]
-                        self.realtime_proxies["live"] = new_live
-                        
-                    # Remove from _seen_proxies
+                    to_remove.add((data["protocol"].lower(), data["ip"], str(data["port"])))
                     if hasattr(self, "_seen_proxies"):
                         uniq_id = f"live:{data['protocol'].lower()}:{data['ip']}:{data['port']}"
                         self._seen_proxies.discard(uniq_id)
                         
-                    # Remove from current arrays if we are looking at live tab
-                    if mapped_src == "live":
-                        if hasattr(self, "_current_raw_data"):
-                            self._current_raw_data = [r for r in self._current_raw_data if not (r[1] == data["ip"] and str(r[2]) == str(data["port"]) and r[0].lower() == data["protocol"].lower())]
-                        if hasattr(self, "_filtered_data"):
-                            old_len = len(self._filtered_data)
-                            self._filtered_data = [r for r in self._filtered_data if not (r[1] == data["ip"] and str(r[2]) == str(data["port"]) and r[0].lower() == data["protocol"].lower())]
-                            if len(self._filtered_data) < old_len:
-                                updated_filtered = True
-                                
+            if to_remove:
+                if hasattr(self, "realtime_proxies") and "live" in self.realtime_proxies:
+                    self.realtime_proxies["live"] = [
+                        d for d in self.realtime_proxies["live"] 
+                        if (d["protocol"].lower(), d["ip"], str(d["port"])) not in to_remove
+                    ]
+                    
+                if mapped_src == "live":
+                    if hasattr(self, "_current_raw_data"):
+                        self._current_raw_data = [
+                            r for r in self._current_raw_data 
+                            if (r[0].lower(), r[1], str(r[2])) not in to_remove
+                        ]
+                    if hasattr(self, "_filtered_data"):
+                        old_len = len(self._filtered_data)
+                        self._filtered_data = [
+                            r for r in self._filtered_data 
+                            if (r[0].lower(), r[1], str(r[2])) not in to_remove
+                        ]
+                        if len(self._filtered_data) < old_len:
+                            updated_filtered = True
+
+            # --- ADD NEW PROXIES ---
+            for data, source in p_queue:
+                if source == "remove_live":
                     continue
 
                 self.realtime_proxies.setdefault(source, []).append(data)
@@ -3905,7 +3937,16 @@ class ProxyHunterApp(ctk.CTk):
         if getattr(self, "_is_cancelling", False): return
         
         # Fast string matching without regex and without locks
-        if "Уникальных IP:PORT:" in text or "log_unique_ip:" in text or "Unique IP:PORT:" in text:
+        if "[REALTIME_TOTAL]" in text:
+            try:
+                num = int(text.split("[REALTIME_TOTAL]")[-1].strip())
+                self._base_total_persistent = num
+                total_val = num + getattr(self, '_gen_total_persistent', 0)
+                self._stat_updates['total'] = str(total_val)
+                if hasattr(self, 'lbl_results_count'):
+                    self.lbl_results_count.configure(text=self._t("proxies_count").format(total_val))
+            except: pass
+        elif "Уникальных IP:PORT" in text or "log_unique_ip" in text or "Unique IP:PORT" in text:
             try:
                 num = int(text.split(":")[-1].strip())
                 self._base_total_persistent = num
@@ -3921,6 +3962,7 @@ class ProxyHunterApp(ctk.CTk):
             try:
                 parts = text.split("[REALTIME_NEW_LIVE]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3]}
+                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"): return
                 uniq_id = f"live:{data['protocol']}:{data['ip']}:{data['port']}"
                 if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
                 if uniq_id not in self._seen_proxies:
@@ -3931,6 +3973,7 @@ class ProxyHunterApp(ctk.CTk):
             try:
                 parts = text.split("[REALTIME_NEW_ELITE]")[1].strip().split("|")
                 data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3], "category": parts[4]}
+                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"): return
                 uniq_id = f"elite:{data['protocol']}:{data['ip']}:{data['port']}"
                 if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
                 if uniq_id not in self._seen_proxies:
@@ -4003,16 +4046,25 @@ class ProxyHunterApp(ctk.CTk):
         if not out_dir or not os.path.isdir(out_dir):
             self._flash_error_widget(self.start_btn, temp_text=self._t("error_no_folder"))
             return
+            
+        try:
+            test_file = os.path.join(out_dir, '.write_test_tmp')
+            with open(test_file, 'w') as f:
+                f.write('test')
+            os.remove(test_file)
+        except Exception:
+            self._flash_error_widget(self.start_btn, temp_text="No Write Permission!")
+            return
 
         if not self._get_selected_countries():
             self._flash_error_widget(self.start_btn, temp_text=self._t("error_no_countries"))
             return
             
         try:
-            threads = int(float(self.entry_threads.get()))
-            timeout = int(float(self.entry_timeout.get()))
-            ping = float(self.entry_ping.get())
-            speed = float(self.entry_speed.get())
+            threads = max(1, min(20000, int(float(self.entry_threads.get()))))
+            timeout = max(1, min(300, int(float(self.entry_timeout.get()))))
+            ping = max(0.0, float(self.entry_ping.get()))
+            speed = max(0.0, float(self.entry_speed.get()))
         except ValueError:
             self._flash_error_widget(self.start_btn, temp_text="Invalid Settings!")
             return
@@ -4085,6 +4137,8 @@ class ProxyHunterApp(ctk.CTk):
             def flush(self):
                 try: sys.__stdout__.flush()
                 except: pass
+            def isatty(self):
+                return False
         # Извлекаем значения для рабочего потока
         threads_val = threads
         timeout_val = timeout
@@ -4100,10 +4154,10 @@ class ProxyHunterApp(ctk.CTk):
         random_counts_val = {"http": 0, "https": 0, "socks4": 0, "socks5": 0}
         if getattr(self, "random_gen_enabled", None) and self.random_gen_enabled.get() and hasattr(self, "random_counts"):
             random_counts_val = {
-                "http": int(float(self.random_counts["http"].get())),
-                "https": int(float(self.random_counts["https"].get())),
-                "socks4": int(float(self.random_counts["socks4"].get())),
-                "socks5": int(float(self.random_counts["socks5"].get()))
+                "http": max(0, min(10_000_000, int(float(self.random_counts["http"].get())))),
+                "https": max(0, min(10_000_000, int(float(self.random_counts["https"].get())))),
+                "socks4": max(0, min(10_000_000, int(float(self.random_counts["socks4"].get())))),
+                "socks5": max(0, min(10_000_000, int(float(self.random_counts["socks5"].get()))))
             }
 
         def target():
@@ -4128,7 +4182,7 @@ class ProxyHunterApp(ctk.CTk):
                     random_counts=random_counts_val,
                     output_dir=self.output_dir.get(),
                     lang=self.current_lang,
-                    github_token=self.github_token_var.get() if hasattr(self, 'github_token_var') else "",
+                    github_token=self.github_token_var.get().strip().replace('\n', '').replace('\r', '') if hasattr(self, 'github_token_var') else "",
                     github_tm_enabled=self.github_tm_enabled.get() if hasattr(self, 'github_tm_enabled') else True,
                     github_tm_days=gh_days
                 )
@@ -4187,33 +4241,12 @@ class ProxyHunterApp(ctk.CTk):
                                  command=self._clear_checker_input)
         self._chk_btn_clear.grid(row=0, column=1, sticky="ew", padx=(2, 0))
 
-        # --- ФИЛЬТРЫ ПРОВЕРКИ (Что проверять) ---
-        chk_options_frame = ctk.CTkFrame(left_panel, fg_color="transparent")
-        chk_options_frame.pack(side="bottom", fill="x", pady=(0, 5))
-        
-        self._chk_lbl_what = ctk.CTkLabel(chk_options_frame, text=self._t("checker_what"), font=("Segoe UI", 11, "bold"), text_color=MUTED)
-        self._chk_lbl_what.pack(anchor="w", pady=(0, 5))
-        
+        # --- ФИЛЬТРЫ ПРОВЕРКИ (Всегда включены, скрыты из интерфейса) ---
         self.do_check_anon = ctk.BooleanVar(value=True)
         self.do_check_bl = ctk.BooleanVar(value=True)
         self.do_check_speed = ctk.BooleanVar(value=True)
         self.do_check_smtp = ctk.BooleanVar(value=True)
-        
-        grid_opts = ctk.CTkFrame(chk_options_frame, fg_color="transparent")
-        grid_opts.pack(fill="x")
-        grid_opts.grid_columnconfigure((0, 1), weight=1, uniform="chk_opts")
-        self._chk_cb_anon = ctk.CTkCheckBox(grid_opts, text=self._t("checker_anon"), variable=self.do_check_anon, font=("Segoe UI", 11), checkbox_width=16, checkbox_height=16)
-        self._chk_cb_anon.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=2)
-        self._chk_cb_bl = ctk.CTkCheckBox(grid_opts, text=self._t("checker_bl"), variable=self.do_check_bl, font=("Segoe UI", 11), checkbox_width=16, checkbox_height=16)
-        self._chk_cb_bl.grid(row=0, column=1, sticky="w", pady=2)
-        self._chk_cb_speed = ctk.CTkCheckBox(grid_opts, text=self._t("checker_speed"), variable=self.do_check_speed, font=("Segoe UI", 11), checkbox_width=16, checkbox_height=16)
-        self._chk_cb_speed.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=2)
-        self._chk_cb_check_smtp = ctk.CTkCheckBox(grid_opts, text="SMTP (25/587)", variable=self.do_check_smtp, font=("Segoe UI", 11), checkbox_width=16, checkbox_height=16)
-        self._chk_cb_check_smtp.grid(row=1, column=1, sticky="w", pady=2)
-        
         self.do_check_category = ctk.BooleanVar(value=True)
-        self._chk_cb_category = ctk.CTkCheckBox(grid_opts, text=self._t("checker_category"), variable=self.do_check_category, font=("Segoe UI", 11), checkbox_width=16, checkbox_height=16)
-        self._chk_cb_category.grid(row=2, column=0, sticky="w", padx=(0, 10), pady=2)
 
         # === ПОТОМ pack-им верхние элементы — инпут заполняет ОСТАВШЕЕСЯ пространство ===
         chk_input_header = ctk.CTkFrame(left_panel, fg_color="transparent")
@@ -4254,7 +4287,7 @@ class ProxyHunterApp(ctk.CTk):
                 
         self.checker_input.bind("<FocusIn>", _on_focus_in)
         self.checker_input.bind("<FocusOut>", _on_focus_out)
-        self.checker_input.bind("<KeyRelease>", self._update_checker_count)
+        self.checker_input.bind("<KeyRelease>", self._update_checker_count, add="+")
         self.checker_input.bind("<<Paste>>", self._smart_paste)
         def _on_ctrl_key(e):
             if getattr(e, 'keycode', 0) in (65, 97):
@@ -4352,7 +4385,7 @@ class ProxyHunterApp(ctk.CTk):
         cb_frame = ctk.CTkFrame(left_side, fg_color="transparent")
         cb_frame.pack(fill="x")
         
-        self._chk_lbl_total_save = ctk.CTkLabel(right_side, text="0 proxies", font=("Segoe UI", 11, "bold"), text_color=MUTED)
+        self._chk_lbl_total_save = ctk.CTkLabel(right_side, text=self._t("proxies_count").format(0), font=("Segoe UI", 11, "bold"), text_color=MUTED)
         self._chk_lbl_total_save.pack(side="top", anchor="center", pady=(0, 6))
     
         self.btn_copy_checker = ctk.CTkButton(right_side, text=self._t("checker_copy"), image=self.icons.get("copy", None), fg_color=BORDER, hover_color="#374151", font=("Segoe UI", 12, "bold"), width=140, height=30, command=self._copy_checker_results)
@@ -4477,14 +4510,20 @@ class ProxyHunterApp(ctk.CTk):
             
         all_text = current_content + "\n"
         
+        total_size = 0
         for path in paths:
-            if os.path.getsize(path) > 10 * 1024 * 1024:
+            fsize = os.path.getsize(path)
+            if fsize > 10 * 1024 * 1024:
                 self._flash_error_widget(self._chk_btn_load, temp_text=self._t("error_file_size"))
                 continue
+            if total_size + fsize > 50 * 1024 * 1024:
+                self._flash_error_widget(self._chk_btn_load, temp_text="Max 50MB total allowed!")
+                break
+            total_size += fsize
             try:
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, 'r', encoding='utf-8', errors='ignore') as f:
                     all_text += f.read() + "\n"
-            except UnicodeDecodeError:
+            except Exception:
                 self._flash_error_widget(self._chk_btn_load, temp_text=self._t("error_file_type"))
                 continue
 
@@ -4577,17 +4616,29 @@ class ProxyHunterApp(ctk.CTk):
 
         # Read timeout from settings slider
         try:
-            checker_timeout = int(float(self.entry_timeout.get()))
+            checker_timeout = max(1, min(300, int(float(self.entry_timeout.get()))))
         except ValueError:
             checker_timeout = 10
 
+        self.checker_data = {}
         for idx, p in enumerate(proxies_list, 1):
-            item_id = self.check_tree.insert("", "end", values=(idx, p, "⏳", "⏳", "⏳", "⏳", "⏳", "⏳", "⏳"))
+            vals = [idx, p, "⏳", "⏳", "⏳", "⏳", "⏳", "⏳", "⏳"]
+            item_id = self.check_tree.insert("", "end", values=vals)
             self.check_tree_items[p] = item_id
+            self.checker_data[p] = vals
 
         self.checker_is_running = True
         self._checker_detached = []
-        self._metrics_scheduled = False
+        self._checker_pending_updates = {}
+        
+        def _periodic_flush():
+            if not getattr(self, "checker_is_running", False):
+                self._flush_checker_updates()
+                return
+            self._flush_checker_updates()
+            self.after(500, _periodic_flush)
+            
+        self.after(500, _periodic_flush)
         
         self.checker_progress.set(0)
         self.checker_lbl_prog.configure(text="0%")
@@ -4598,11 +4649,6 @@ class ProxyHunterApp(ctk.CTk):
         self._chk_btn_load.configure(state="disabled")
         self._chk_btn_clear.configure(state="disabled")
         self.btn_save_checker.configure(state="disabled")
-        self._chk_cb_anon.configure(state="disabled")
-        self._chk_cb_bl.configure(state="disabled")
-        self._chk_cb_speed.configure(state="disabled")
-        self._chk_cb_check_smtp.configure(state="disabled")
-        if hasattr(self, '_chk_cb_category'): self._chk_cb_category.configure(state="disabled")
         
         self._chk_cb_alive.configure(state="disabled")
         self._chk_cb_elite.configure(state="disabled")
@@ -4639,7 +4685,8 @@ class ProxyHunterApp(ctk.CTk):
             except Exception:
                 pass
 
-        max_threads = int(self.thread_slider.get()) if hasattr(self, 'thread_slider') else 300
+        try: max_threads = max(1, min(20000, int(float(self.entry_threads.get()))))
+        except Exception: max_threads = 300
         max_workers = min(max_threads, len(proxies))
         
         # Pre-fetch categories if needed
@@ -4940,13 +4987,46 @@ class ProxyHunterApp(ctk.CTk):
                             self._update_check_row(proxy, "speed", self._t("chk_skip"))
 
                         if not self.checker_is_running: return
-                        # 4. SMTP
+                        # 4. SMTP (Deep)
                         if self.do_check_smtp.get():
+                            s = None
                             try:
-                                r = requests.get('http://portquiz.net:587', proxies=proxies_dict, timeout=timeout)
-                                self._update_check_row(proxy, "smtp", self._t("chk_open") if r.status_code == 200 else self._t("chk_closed"))
+                                import socket
+                                import socks
+                                
+                                s = socks.socksocket()
+                                s.settimeout(timeout)
+                                
+                                p_type = socks.PROXY_TYPE_HTTP
+                                if protocol_prefix:
+                                    if protocol_prefix.lower() == 'socks4':
+                                        p_type = socks.PROXY_TYPE_SOCKS4
+                                    elif protocol_prefix.lower() == 'socks5':
+                                        p_type = socks.PROXY_TYPE_SOCKS5
+                                        
+                                s.set_proxy(p_type, ip, port)
+                                
+                                s.connect(('gmail-smtp-in.l.google.com', 25))
+                                banner = s.recv(1024).decode('utf-8', errors='ignore')
+                                
+                                if banner.startswith('220'):
+                                    s.sendall(b'EHLO localhost\r\n')
+                                    ehlo_resp = s.recv(1024).decode('utf-8', errors='ignore')
+                                    if '250' in ehlo_resp:
+                                        s.sendall(b'QUIT\r\n')
+                                        self._update_check_row(proxy, "smtp", self._t("chk_open"))
+                                    else:
+                                        self._update_check_row(proxy, "smtp", self._t("chk_closed") + " (Blacklisted)")
+                                else:
+                                    self._update_check_row(proxy, "smtp", self._t("chk_closed") + " (Blocked)")
+                            except ImportError:
+                                self._update_check_row(proxy, "smtp", self._t("chk_skip") + " (No PySocks)")
                             except Exception:
                                 self._update_check_row(proxy, "smtp", self._t("chk_closed"))
+                            finally:
+                                if s:
+                                    try: s.close()
+                                    except: pass
                         else:
                             self._update_check_row(proxy, "smtp", self._t("chk_skip"))
 
@@ -4972,7 +5052,8 @@ class ProxyHunterApp(ctk.CTk):
         _checker_lock = _thr.Lock()
         
         # BUG-21: Parallel execution with ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        pool = ThreadPoolExecutor(max_workers=max_workers)
+        try:
             futures = [pool.submit(check_one, p) for p in proxies]
             for f in as_completed(futures):
                 if not self.checker_is_running:
@@ -4980,7 +5061,10 @@ class ProxyHunterApp(ctk.CTk):
                     for remaining in futures:
                         remaining.cancel()
                     # Clear futures list to allow garbage collection
-                    pool._work_queue.queue.clear()
+                    try:
+                        pool._work_queue.queue.clear()
+                    except Exception:
+                        pass
                     break
                 with _checker_lock:
                     self._checker_done += 1
@@ -4994,6 +5078,9 @@ class ProxyHunterApp(ctk.CTk):
                     self.after(0, _update_prog)
                 except Exception:
                     pass
+        finally:
+            try: pool.shutdown(wait=False, cancel_futures=True)
+            except TypeError: pool.shutdown(wait=False)
 
         # H-05 FIX: Закрываем db_reader чтобы не было утечки файловых дескрипторов
         if hasattr(dummy_hunter, 'db_reader') and dummy_hunter.db_reader:
@@ -5009,11 +5096,6 @@ class ProxyHunterApp(ctk.CTk):
             self._chk_btn_load.configure(state="normal")
             self._chk_btn_clear.configure(state="normal")
             self.btn_save_checker.configure(state="normal")
-            self._chk_cb_anon.configure(state="normal")
-            self._chk_cb_bl.configure(state="normal")
-            self._chk_cb_speed.configure(state="normal")
-            self._chk_cb_check_smtp.configure(state="normal")
-            if hasattr(self, '_chk_cb_category'): self._chk_cb_category.configure(state="normal")
             
             self._chk_cb_alive.configure(state="normal")
             self._chk_cb_elite.configure(state="normal")
@@ -5029,34 +5111,49 @@ class ProxyHunterApp(ctk.CTk):
                 visible_cols.append("category")
             visible_cols.extend(["ping", "anon", "bl", "speed", "smtp"])
             self.check_tree["displaycolumns"] = visible_cols
-            self._do_metrics_update()
+            self._update_checker_metrics()
         self.after(0, _reset_ui)
 
     def _update_check_row(self, proxy_str, col_name, value):
-        item_id = self.check_tree_items.get(proxy_str)
-        if not item_id: return
+        if not hasattr(self, '_checker_pending_updates'): return
+        
+        with self._log_lock:
+            if proxy_str not in self._checker_pending_updates:
+                self._checker_pending_updates[proxy_str] = {}
+            self._checker_pending_updates[proxy_str][col_name] = value
+            
+        # UI updates are now handled safely by _periodic_flush in the main thread
+
+    def _flush_checker_updates(self):
+        
+        with self._log_lock:
+            updates = self._checker_pending_updates.copy()
+            self._checker_pending_updates.clear()
+            
+        if not updates: return
         
         col_indices = {"country": 2, "category": 3, "ping": 4, "anon": 5, "bl": 6, "speed": 7, "smtp": 8}
-        idx = col_indices[col_name]
         
-        def do_update():
-            try:
-                # BUG-06: Check item still exists before updating
-                if not self.check_tree.exists(item_id): return
-                current_vals = list(self.check_tree.item(item_id, "values"))
-                current_vals[idx] = value
-                self.check_tree.item(item_id, values=current_vals)
-                # BUG-12: Throttle metrics (max 2x/sec)
-                if not getattr(self, '_metrics_scheduled', False):
-                    self._metrics_scheduled = True
-                    self.after(500, self._do_metrics_update)
-            except Exception: pass
+        # Batch apply updates to Tkinter and python cache
+        for proxy_str, col_data in updates.items():
+            item_id = self.check_tree_items.get(proxy_str)
+            if not item_id: continue
             
-        self.after(0, do_update)
-
-    def _do_metrics_update(self):
-        """Throttled wrapper for _update_checker_metrics"""
-        self._metrics_scheduled = False
+            # Update Python cache
+            if getattr(self, "checker_data", None) is not None and proxy_str in self.checker_data:
+                vals = self.checker_data[proxy_str]
+                for c_name, val in col_data.items():
+                    if c_name in col_indices:
+                        vals[col_indices[c_name]] = val
+                
+                # Update Tkinter Treeview once per row
+                try:
+                    if self.check_tree.exists(item_id):
+                        self.check_tree.item(item_id, values=vals)
+                except Exception:
+                    pass
+                    
+        # Calculate metrics directly from python dictionary without IPC overhead
         self._update_checker_metrics()
 
     def _update_checker_metrics(self):
@@ -5074,10 +5171,10 @@ class ProxyHunterApp(ctk.CTk):
         self.checker_country_counts = {}
         self.checker_proto_counts = {}
         
-        all_items = list(self.check_tree.get_children()) + [item_id for item_id, _ in getattr(self, '_checker_detached', [])]
-        for item_id in all_items:
+        if not getattr(self, "checker_data", None): return
+        
+        for p_str, vals in self.checker_data.items():
             try:
-                vals = self.check_tree.item(item_id, "values")
                 if not vals or len(vals) < 9:
                     continue
                 _, proxy, country, category, ping, anon, bl, speed, smtp = vals
@@ -5086,17 +5183,12 @@ class ProxyHunterApp(ctk.CTk):
                 unique_countries.add(c_str)
                 self.checker_country_counts[c_str] = self.checker_country_counts.get(c_str, 0) + 1
                 
-                p_str = str(proxy)
                 proto = "http"
                 if "://" in p_str:
                     proto = p_str.split("://")[0].lower()
                 unique_protos.add(proto)
                 self.checker_proto_counts[proto] = self.checker_proto_counts.get(proto, 0) + 1
                 # M-02 FIX: Locale-independent status checking
-                # "ping" ok format: "X ms"
-                # anon: chk_elite
-                # bl: chk_clean
-                # smtp: chk_open
                 ping_str = str(ping)
                 if ping_str and ping_str != self._t("chk_timeout") and ping_str != self._t("chk_skip") and ping_str != self._t("chk_error"):
                     alive_count += 1
@@ -5125,7 +5217,7 @@ class ProxyHunterApp(ctk.CTk):
 
         if hasattr(self, '_chk_lbl_total_save'):
             vis_count = len(self.check_tree.get_children())
-            self._chk_lbl_total_save.configure(text=self._t("chk_selected").format(vis_count))
+            self._chk_lbl_total_save.configure(text=self._t("proxies_count").format(vis_count))
             
         self.checker_all_countries = sorted(list(unique_countries))
         self.checker_all_protos = sorted(list(unique_protos))

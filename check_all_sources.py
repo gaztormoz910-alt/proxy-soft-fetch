@@ -144,7 +144,7 @@ for url, proto in SOURCES:
 print(f"Unique URLs to check: {len(unique_sources)}")
 
 results = []
-with ThreadPoolExecutor(max_workers=20) as ex:
+with ThreadPoolExecutor(max_workers=50) as ex:
     fmap = {ex.submit(check_source, url, proto): (url, proto) for url, proto in unique_sources}
     done = 0
     for fut in as_completed(fmap):
