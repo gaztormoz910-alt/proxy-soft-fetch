@@ -857,7 +857,7 @@ class ProxyHunter:
                 return proto, ProxyUtils.parse_proxies(content)
             return proto, []
 
-        with ThreadPoolExecutor(max_workers=300) as ex:
+        with ThreadPoolExecutor(max_workers=50) as ex:
             fmap = {}
             for url, proto in SOURCES:
                 fetch_timeout = max(15, self.timeout)
