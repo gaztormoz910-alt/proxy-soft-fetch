@@ -775,11 +775,18 @@ class ProxyUtils:
                     port_val = obj.get('port', '')
                     port_str = str(port_val).strip() if port_val is not None else ''
                     
-                    if ip and port_str and port_str.isdigit():
-                        port_int = int(port_str)
-                        if cls.is_valid(ip, port_int):
-                            found.add(f"{ip}:{port_str}")
-                    
+                    # COR-06: одна битая запись не должна ронять разбор всего
+                    # источника. Раньше исключение отсюда всплывало до внешнего
+                    # `except Exception: pass` и обнуляло весь результат.
+                    try:
+                        if ip and port_str and port_str.isdigit():
+                            port_int = int(port_str)
+                            if cls.is_valid(ip, port_int):
+                                found.add(f"{ip}:{port_str}")
+                    except Exception:
+                        pass
+
+
                     # Рекурсия только в объекты, которые вероятно содержат прокси-данные
                     # (пропускаем вложенные метаданные типа geolocation, ip_data, asn)
                     skip_keys = {'geolocation', 'location', 'ip_data', 'asn', 'city', 
@@ -819,6 +826,26 @@ class ProxyUtils:
                     ip, port = decoded.split(':', 1)
                     if port.isdigit() and cls.is_valid(ip, int(port)):
                         found.add(f"{ip}:{port}")
+            except Exception:
+                pass
+            if i % 1000 == 0: time.sleep(0.001)
+
+        # COR-06: JSON-регулярки существовали с самого начала, но не были
+        # подключены. Без них оборванный или невалидный JSON давал ноль прокси:
+        # PROXY_RE требует, чтобы порт шёл сразу за адресом, а в JSON между ними
+        # стоит `","port":"`. Теперь такой текст всё-таки разбирается.
+        for i, match in enumerate(cls.JSON_IP_FIRST.finditer(content)):
+            ip, port = match.groups()
+            try:
+                if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
+            except Exception:
+                pass
+            if i % 1000 == 0: time.sleep(0.001)
+
+        for i, match in enumerate(cls.JSON_PORT_FIRST.finditer(content)):
+            port, ip = match.groups()
+            try:
+                if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
             except Exception:
                 pass
             if i % 1000 == 0: time.sleep(0.001)
