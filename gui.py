@@ -5081,7 +5081,7 @@ class ProxyHunterApp(ctk.CTk):
                     return
 
                 host, port = ep.host_port()          # host — домен или IP, для сокета
-                protocol_prefix = ep.scheme or ""
+                protocol_prefix = ep.effective_scheme
                 is_ip_only = False
                 # SOCKS без PySocks проверить нельзя — честно пропускаем.
                 if ep.is_socks:
@@ -5094,8 +5094,8 @@ class ProxyHunterApp(ctk.CTk):
                         self._update_check_row(proxy, "smtp", self._t("chk_skip"))
                         self._update_check_row(proxy, "bl", self._t("chk_skip"))
                         return
-                # URL с логином/паролем — requests теперь ходит через авторизацию.
-                proxy_url = ep.requests_url("http")
+                # URL с логином/паролем — requests теперь ходит через авторизацию (с socks5h/socks4a).
+                proxy_url = ep.requests_url(ep.effective_scheme)
                 proxies_dict = {'http': proxy_url, 'https': proxy_url}
                 # Гео/блэклист — по IP. Доменный шлюз резолвим один раз (кеш).
                 if _proxy_is_ip(host):
@@ -5160,6 +5160,24 @@ class ProxyHunterApp(ctk.CTk):
                         self._update_check_row(proxy, "ping", self._t("chk_ping_ok").format(ping_ms))
                         
                         if not self.checker_is_running: return
+                        # 1.5 Real Exit-IP discovery
+                        exit_ip = None
+                        try:
+                            r_exit = requests.get('http://api.ipify.org', proxies=proxies_dict, timeout=min(max(timeout, 6), 10))
+                            if r_exit.status_code == 200:
+                                cand = r_exit.text.strip()
+                                if cand and cand.count(".") == 3 and not any(c in cand for c in " :/<>"):
+                                    exit_ip = cand
+                                    ep.exit_ip = exit_ip
+                                    # Обновляем гео/страну по реальному выходу:
+                                    country_iso = dummy_hunter._get_country(exit_ip)
+                                    self._update_check_row(proxy, "country", self._format_country(country_iso))
+                        except Exception:
+                            pass
+                        
+                        effective_ip = exit_ip if exit_ip else ip
+                        
+                        if not self.checker_is_running: return
                         # 2. Anonymity
                         if self.do_check_anon.get():
                             try:
@@ -5204,31 +5222,29 @@ class ProxyHunterApp(ctk.CTk):
                                 import socks
                                 import ssl
                                 
-                                p_type = socks.PROXY_TYPE_HTTP
-                                if protocol_prefix:
-                                    if protocol_prefix.lower() == 'socks4':
-                                        p_type = socks.PROXY_TYPE_SOCKS4
-                                    elif protocol_prefix.lower() == 'socks5':
-                                        p_type = socks.PROXY_TYPE_SOCKS5
+                                eff_scheme = ep.effective_scheme
+                                p_type = socks.PROXY_TYPE_SOCKS5 if eff_scheme.startswith('socks') else socks.PROXY_TYPE_HTTP
                                 
                                 smtp_servers = [
                                     ('smtp.gmail.com', 587, False),
                                     ('smtp-mail.outlook.com', 587, False),
                                     ('smtp.mail.yahoo.com', 587, False),
                                     ('smtp.gmail.com', 465, True),
-                                    ('smtp.mail.yahoo.com', 465, True),
+                                    ('mail.gmx.com', 587, False),
                                     ('smtp.aol.com', 587, False),
                                     ('smtp.mail.me.com', 587, False),
                                     ('smtp.zoho.com', 587, False),
-                                    ('mail.gmx.com', 587, False),
                                 ]
                                 
+                                # Для резидентных шлюзов даем достаточный таймаут (не менее 12 сек)
+                                smtp_timeout = max(timeout, 12)
                                 smtp_success = False
+                                
                                 for shost, sport, use_ssl in smtp_servers:
                                     s_loop = None
                                     try:
                                         s_loop = socks.socksocket()
-                                        s_loop.settimeout(timeout)
+                                        s_loop.settimeout(smtp_timeout)
                                         # Логин/пароль прокси — иначе авторизованный
                                         # шлюз рвёт соединение ещё до SMTP.
                                         s_loop.set_proxy(p_type, host, port, True,
@@ -5271,12 +5287,13 @@ class ProxyHunterApp(ctk.CTk):
 
                         # C-03 FIX: BL check INSIDE alive block (не тратим DNS на мёртвые прокси)
                         if not self.checker_is_running: return
-                        if self.do_check_bl.get() and not ip:
+                        check_bl_ip = effective_ip if 'effective_ip' in locals() and effective_ip else ip
+                        if self.do_check_bl.get() and not check_bl_ip:
                             # Доменный шлюз не зарезолвился — проверять блэклист нечего.
                             self._update_check_row(proxy, "bl", self._t("chk_skip"))
                         elif self.do_check_bl.get():
                             try:
-                                res = dummy_hunter._check_rdns_and_bl(ip)
+                                res = dummy_hunter._check_rdns_and_bl(check_bl_ip)
                                 if res.get('rdns_dirty') or res.get('dnsbl'):
                                     self._update_check_row(proxy, "bl", self._t("chk_blacklisted"))
                                 else:
@@ -5413,8 +5430,18 @@ class ProxyHunterApp(ctk.CTk):
 
         ip_to_proxies = {}
         for p in proxies:
-            ip = p.split("://")[-1].split(":")[0]
-            ip_to_proxies.setdefault(ip, []).append(p)
+            ep = self.checker_endpoints.get(p) if hasattr(self, 'checker_endpoints') else None
+            if ep is None:
+                from fetch_proxy import parse_proxy_line
+                ep = parse_proxy_line(p)
+            if ep:
+                h, _ = ep.host_port()
+                exit_ip = getattr(ep, 'exit_ip', None)
+                target_ip = exit_ip or h
+                ip_to_proxies.setdefault(target_ip, []).append(p)
+            else:
+                raw_h = p.split("@")[-1].split("://")[-1].split(":")[0].strip("[]")
+                ip_to_proxies.setdefault(raw_h, []).append(p)
 
         resolved = set()
 

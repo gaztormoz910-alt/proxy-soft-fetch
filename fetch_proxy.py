@@ -11,8 +11,11 @@ try:
     import orjson as json
 except ImportError:
     import json
-import dns.resolver
-import dns.reversename
+try:
+    import dns.resolver
+    import dns.reversename
+except ImportError:
+    dns = None
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 from typing import List, Set, Tuple, Optional, Dict
@@ -769,18 +772,27 @@ def _proxy_valid_port(p) -> bool:
 
 class ProxyEndpoint:
     """Один разобранный прокси: схема, хост, порт и (необязательно) логин/пароль."""
-    __slots__ = ('scheme', 'host', 'port', 'username', 'password')
+    __slots__ = ('scheme', 'host', 'port', 'username', 'password', 'exit_ip')
 
-    def __init__(self, host, port, scheme=None, username=None, password=None):
+    def __init__(self, host, port, scheme=None, username=None, password=None, exit_ip=None):
         self.host = host
         self.port = int(port)
         self.scheme = scheme
         self.username = username
         self.password = password
+        self.exit_ip = exit_ip
+
+    @property
+    def effective_scheme(self) -> str:
+        if self.scheme:
+            return self.scheme.lower()
+        if self.port in (9696, 1080, 1081, 1082, 1085, 9050, 9150) or self.has_auth:
+            return 'socks5'
+        return 'http'
 
     @property
     def is_socks(self) -> bool:
-        return bool(self.scheme) and self.scheme.startswith('socks')
+        return self.effective_scheme.startswith('socks')
 
     @property
     def has_auth(self) -> bool:
@@ -804,11 +816,17 @@ class ProxyEndpoint:
         sch = (self.scheme + '://') if self.scheme else ''
         return f"{sch}{auth}{self.host}:{self.port}"
 
-    def requests_url(self, default_scheme: str = 'http') -> str:
+    def requests_url(self, default_scheme: str = None) -> str:
         """URL для requests/PySocks. Логин и пароль процентно экранируются, чтобы
-        спецсимволы (@ : / в пароле) не ломали разбор URL самим requests."""
+        спецсимволы (@ : / в пароле) не ломали разбор URL самим requests.
+        Для SOCKS-схем автоматически проставляются socks5h:// и socks4a://,
+        чтобы requests передавал DNS-запросы на прокси, а не резолвил локально."""
         from urllib.parse import quote
-        sch = self.scheme or default_scheme
+        sch = (self.scheme or default_scheme or self.effective_scheme).lower()
+        if sch == 'socks5':
+            sch = 'socks5h'
+        elif sch == 'socks4':
+            sch = 'socks4a'
         auth = ''
         if self.username is not None:
             u = quote(self.username, safe='')
@@ -2603,6 +2621,8 @@ class ProxyHunter:
         with self._lock:
             if ip in self.ip_cache and 'dnsbl' in self.ip_cache[ip]:
                 return self.ip_cache[ip].copy()
+        if not dns:
+            return {"rdns_dirty": False, "dnsbl": False}
         fast_resolver = dns.resolver.Resolver()
         fast_resolver.timeout = 1.0
         fast_resolver.lifetime = 1.0
