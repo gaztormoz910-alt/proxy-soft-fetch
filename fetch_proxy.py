@@ -195,7 +195,8 @@ class ProxyHunter:
     
     def __init__(self, threads: int = 300, timeout: int = 3, countries: Optional[List[str]] = None, 
                  max_ping: float = 700.0, min_speed: float = 1.0,
-                 check_smtp: bool = True, residential_only: bool = False):
+                 check_smtp: bool = True, residential_only: bool = False,
+                 pause_event: threading.Event = None, cancel_event: threading.Event = None):
         
         self.threads = min(threads, 500)
         self.timeout = timeout
@@ -215,6 +216,21 @@ class ProxyHunter:
         self._lock = threading.Lock()
         
         self.ip_cache: Dict[str, dict] = {}
+
+        # Управление паузой и отменой
+        self._pause_event = pause_event    # threading.Event — set = пауза
+        self._cancel_event = cancel_event  # threading.Event — set = отмена
+
+    def _check_pause_cancel(self) -> bool:
+        """Проверяет состояние паузы/отмены. Возвращает True если отменено."""
+        if self._cancel_event and self._cancel_event.is_set():
+            return True
+        if self._pause_event and self._pause_event.is_set():
+            while self._pause_event.is_set():
+                if self._cancel_event and self._cancel_event.is_set():
+                    return True
+                time.sleep(0.2)
+        return False
 
     def collect(self):
         print(f"\n[+] ШАГ 1: Сбор из {len(SOURCES)} источников...")
@@ -252,6 +268,9 @@ class ProxyHunter:
 
         def worker(item: Tuple[str, Set[str]]) -> Optional[Tuple[str, Set[str]]]:
             if stop.is_set(): return None
+            if self._check_pause_cancel():
+                stop.set()
+                return None
             ip_port, protos = item
             ip, port_s = ip_port.split(':')
             working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout)
@@ -358,6 +377,9 @@ class ProxyHunter:
 
     def _run_single_filter(self, item: str) -> Optional[str]:
         """Логика расширенной проверки одного прокси"""
+        if self._check_pause_cancel():
+            return None
+
         proto, ipp = item.split('://')
         ip, port_s = ipp.split(':')
         port = int(port_s)

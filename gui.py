@@ -540,7 +540,7 @@ class ProxyHunterApp(ctk.CTk):
         super().__init__()
         self.title("Proxy Hunter v4.0")
         self.geometry("1280x860")
-        self.minsize(500, 680)
+        self.minsize(1300, 700)
         self.configure(fg_color=BG)
         self.is_running = False
         self.hunter_thread = None
@@ -550,23 +550,21 @@ class ProxyHunterApp(ctk.CTk):
         self._region_btns = []  # for translation of per-category 'All' buttons
         self._region_reset_btns = []  # for translation of per-category 'Reset' buttons
 
-        # Wrap everything in a root scrollable frame for small vertical screens
-        self.root_scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.root_scroll.pack(fill="both", expand=True)
+        # Фиксированный горизонтальный layout — никакой адаптации
+        self.root_frame = ctk.CTkFrame(self, fg_color="transparent", corner_radius=0)
+        self.root_frame.pack(fill="both", expand=True)
 
-        self.root_scroll.grid_columnconfigure(0, weight=0, minsize=450) # Fixed sidebar width
-        self.root_scroll.grid_columnconfigure(1, weight=1)
-        self.root_scroll.grid_rowconfigure(0, weight=1)
-        
+        self.root_frame.grid_columnconfigure(0, weight=0, minsize=450)  # фиксированная ширина сайдбара
+        self.root_frame.grid_columnconfigure(1, weight=1)
+        self.root_frame.grid_rowconfigure(0, weight=1)
+
         self.current_lang = "RU"
         self.interactive_widgets = []
-        
+
         self._build_sidebar()
         self._build_main()
-        
+
         self.bind_all("<Button-1>", self._on_click_outside)
-        self.bind("<Configure>", self._on_resize)
-        self._current_layout = "horizontal"
         
     def _t(self, key):
         return LANG[self.current_lang].get(key, key)
@@ -592,43 +590,6 @@ class ProxyHunterApp(ctk.CTk):
         except Exception:
             pass
 
-    def _on_resize(self, event):
-        if event.widget != self: return
-        
-        width = event.width
-        # Threshold for switching to vertical layout
-        if width < 1000 and self._current_layout != "vertical":
-            self._current_layout = "vertical"
-            self.root_scroll.grid_columnconfigure(0, weight=1, minsize=0)
-            self.root_scroll.grid_columnconfigure(1, weight=0)
-            self.root_scroll.grid_rowconfigure(0, weight=0)
-            self.root_scroll.grid_rowconfigure(1, weight=1)
-            
-            # Re-grid sidebar for vertical (top)
-            self.sidebar.grid_forget()
-            self.sidebar.configure(width=450)
-            # Center sidebar horizontally or fill
-            self.sidebar.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 8))
-            
-            # Re-grid main panel for vertical (bottom)
-            self.main_panel.grid_forget()
-            self.main_panel.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 15))
-            
-        elif width >= 1000 and self._current_layout != "horizontal":
-            self._current_layout = "horizontal"
-            self.root_scroll.grid_columnconfigure(0, weight=0, minsize=450)
-            self.root_scroll.grid_columnconfigure(1, weight=1)
-            self.root_scroll.grid_rowconfigure(0, weight=1)
-            self.root_scroll.grid_rowconfigure(1, weight=0)
-            
-            # Re-grid sidebar for horizontal (left)
-            self.sidebar.grid_forget()
-            self.sidebar.configure(width=450)
-            self.sidebar.grid(row=0, column=0, sticky="ns", padx=(15, 8), pady=15)
-            
-            # Re-grid main panel for horizontal (right)
-            self.main_panel.grid_forget()
-            self.main_panel.grid(row=0, column=1, sticky="nsew", padx=(8, 15), pady=15)
 
     def _apply_language(self):
         self.lbl_cfg.configure(text="  " + self._t("cfg"))
@@ -754,9 +715,10 @@ class ProxyHunterApp(ctk.CTk):
             self._load_results()
     # ===================== SIDEBAR =====================
     def _build_sidebar(self):
-        self.sidebar = ctk.CTkFrame(self.root_scroll, fg_color=CARD, corner_radius=16, border_width=1, border_color=BORDER, width=450)
+        self.sidebar = ctk.CTkFrame(self.root_frame, fg_color=CARD, corner_radius=16, border_width=1, border_color=BORDER, width=450)
         self.sidebar.grid(row=0, column=0, padx=(15, 8), pady=15, sticky="ns")
         self.sidebar.grid_propagate(False)
+        self.sidebar.grid_rowconfigure(0, weight=1)
 
         header = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         header.pack(fill="x", padx=20, pady=(18, 8))
@@ -794,6 +756,7 @@ class ProxyHunterApp(ctk.CTk):
     def _build_settings_tab(self, parent):
         frame = ctk.CTkScrollableFrame(parent, fg_color="transparent", corner_radius=0)
         frame.pack(fill="both", expand=True)
+        self._settings_scroll_frame = frame  # keep reference for scroll reset
         self._enable_autohide_scrollbar(frame)
 
         # Start UI building
@@ -849,20 +812,180 @@ class ProxyHunterApp(ctk.CTk):
         ctrl = ctk.CTkFrame(row, fg_color="transparent")
         ctrl.pack(side="right")
 
+        is_int = (step >= 1 and from_ >= 1)
+
         def fmt(v):
-            return str(int(v)) if v >= 1 and step >= 1 else f"{v:.1f}"
+            return str(int(v)) if is_int else f"{v:.1f}"
 
         entry = ctk.CTkEntry(ctrl, width=60, height=28, fg_color=CARD2, border_color=BORDER,
                               text_color=BLUE, font=("Segoe UI", 12, "bold"), justify="center")
         entry.insert(0, fmt(default))
 
+        # ═══════════════════════════════════════════════════════════
+        #  ЖЁСТКАЯ ВАЛИДАЦИЯ ВВОДА — МАКСИМАЛЬНАЯ ЗАЩИТА
+        # ═══════════════════════════════════════════════════════════
+
+        _last_valid_value = [fmt(default)]  # mutable container for closure
+
+        # 1) Tkinter-level validate — блокирует ввод ЛЮБЫХ нечисловых символов
+        inner_entry = entry._entry
+        vcmd = (inner_entry.register(lambda action, new_text:
+            self._validate_numeric_input(action, new_text, is_int, from_, to)
+        ), '%d', '%P')
+        inner_entry.configure(validate='key', validatecommand=vcmd)
+
+        # 2) Визуальная обратная связь
+        def _set_border_ok():
+            entry.configure(border_color=BORDER, text_color=BLUE)
+        def _set_border_err():
+            entry.configure(border_color=RED, text_color=RED)
+
+        # 3) Анимация тряски при невалидном вводе
+        def _shake():
+            orig_x = entry.winfo_x()
+            for dx in [6, -6, 4, -4, 2, -2, 0]:
+                try:
+                    entry.place(x=orig_x + dx) if entry.place_info() else None
+                except Exception:
+                    pass
+
+        # 4) Анимация мигания при clamp (значение было исправлено)
+        def _flash_clamp():
+            entry.configure(text_color=GOLD)
+            entry.after(150, lambda: entry.configure(text_color="#FF6B6B"))
+            entry.after(300, lambda: entry.configure(text_color=GOLD))
+            entry.after(450, lambda: entry.configure(text_color=BLUE))
+
+        # 5) Полная проверка + clamp при КАЖДОМ изменении
+        def _sanitize_and_sync(*_):
+            val_str = entry.get().strip()
+            if not val_str or val_str == '.':
+                _set_border_err()
+                return
+            try:
+                val = float(val_str)
+            except ValueError:
+                _set_border_err()
+                return
+            if val < from_ or val > to:
+                _set_border_err()
+            else:
+                _set_border_ok()
+                slider.set(val)
+                _last_valid_value[0] = val_str
+
+        # 6) Жёсткий clamp + восстановление при потере фокуса
+        def _on_focus_out(e=None):
+            val_str = entry.get().strip()
+            # Пустое / мусор → восстанавливаем последнее валидное
+            if not val_str or val_str == '.':
+                entry.delete(0, "end")
+                entry.insert(0, _last_valid_value[0])
+                try:
+                    slider.set(float(_last_valid_value[0]))
+                except ValueError:
+                    slider.set(default)
+                _set_border_ok()
+                _flash_clamp()
+                return
+            try:
+                val = float(val_str)
+            except ValueError:
+                entry.delete(0, "end")
+                entry.insert(0, _last_valid_value[0])
+                try:
+                    slider.set(float(_last_valid_value[0]))
+                except ValueError:
+                    slider.set(default)
+                _set_border_ok()
+                _flash_clamp()
+                return
+            # Clamp в допустимый диапазон
+            clamped = max(from_, min(to, val))
+            was_clamped = (clamped != val)
+            entry.delete(0, "end")
+            entry.insert(0, fmt(clamped))
+            slider.set(clamped)
+            _last_valid_value[0] = fmt(clamped)
+            _set_border_ok()
+            if was_clamped:
+                _flash_clamp()
+
+        # 7) При фокусе — выделить весь текст для удобства перезаписи
+        def _on_focus_in(e):
+            entry.after(50, lambda: entry.select_range(0, "end"))
+
+        # 8) Блокировка Ctrl+V мусора — перехватываем вставку и чистим
+        def _on_paste(e):
+            try:
+                clipboard = self.clipboard_get()
+                cleaned = ''.join(c for c in clipboard if c.isdigit() or (c == '.' and not is_int))
+                if not cleaned:
+                    return "break"
+                current = entry.get()
+                try:
+                    sel_start = entry.index("sel.first")
+                    sel_end = entry.index("sel.last")
+                    new_text = current[:sel_start] + cleaned + current[sel_end:]
+                except Exception:
+                    cursor = entry.index("insert")
+                    new_text = current[:cursor] + cleaned + current[cursor:]
+                # Проверяем результат
+                if new_text.count('.') > 1:
+                    return "break"
+                try:
+                    float(new_text)
+                except ValueError:
+                    return "break"
+                if len(new_text) > 8:
+                    return "break"
+                entry.delete(0, "end")
+                entry.insert(0, new_text)
+                _sanitize_and_sync()
+            except Exception:
+                pass
+            return "break"
+
+        # 9) Блокировка ВСЕХ обходных путей ввода мусора
+        def _block(e):
+            return "break"
+
+        # 10) Скролл колёсиком мыши для изменения значения
+        def _on_mousewheel(e):
+            if entry == self.focus_get() or inner_entry == self.focus_get():
+                delta = step if e.delta > 0 else -step
+                update_val(delta)
+                return "break"
+
+        # 11) Периодический watchdog — перепроверяет валидность каждые 2 секунды
+        def _watchdog():
+            try:
+                if not entry.winfo_exists():
+                    return
+                val_str = entry.get().strip()
+                if val_str and val_str != '.':
+                    try:
+                        val = float(val_str)
+                        if val < from_ or val > to:
+                            _set_border_err()
+                        else:
+                            _set_border_ok()
+                    except ValueError:
+                        _set_border_err()
+                entry.after(2000, _watchdog)
+            except Exception:
+                pass
+        entry.after(2000, _watchdog)
+
         def update_val(delta):
             try: cur = float(entry.get())
-            except ValueError: cur = default
+            except ValueError: cur = float(_last_valid_value[0]) if _last_valid_value[0] not in ('.', '') else default
             new = max(from_, min(to, cur + delta))
             entry.delete(0, "end")
             entry.insert(0, fmt(new))
             slider.set(new)
+            _last_valid_value[0] = fmt(new)
+            _set_border_ok()
 
         ctk.CTkButton(ctrl, text="−", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
                        font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6,
@@ -881,48 +1004,101 @@ class ProxyHunterApp(ctk.CTk):
         def on_slide(v):
             entry.delete(0, "end")
             entry.insert(0, fmt(slider.get()))
+            _last_valid_value[0] = fmt(slider.get())
+            _set_border_ok()
         slider.configure(command=on_slide)
 
-        def on_key_release(e):
-            if e.keysym in ('Return', 'Up', 'Down', 'Left', 'Right', 'Tab'): return
-            val_str = entry.get()
-            if not val_str: return
-            try: val = float(val_str)
-            except ValueError: return
-            
-            if val <= 0:
-                entry.delete(0, "end")
-                entry.insert(0, fmt(from_))
-                val = from_
-            elif val > to:
-                entry.delete(0, "end")
-                entry.insert(0, fmt(to))
-                val = to
-            slider.set(val)
-            
-        def on_return(e):
-            val_str = entry.get()
-            try:
-                val = float(val_str)
-                val = max(from_, min(to, val))
-                entry.delete(0, "end")
-                entry.insert(0, fmt(val))
-                slider.set(val)
-            except ValueError: pass
-            e.widget.tk_focusNext().focus()
-            return "break"
-
-        entry.bind("<KeyRelease>", on_key_release)
+        # ═══ ПРИВЯЗКА ВСЕХ СОБЫТИЙ ═══
+        entry.bind("<KeyRelease>", _sanitize_and_sync)
+        entry.bind("<FocusOut>", _on_focus_out)
+        entry.bind("<FocusIn>", _on_focus_in)
+        entry.bind("<Control-v>", _on_paste)
+        entry.bind("<Control-V>", _on_paste)
+        entry.bind("<Shift-Insert>", _on_paste)          # Shift+Insert paste
+        entry.bind("<Button-2>", _block)                  # Middle mouse button paste (Linux)
+        entry.bind("<Button-3>", _block)                  # Right-click context menu — заблокировано
+        entry.bind("<Control-z>", _block)                 # Ctrl+Z undo — может вернуть мусор
+        entry.bind("<Control-Z>", _block)
+        entry.bind("<Control-y>", _block)                 # Ctrl+Y redo — тоже блокируем
+        entry.bind("<Control-Y>", _block)
+        entry.bind("<Control-a>", lambda e: entry.select_range(0, "end"))  # Ctrl+A = select all
+        entry.bind("<Control-A>", lambda e: entry.select_range(0, "end"))
+        entry.bind("<MouseWheel>", _on_mousewheel)        # Скролл колёсиком = ±step
         entry.bind("<Up>", lambda e: update_val(step))
         entry.bind("<Down>", lambda e: update_val(-step))
-        entry.bind("<Return>", on_return)
+        entry.bind("<Return>", lambda e: (_on_focus_out(), e.widget.tk_focusNext().focus(), "break")[-1])
+        entry.bind("<Escape>", lambda e: (entry.delete(0, "end"), entry.insert(0, _last_valid_value[0]),
+                                           _set_border_ok(), self.focus_set(), "break")[-1])
+
+        # 12) Тултип с допустимым диапазоном
+        range_text = f"{fmt(from_)} – {fmt(to)}"
+        _tip_window = [None]
+        def _show_tip(e):
+            if _tip_window[0]: return
+            x = entry.winfo_rootx() + entry.winfo_width() // 2
+            y = entry.winfo_rooty() - 28
+            tw = tk.Toplevel(entry)
+            tw.wm_overrideredirect(True)
+            tw.wm_geometry(f"+{x-40}+{y}")
+            tw.configure(bg="#1E293B")
+            tk.Label(tw, text=f"⚡ {range_text}", bg="#1E293B", fg="#94A3B8",
+                     font=("Segoe UI", 9), padx=6, pady=2).pack()
+            _tip_window[0] = tw
+        def _hide_tip(e):
+            if _tip_window[0]:
+                _tip_window[0].destroy()
+                _tip_window[0] = None
+        entry.bind("<Enter>", _show_tip)
+        entry.bind("<Leave>", _hide_tip)
 
         setattr(self, f"slider_{attr}", slider)
         setattr(self, f"entry_{attr}", entry)
         self.interactive_widgets.extend([slider, entry])
 
+    @staticmethod
+    def _validate_numeric_input(action, new_text, is_int, from_, to):
+        """Tkinter validation callback — вызывается ДО каждого изменения текста.
+        Возвращает True только если новый текст допустим."""
+        # Удаление всегда ок
+        if action == '0':
+            return True
+        # Пустая строка — ок (пользователь стирает)
+        if not new_text:
+            return True
+        # Только одна точка для float-полей
+        if new_text == '.' and not is_int:
+            return True
+        # Проверка посимвольно: только цифры и (для float) одна точка
+        dot_count = 0
+        for ch in new_text:
+            if ch.isdigit():
+                continue
+            if ch == '.' and not is_int:
+                dot_count += 1
+                if dot_count > 1:
+                    return False
+                continue
+            # Любой другой символ — блокируем
+            return False
+        # Не пропускаем ведущие нули (кроме "0" и "0.xxx")
+        if len(new_text) > 1 and new_text[0] == '0' and new_text[1] != '.':
+            return False
+        # Ограничение длины — максимум 8 символов
+        if len(new_text) > 8:
+            return False
+        # Для целых — блокируем точку в любой позиции
+        if is_int and '.' in new_text:
+            return False
+        # Не разрешаем больше 1 цифры после точки для float
+        if not is_int and '.' in new_text:
+            parts = new_text.split('.')
+            if len(parts) == 2 and len(parts[1]) > 1:
+                return False
+        return True
+
     def _enable_autohide_scrollbar(self, scrollable_frame):
-        """Hides the scrollbar if the content fits inside the view, shows it otherwise"""
+        """Hides the scrollbar if the content fits inside the view, shows it otherwise.
+        Also prevents mouse-wheel scroll from propagating to any outer scrollable container."""
         def check_scrollbar(*args):
             try:
                 if not scrollable_frame.winfo_exists() or not scrollable_frame._parent_frame.winfo_exists():
@@ -938,9 +1114,27 @@ class ProxyHunterApp(ctk.CTk):
                         scrollable_frame._scrollbar.grid(row=0, column=1, sticky="ns")
             except Exception:
                 pass
-                
+
         scrollable_frame._parent_canvas.bind("<Configure>", check_scrollbar, add="+")
         scrollable_frame._parent_frame.bind("<Configure>", check_scrollbar, add="+")
+        # Delayed initial checks — widget heights are reported only after first render
+        self.after(300, check_scrollbar)
+        self.after(800, check_scrollbar)
+
+        # ── Isolate mouse-wheel: scroll only THIS frame, not the outer root ──
+        inner_canvas = scrollable_frame._parent_canvas
+
+        def _scroll_this(e):
+            ih = scrollable_frame._parent_frame.winfo_reqheight()
+            ch = scrollable_frame._parent_canvas.winfo_height()
+            if ih > ch:
+                inner_canvas.yview_scroll(-1 * (e.delta // 120), "units")
+            return "break"  # always stop propagation to outer CTkScrollableFrame
+
+        # Bind directly on the canvas (not bind_all) — fires when cursor is over it
+        inner_canvas.bind("<MouseWheel>", _scroll_this, add="+")
+        # Also bind on child widgets inside the scrollable frame
+        scrollable_frame.bind("<MouseWheel>", _scroll_this, add="+")
 
     # --- Вкладка СТРАНЫ (ленивая загрузка) ---
     def _build_countries_tab(self, parent):
@@ -1114,7 +1308,7 @@ class ProxyHunterApp(ctk.CTk):
 
     # ===================== MAIN PANEL =====================
     def _build_main(self):
-        self.main_panel = ctk.CTkFrame(self.root_scroll, fg_color="transparent")
+        self.main_panel = ctk.CTkFrame(self.root_frame, fg_color="transparent")
         self.main_panel.grid(row=0, column=1, padx=(8, 15), pady=15, sticky="nsew")
         self.main_panel.grid_rowconfigure(3, weight=1)
         self.main_panel.grid_columnconfigure(0, weight=1)
