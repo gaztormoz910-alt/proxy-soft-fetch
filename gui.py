@@ -1052,10 +1052,21 @@ LANG = {
 import os
 from PIL import Image
 
+def resource_path(rel):
+    """Путь к файлу ресурса.
+
+    Из исходников — рядом с этим модулем; в собранном PyInstaller .exe —
+    во временной папке распаковки (sys._MEIPASS). Относительный путь брать
+    нельзя: он зависит от текущего каталога, из которого запущена программа.
+    """
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, rel)
+
+
 def load_icon(name):
     try:
-        light = Image.open(f"assets/icons/{name}_dark.png")
-        dark = Image.open(f"assets/icons/{name}_light.png")
+        light = Image.open(resource_path(f"assets/icons/{name}_dark.png"))
+        dark = Image.open(resource_path(f"assets/icons/{name}_light.png"))
         return ctk.CTkImage(light_image=light, dark_image=dark, size=(18, 18))
     except Exception as e:
         print(f"Error loading {name}: {e}")
@@ -1088,7 +1099,15 @@ class ProxyHunterApp(ctk.CTk):
             "download": load_icon("download")
         }
 
-        self.title("Proxy Hunter v4.0")
+        self.title("ProxyPulse v4.0")
+        try:
+            # default=: иконка ставится классу окна, поэтому её наследуют и
+            # панель задач, и все дочерние диалоги, а не только это окно.
+            _ico = resource_path("assets/ProxyPulse.ico")
+            self.iconbitmap(default=_ico)   # класс окна: панель задач и диалоги
+            self.iconbitmap(_ico)           # само окно: значок в заголовке
+        except Exception:
+            pass
         self.geometry("1375x770")
         self.minsize(1375, 770)
         self.configure(fg_color=BG)
@@ -3042,7 +3061,7 @@ class ProxyHunterApp(ctk.CTk):
         ctk.CTkLabel(shield, text="", image=self.icons["shield"]).pack(expand=True)
         titles = ctk.CTkFrame(logo, fg_color="transparent")
         titles.pack(side="left")
-        ctk.CTkLabel(titles, text="PROXY HUNTER", font=("Segoe UI", 22, "bold"), text_color="white").pack(anchor="w")
+        ctk.CTkLabel(titles, text="PROXYPULSE", font=("Segoe UI", 22, "bold"), text_color="white").pack(anchor="w")
         self.subtitle_lbl = ctk.CTkLabel(titles, text=self._t("subtitle"), font=("Segoe UI", 11), text_color="#475569")
         self.subtitle_lbl.pack(anchor="w")
 
@@ -5717,5 +5736,11 @@ class ProxyHunterApp(ctk.CTk):
 
 
 if __name__ == "__main__":
+    # Без собственного AppUserModelID Windows считает окно частью python.exe
+    # и рисует на панели задач иконку Python вместо нашей.
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ProxyPulse.App")
+    except Exception:
+        pass
     app = ProxyHunterApp()
     app.mainloop()
