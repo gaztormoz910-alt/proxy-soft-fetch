@@ -4860,7 +4860,7 @@ class ProxyHunterApp(ctk.CTk):
                 def _fetch_asn_info(asn):
                     if asn in dummy_hunter.asn_cache: return
                     for attempt in range(3):
-                        if dummy_hunter._cancel_event.is_set(): return
+                        if not getattr(self, 'checker_is_running', False) or dummy_hunter._cancel_event.is_set(): return
                         try:
                             html_url = f"https://ipinfo.io/{asn}"
                             resp_html = requests.get(html_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
@@ -4879,7 +4879,7 @@ class ProxyHunterApp(ctk.CTk):
                             time.sleep(2)
 
                 for chunk in chunks:
-                    if dummy_hunter._cancel_event.is_set(): break
+                    if not getattr(self, 'checker_is_running', False) or dummy_hunter._cancel_event.is_set(): break
                     retries = 3
                     backoff = 4
                     chunk_asns_to_fetch = set()
@@ -5216,6 +5216,12 @@ class ProxyHunterApp(ctk.CTk):
 
         self.checker_is_running = False
         def _reset_ui():
+            # M-05 FIX: Replace remaining hourglasses with skip
+            if hasattr(self, 'checker_data'):
+                for proxy, vals in self.checker_data.items():
+                    if len(vals) > 8:
+                        if vals[3] == "⏳": vals[3] = self._t("chk_skip")
+                        
             self.btn_check_start.configure(state="normal", text=self._t("checker_start"), image=self.icons["play"], fg_color=GREEN, hover_color="#047857")
             self._chk_btn_load.configure(state="normal")
             self._chk_btn_clear.configure(state="normal")
