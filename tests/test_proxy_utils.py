@@ -163,3 +163,44 @@ def test_extract_ip_port_returns_placeholder_on_garbage():
     """Без распознаваемого хоста возвращается ('Config', 'N/A') — сигнал «не IP»."""
     assert ProxyUtils.extract_ip_port("не-является-uri") == ("Config", "N/A")
     assert ProxyUtils.extract_ip_port("vmess://%%%нечитаемо%%%") == ("Config", "N/A")
+
+
+# ------------------------------------------------- COR-07: Unicode-цифры
+
+@pytest.mark.parametrize("ip", [
+    "\u0663.1.1.1",          # арабо-индийская тройка
+    "1.\u0663.1.1",
+    "\uff11.1.1.1",          # полноширинная единица
+    "\u06f1.1.1.1",          # персидская единица
+])
+def test_is_valid_rejects_non_ascii_digits(ip):
+    """str.isdigit() пропускал такие «адреса» как настоящие."""
+    assert ProxyUtils.is_valid(ip, 80) is False
+
+
+@pytest.mark.parametrize("ip", ["\u00b2.1.1.1", "1.1.1.\u00b2"])
+def test_is_valid_does_not_raise_on_digits_int_cannot_parse(ip):
+    """'\u00b2'.isdigit() истинно, но int('\u00b2') бросает ValueError."""
+    assert ProxyUtils.is_valid(ip, 80) is False
+
+
+@pytest.mark.parametrize("ip", ["010.1.1.1", "1.01.1.1", "8.8.8.08", "00.1.1.1"])
+def test_is_valid_rejects_leading_zero_octets(ip):
+    """inet_aton читает '010' как восьмеричное — это другой адрес.
+
+    Через такую запись можно было обойти проверку приватных диапазонов.
+    """
+    assert ProxyUtils.is_valid(ip, 80) is False
+
+
+def test_is_valid_still_accepts_a_bare_zero_octet():
+    assert ProxyUtils.is_valid("8.0.0.1", 80) is True
+
+
+def test_is_valid_rejects_octet_longer_than_three_digits():
+    assert ProxyUtils.is_valid("1111.1.1.1", 80) is False
+
+
+def test_parse_proxies_drops_non_ascii_digit_addresses():
+    content = "\u0663.1.1.1:8080\n8.8.8.8:3128\n"
+    assert ProxyUtils.parse_proxies(content) == ["8.8.8.8:3128"]

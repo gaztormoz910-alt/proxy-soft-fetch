@@ -724,20 +724,43 @@ class ProxyUtils:
     JSON_PORT_FIRST = re.compile(r'(?:"port")\s*:\s*"?(\d{1,5})"?[^}]*?(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"', re.IGNORECASE)
     TABLE_RE  = re.compile(r'<td[^>]*>\s*(\d{1,3}(?:\.\d{1,3}){3})\s*</td>\s*<td[^>]*>\s*(\d{1,5})\s*</td>', re.IGNORECASE | re.DOTALL)
     @staticmethod
+    def _octet(part: str) -> Optional[int]:
+        """Разбирает один октет IPv4 или возвращает None.
+
+        COR-07: str.isdigit() истинен для любых Unicode-цифр, поэтому '٣.1.1.1'
+        раньше проходил валидацию как настоящий адрес, а '².1.1.1' ронял int()
+        с ValueError. Нужны строго ASCII-десятичные цифры.
+
+        Ведущие нули тоже отклоняются: inet_aton трактует '010' как восьмеричное,
+        то есть '010.1.1.1' и '10.1.1.1' — разные адреса, и запись с нулём
+        обходила бы проверку приватных диапазонов ниже.
+        """
+        if not (1 <= len(part) <= 3 and part.isascii() and part.isdecimal()):
+            return None
+        if len(part) > 1 and part[0] == '0':
+            return None
+        value = int(part)
+        return value if value <= 255 else None
+
+    @staticmethod
     def is_valid(ip: str, port: int) -> bool:
         parts = ip.split('.')
-        if not (len(parts) == 4 and all(p.isdigit() and 0 <= int(p) <= 255 for p in parts)
-                and 1 <= port <= 65535):
+        if len(parts) != 4:
+            return False
+        octets = [ProxyUtils._octet(p) for p in parts]
+        if any(o is None for o in octets):
+            return False
+        if not 1 <= port <= 65535:
             return False
         # L-02 FIX: Block private/reserved IPs
-        first = int(parts[0])
+        first, second = octets[0], octets[1]
         if first in (0, 10, 127) or first >= 224:
             return False
-        if first == 172 and 16 <= int(parts[1]) <= 31:
+        if first == 172 and 16 <= second <= 31:
             return False
-        if first == 192 and int(parts[1]) == 168:
+        if first == 192 and second == 168:
             return False
-        if first == 169 and int(parts[1]) == 254:
+        if first == 169 and second == 254:
             return False
         return True
     @classmethod
