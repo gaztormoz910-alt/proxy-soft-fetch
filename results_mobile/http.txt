@@ -1,4 +1,2 @@
-# Mobile Proxies (HTTP): 3
+# Mobile Proxies (HTTP): 1
 http://129.80.238.83:444
-http://141.0.13.229:80
-http://141.0.13.236:80
