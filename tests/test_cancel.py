@@ -5,7 +5,7 @@ collect() ставит в пул на 50 воркеров все 1710 источ
 без отмены очереди: после нажатия «Отмена» программа продолжала честно
 скачивать все оставшиеся источники по 15 с таймаута каждый.
 
-Тесты подменяют SOURCES и fetch_url, сеть не используется.
+Тесты подменяют SOURCES и fetch_url_with_error, сеть не используется.
 """
 import threading
 import time
@@ -31,9 +31,9 @@ def slow_fetch(monkeypatch):
     def fetch(url, timeout=10):
         started.append(url)
         time.sleep(0.2)
-        return "8.8.8.8:8080"
+        return "8.8.8.8:8080", ""
 
-    monkeypatch.setattr(ProxyUtils, "fetch_url", staticmethod(fetch))
+    monkeypatch.setattr(ProxyUtils, "fetch_url_with_error", staticmethod(fetch))
     return started
 
 
@@ -65,8 +65,8 @@ def test_queued_sources_are_not_fetched_after_cancel(fake_sources, slow_fetch):
 def test_worker_skips_the_network_when_cancelled_before_it_starts(monkeypatch, fake_sources):
     """Задача, простоявшая в очереди, не должна уходить в сеть."""
     calls = []
-    monkeypatch.setattr(ProxyUtils, "fetch_url",
-                        staticmethod(lambda url, timeout=10: calls.append(url) or ""))
+    monkeypatch.setattr(ProxyUtils, "fetch_url_with_error",
+                        staticmethod(lambda url, timeout=10: (calls.append(url) or "", "")))
 
     hunter = ProxyHunter(threads=1)
     hunter.cancel()          # отменено ещё до старта
@@ -78,8 +78,8 @@ def test_worker_skips_the_network_when_cancelled_before_it_starts(monkeypatch, f
 def test_collect_without_cancel_still_processes_everything(monkeypatch):
     monkeypatch.setattr(fetch_proxy, "SOURCES",
                         [(f"https://src{i}.test/list.txt", "http") for i in range(20)])
-    monkeypatch.setattr(ProxyUtils, "fetch_url",
-                        staticmethod(lambda url, timeout=10: "8.8.8.8:8080\n1.1.1.1:3128"))
+    monkeypatch.setattr(ProxyUtils, "fetch_url_with_error",
+                        staticmethod(lambda url, timeout=10: ("8.8.8.8:8080\n1.1.1.1:3128", "")))
 
     hunter = ProxyHunter(threads=1)
     hunter.collect()
@@ -101,8 +101,8 @@ def test_url_listed_under_two_protocols_is_fetched_once(monkeypatch):
         ("https://both.test/list.txt", "socks5"),
     ])
     fetched = []
-    monkeypatch.setattr(ProxyUtils, "fetch_url",
-                        staticmethod(lambda url, timeout=10: fetched.append(url) or "8.8.8.8:8080"))
+    monkeypatch.setattr(ProxyUtils, "fetch_url_with_error",
+                        staticmethod(lambda url, timeout=10: (fetched.append(url) or "8.8.8.8:8080", "")))
 
     hunter = ProxyHunter(threads=1)
     hunter.collect()
@@ -114,8 +114,8 @@ def test_url_listed_under_two_protocols_is_fetched_once(monkeypatch):
 
 def test_protocol_all_still_expands_to_three(monkeypatch):
     monkeypatch.setattr(fetch_proxy, "SOURCES", [("https://a.test/list.txt", "all")])
-    monkeypatch.setattr(ProxyUtils, "fetch_url",
-                        staticmethod(lambda url, timeout=10: "8.8.8.8:8080"))
+    monkeypatch.setattr(ProxyUtils, "fetch_url_with_error",
+                        staticmethod(lambda url, timeout=10: ("8.8.8.8:8080", "")))
 
     hunter = ProxyHunter(threads=1)
     hunter.collect()
@@ -127,8 +127,8 @@ def test_all_combines_with_an_explicit_protocol_from_the_same_url(monkeypatch):
         ("https://a.test/list.txt", "all"),
         ("https://a.test/list.txt", "vless"),
     ])
-    monkeypatch.setattr(ProxyUtils, "fetch_url",
-                        staticmethod(lambda url, timeout=10: "8.8.8.8:8080"))
+    monkeypatch.setattr(ProxyUtils, "fetch_url_with_error",
+                        staticmethod(lambda url, timeout=10: ("8.8.8.8:8080", "")))
 
     hunter = ProxyHunter(threads=1)
     hunter.collect()
