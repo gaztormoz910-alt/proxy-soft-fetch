@@ -4746,15 +4746,25 @@ class ProxyHunterApp(ctk.CTk):
             self.chk_lbl_count.configure(text=self._t("chk_unique_0"))
             return
             
-        import re
-        pattern = re.compile(r'(?:[a-zA-Z0-9]+://)?(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::\d{1,5})?')
-        found = pattern.findall(raw_text)
-        unique_proxies = list(dict.fromkeys(found))
-        
-        if len(found) > len(unique_proxies):
-            count_text = self._t("chk_unique_n_total").format(len(unique_proxies), len(found))
+        # Считаем прокси через общий разборщик — он понимает домен, схему и
+        # логин/пароль, а не только IPv4:PORT (из-за чего был «Уникальных: 0»).
+        from fetch_proxy import parse_proxy_line
+        total = 0
+        seen = set()
+        for ln in raw_text.splitlines():
+            ep = parse_proxy_line(ln)
+            if ep is None:
+                continue
+            total += 1
+            seen.add(ep.canonical())
+        unique = len(seen)
+        if unique == 0:
+            self.chk_lbl_count.configure(text=self._t("chk_unique_0"))
+            return
+        if total > unique:
+            count_text = self._t("chk_unique_n_total").format(unique, total)
         else:
-            count_text = self._t("chk_unique_n").format(len(unique_proxies))
+            count_text = self._t("chk_unique_n").format(unique)
         self.chk_lbl_count.configure(text=count_text)
 
 
@@ -4900,28 +4910,16 @@ class ProxyHunterApp(ctk.CTk):
         for item in self.check_tree.get_children():
             self.check_tree.delete(item)
 
-        import re
-        self.check_tree_items = {} 
-        
-        # Мощный regex для умного поиска валидных IP:PORT (с возможным протоколом) в любом мусоре
-        pattern = re.compile(r'(?:[a-zA-Z0-9]+://)?(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::\d{1,5})?')
-        found = pattern.findall(raw_text)
-        
-        # Дедупликация и нормализация (всегда добавляем протокол)
-        seen = set()
-        proxies_list = []
-        for match in found:
-            if "://" in match:
-                proto, ip_port = match.split("://", 1)
-                proto = proto.lower()
-            else:
-                proto = "http"
-                ip_port = match
-            normalized = f"{proto}://{ip_port}"
-            if normalized not in seen:
-                seen.add(normalized)
-                proxies_list.append(normalized)
-        
+        self.check_tree_items = {}
+
+        # Единый разборщик: принимает прокси в любом распространённом виде
+        # (IP/домен, со схемой и без, с логином/паролем) и отбрасывает мусор.
+        # Канонический вид — ключ строки в таблице; эндпойнты кешируем для чекера.
+        from fetch_proxy import parse_proxy_lines
+        endpoints = parse_proxy_lines(raw_text)
+        self.checker_endpoints = {ep.canonical(): ep for ep in endpoints}
+        proxies_list = [ep.canonical() for ep in endpoints]
+
         if not proxies_list:
             self._flash_error_widget(self.btn_check_start, temp_text=self._t("error_no_proxies"))
             return
@@ -5035,10 +5033,14 @@ class ProxyHunterApp(ctk.CTk):
         threading.Thread(target=self._run_checker_thread, args=(list(self.checker_all_proxies), checker_timeout), daemon=True).start()
 
     def _run_checker_thread(self, proxies, timeout=10):
-        from fetch_proxy import ProxyUtils, ProxyHunter
-        import requests, time
+        from fetch_proxy import ProxyUtils, ProxyHunter, parse_proxy_line, _proxy_is_ip
+        import requests, time, socket
         from concurrent.futures import ThreadPoolExecutor, as_completed
-        
+
+        # Кеш резолва доменных шлюзов: гео/блэклист работают по IP, а один и тот
+        # же host (gw1.remproxy.com) повторяется во всех строках — резолвим раз.
+        resolve_cache = {}
+
         dummy_hunter = ProxyHunter(threads=1)
         if hasattr(self, 'hunter') and self.hunter:
             dummy_hunter.ip_cache = self.hunter.ip_cache
@@ -5065,46 +5067,48 @@ class ProxyHunterApp(ctk.CTk):
             if not getattr(self, 'checker_is_running', False):
                 return
             try:
-                clean_proxy = proxy
-                protocol_prefix = ""
-                if "://" in proxy:
-                    protocol_prefix, clean_proxy = proxy.split("://", 1)
-                    
-                if ':' in clean_proxy:
-                    ip, port_str = clean_proxy.split(':', 1)
-                    # BUG-14: Guard non-numeric port
+                # Единый разбор любого формата (IP/домен, со схемой и без,
+                # с логином/паролем). Эндпойнт уже разобран при старте — берём
+                # из кеша, на всякий случай переразбираем канонический вид.
+                ep = None
+                if hasattr(self, 'checker_endpoints'):
+                    ep = self.checker_endpoints.get(proxy)
+                if ep is None:
+                    ep = parse_proxy_line(proxy)
+                if ep is None:
+                    for _c in ("ping", "anon", "speed", "smtp", "bl"):
+                        self._update_check_row(proxy, _c, self._t("chk_error"))
+                    return
+
+                host, port = ep.host_port()          # host — домен или IP, для сокета
+                protocol_prefix = ep.scheme or ""
+                is_ip_only = False
+                # SOCKS без PySocks проверить нельзя — честно пропускаем.
+                if ep.is_socks:
                     try:
-                        port = int(port_str)
-                    except ValueError:
-                        self._update_check_row(proxy, "ping", self._t("chk_error"))
-                        self._update_check_row(proxy, "anon", self._t("chk_skip"))
+                        import socks  # noqa: F401
+                    except ImportError:
+                        self._update_check_row(proxy, "ping", self._t("chk_skip"))
+                        self._update_check_row(proxy, "anon", self._t("chk_skip") + " (No PySocks)")
                         self._update_check_row(proxy, "speed", self._t("chk_skip"))
                         self._update_check_row(proxy, "smtp", self._t("chk_skip"))
                         self._update_check_row(proxy, "bl", self._t("chk_skip"))
                         return
-                    is_ip_only = False
-                    if protocol_prefix:
-                        # H-08 FIX: Proper SOCKS support in checker
-                        if 'socks' in protocol_prefix.lower():
-                            try:
-                                import socks
-                                proxies_dict = {'http': f"{protocol_prefix}://{clean_proxy}", 'https': f"{protocol_prefix}://{clean_proxy}"}
-                            except ImportError:
-                                self._update_check_row(proxy, "ping", self._t("chk_skip"))
-                                self._update_check_row(proxy, "anon", self._t("chk_skip") + " (No PySocks)")
-                                self._update_check_row(proxy, "speed", self._t("chk_skip"))
-                                self._update_check_row(proxy, "smtp", self._t("chk_skip"))
-                                self._update_check_row(proxy, "bl", self._t("chk_skip"))
-                                return
-                        else:
-                            proxies_dict = {'http': f"{protocol_prefix}://{clean_proxy}", 'https': f"{protocol_prefix}://{clean_proxy}"}
-                    else:
-                        proxies_dict = {'http': f"http://{clean_proxy}", 'https': f"http://{clean_proxy}"}
+                # URL с логином/паролем — requests теперь ходит через авторизацию.
+                proxy_url = ep.requests_url("http")
+                proxies_dict = {'http': proxy_url, 'https': proxy_url}
+                # Гео/блэклист — по IP. Доменный шлюз резолвим один раз (кеш).
+                if _proxy_is_ip(host):
+                    geo_ip = host
                 else:
-                    ip = clean_proxy.strip()
-                    port = None
-                    is_ip_only = True
-                    proxies_dict = None
+                    geo_ip = resolve_cache.get(host, False)
+                    if geo_ip is False:
+                        try:
+                            geo_ip = socket.gethostbyname(host)
+                        except Exception:
+                            geo_ip = None
+                        resolve_cache[host] = geo_ip
+                ip = geo_ip                          # для гео/BL ниже
                     
                 if is_ip_only:
                     country_iso = dummy_hunter._get_country(ip)
@@ -5141,9 +5145,9 @@ class ProxyHunterApp(ctk.CTk):
                     else:
                         self._update_check_row(proxy, "category", self._t("chk_skip"))
 
-                    # 1. Ping
+                    # 1. Ping (по host — домену или IP; сокет сам резолвит)
                     start_ping = time.time()
-                    alive = ProxyUtils.tcp_ping(ip, port, timeout=timeout)
+                    alive = ProxyUtils.tcp_ping(host, port, timeout=timeout)
                     ping_ms = int((time.time() - start_ping) * 1000)
                     
                     if not alive:
@@ -5225,7 +5229,10 @@ class ProxyHunterApp(ctk.CTk):
                                     try:
                                         s_loop = socks.socksocket()
                                         s_loop.settimeout(timeout)
-                                        s_loop.set_proxy(p_type, ip, port)
+                                        # Логин/пароль прокси — иначе авторизованный
+                                        # шлюз рвёт соединение ещё до SMTP.
+                                        s_loop.set_proxy(p_type, host, port, True,
+                                                         ep.username, ep.password)
                                         s_loop.connect((shost, sport))
                                         
                                         if use_ssl:
@@ -5264,7 +5271,10 @@ class ProxyHunterApp(ctk.CTk):
 
                         # C-03 FIX: BL check INSIDE alive block (не тратим DNS на мёртвые прокси)
                         if not self.checker_is_running: return
-                        if self.do_check_bl.get():
+                        if self.do_check_bl.get() and not ip:
+                            # Доменный шлюз не зарезолвился — проверять блэклист нечего.
+                            self._update_check_row(proxy, "bl", self._t("chk_skip"))
+                        elif self.do_check_bl.get():
                             try:
                                 res = dummy_hunter._check_rdns_and_bl(ip)
                                 if res.get('rdns_dirty') or res.get('dnsbl'):

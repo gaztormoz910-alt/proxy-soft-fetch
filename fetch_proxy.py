@@ -714,9 +714,240 @@ SOURCES.extend([
 ])
 
 
+# ═══════════════════════════════════════════════════════════════
+#  Разбор строки прокси в любом распространённом формате
+# ═══════════════════════════════════════════════════════════════
+# Чекеру пользователь вставляет купленные прокси в десятке видов: IP:PORT,
+# host:port:логин:пароль, логин:пароль@host:port, со схемой socks5:// и без,
+# по IPv4, IPv6 и доменному имени шлюза. Старый вход (regex в gui.py и
+# ProxyUtils.parse_proxies) понимал ТОЛЬКО IPv4:PORT и выбрасывал логин с
+# паролем, поэтому доменные и авторизованные прокси давали «Уникальных: 0».
+# Здесь один разборщик, на который опираются и счётчик, и чекер: он достаёт
+# схему, хост, порт, логин и пароль и умеет отказать (пустая строка, порт вне
+# диапазона, мусор), а не глотать что попало.
+_PROXY_SCHEMES = {'http', 'https', 'socks4', 'socks4a', 'socks5', 'socks5h'}
+# Доменное имя: метки 1..63 символа, без ведущего/замыкающего дефиса, суммарно
+# не длиннее 253. Разрешаем одиночную метку (localhost) и цифры в TLD нет —
+# но IP проверяется отдельной веткой, поэтому тут допускаем любой последний
+# сегмент из букв/цифр.
+_PROXY_HOST_RE = re.compile(
+    r'^(?=.{1,253}$)'
+    r'(?!-)[A-Za-z0-9-]{1,63}(?<!-)'
+    r'(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$'
+)
+
+
+def _proxy_is_ip(s: str) -> bool:
+    try:
+        ipaddress.ip_address(s)
+        return True
+    except ValueError:
+        return False
+
+
+def _proxy_valid_host(h: str) -> bool:
+    if not h:
+        return False
+    if h.startswith('[') and h.endswith(']'):           # IPv6 в скобках
+        try:
+            ipaddress.IPv6Address(h[1:-1])
+            return True
+        except ValueError:
+            return False
+    if _proxy_is_ip(h):                                   # IPv4 или голый IPv6
+        return True
+    return bool(_PROXY_HOST_RE.match(h))
+
+
+def _proxy_valid_port(p) -> bool:
+    try:
+        n = int(p)
+    except (TypeError, ValueError):
+        return False
+    return 1 <= n <= 65535
+
+
+class ProxyEndpoint:
+    """Один разобранный прокси: схема, хост, порт и (необязательно) логин/пароль."""
+    __slots__ = ('scheme', 'host', 'port', 'username', 'password')
+
+    def __init__(self, host, port, scheme=None, username=None, password=None):
+        self.host = host
+        self.port = int(port)
+        self.scheme = scheme
+        self.username = username
+        self.password = password
+
+    @property
+    def is_socks(self) -> bool:
+        return bool(self.scheme) and self.scheme.startswith('socks')
+
+    @property
+    def has_auth(self) -> bool:
+        return self.username is not None
+
+    def host_port(self):
+        """Хост и порт для сокета/PySocks — без квадратных скобок у IPv6."""
+        h = self.host
+        if h.startswith('[') and h.endswith(']'):
+            h = h[1:-1]
+        return h, self.port
+
+    def canonical(self) -> str:
+        """Устойчивое строковое представление — ключ дедупликации и то, что видно в таблице."""
+        auth = ''
+        if self.username is not None:
+            auth = self.username
+            if self.password is not None:
+                auth += ':' + self.password
+            auth += '@'
+        sch = (self.scheme + '://') if self.scheme else ''
+        return f"{sch}{auth}{self.host}:{self.port}"
+
+    def requests_url(self, default_scheme: str = 'http') -> str:
+        """URL для requests/PySocks. Логин и пароль процентно экранируются, чтобы
+        спецсимволы (@ : / в пароле) не ломали разбор URL самим requests."""
+        from urllib.parse import quote
+        sch = self.scheme or default_scheme
+        auth = ''
+        if self.username is not None:
+            u = quote(self.username, safe='')
+            if self.password is not None:
+                auth = f"{u}:{quote(self.password, safe='')}@"
+            else:
+                auth = f"{u}@"
+        return f"{sch}://{auth}{self.host}:{self.port}"
+
+    def __eq__(self, other):
+        return isinstance(other, ProxyEndpoint) and self.canonical() == other.canonical()
+
+    def __hash__(self):
+        return hash(self.canonical())
+
+    def __repr__(self):
+        return f"ProxyEndpoint({self.canonical()!r})"
+
+
+def _proxy_split_hostport(hp: str):
+    """Хост:порт из правой части (после '@'); понимает [IPv6]:port."""
+    hp = hp.strip()
+    if hp.startswith('['):
+        m = re.match(r'^\[([^\]]+)\]:(\d{1,5})$', hp)
+        if m:
+            return '[' + m.group(1) + ']', m.group(2)
+        return None, None
+    if hp.count(':') == 1:
+        h, p = hp.split(':')
+        return h, p
+    return None, None
+
+
+def _proxy_finish(scheme, host, port, username, password):
+    if host is None or port is None:
+        return None
+    host = host.strip()
+    if not _proxy_valid_host(host) or not _proxy_valid_port(port):
+        return None
+    if username == '':
+        username = None
+    if password == '':
+        password = None
+    return ProxyEndpoint(host=host, port=port, scheme=scheme,
+                         username=username, password=password)
+
+
+def parse_proxy_line(line):
+    """Разобрать одну строку прокси в ProxyEndpoint или вернуть None.
+
+    Поддержаны: IP:PORT, host:port, host:port:user:pass, user:pass@host:port,
+    scheme://host:port, scheme://user:pass@host:port, scheme://host:port:user:pass,
+    [IPv6]:port(:user:pass), а также пробел/таб/|/,/; как разделители полей,
+    когда двоеточий нет. Хост — IPv4, IPv6 (в скобках) или домен; приватные
+    адреса НЕ режутся: чекер проверяет то, что дал пользователь.
+    """
+    if not line:
+        return None
+    s = line.strip().strip('"\'<>`').strip()
+    if not s or s[0] in '#;':                             # пустое или комментарий
+        return None
+
+    scheme = None
+    if '://' in s:
+        pre, s = s.split('://', 1)
+        pre = pre.strip().lower()
+        # Неизвестную схему не навязываем, но и не теряем строку: храним как есть.
+        scheme = pre or None
+
+    username = password = None
+
+    # Логин/пароль через '@' — делим по ПОСЛЕДНЕМУ '@' (в хосте '@' не бывает).
+    # Разбор провизорный: он выигрывает, только если справа реально host:port.
+    # Иначе '@' — это символ внутри пароля формата host:port:user:pass, и мы
+    # проваливаемся в разбор по двоеточиям ниже, не теряя строку.
+    if '@' in s:
+        creds, hostpart = s.rsplit('@', 1)
+        if ':' in creds:
+            a_user, a_pass = creds.split(':', 1)
+        else:
+            a_user, a_pass = creds, None
+        a_host, a_port = _proxy_split_hostport(hostpart)
+        ep = _proxy_finish(scheme, a_host, a_port, a_user, a_pass)
+        if ep is not None:
+            return ep
+
+    # IPv6 в скобках: [host]:port  или  [host]:port:user:pass
+    if s.startswith('['):
+        m = re.match(r'^\[([^\]]+)\]:(\d{1,5})(?::(.+))?$', s)
+        if not m:
+            return None
+        rest = m.group(3)
+        if rest:
+            if ':' in rest:
+                username, password = rest.split(':', 1)
+            else:
+                username = rest
+        return _proxy_finish(scheme, '[' + m.group(1) + ']', m.group(2),
+                             username, password)
+
+    # Нет двоеточий, но есть другой разделитель полей — приводим к ':'.
+    if ':' not in s:
+        s2 = re.sub(r'[\t ,;|]+', ':', s)
+        if ':' not in s2:
+            return None
+        s = s2
+
+    parts = s.split(':')
+    if len(parts) == 2:
+        return _proxy_finish(scheme, parts[0], parts[1], None, None)
+    if len(parts) >= 3:
+        host, port = parts[0], parts[1]
+        if not _proxy_valid_port(port):                  # порт обязан быть на позиции 1
+            return None
+        username = parts[2]
+        # Пароль может содержать ':' — склеиваем остаток обратно.
+        password = ':'.join(parts[3:]) if len(parts) >= 4 else None
+        return _proxy_finish(scheme, host, port, username, password)
+    return None
+
+
+def parse_proxy_lines(text):
+    """Разобрать многострочный ввод в список уникальных ProxyEndpoint (порядок сохранён)."""
+    out, seen = [], set()
+    for raw in (text or '').splitlines():
+        ep = parse_proxy_line(raw)
+        if ep is None:
+            continue
+        key = ep.canonical()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(ep)
+    return out
+
+
 class ProxyUtils:
     """Утилиты для работы с сетью и парсинга прокси"""
-    
+
     PROXY_RE  = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})[:\s,;|\"\']+(\d{1,5})\b')
     JSON_IP_FIRST = re.compile(r'(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"[^}]*?(?:"port")\s*:\s*"?(\d{1,5})"?', re.IGNORECASE)
     JSON_PORT_FIRST = re.compile(r'(?:"port")\s*:\s*"?(\d{1,5})"?[^}]*?(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"', re.IGNORECASE)
