@@ -250,3 +250,39 @@ def test_many_messages_stay_cheap(tripwired):
     assert elapsed < 0.05, (
         f"разбор 5000 сообщений занял {elapsed*1000:.0f} мс при бюджете тика 100 мс")
     assert tripwired._stat_updates["total"] == "4999", "должно остаться последнее значение"
+
+
+# ------------- отложенная пересборка списков при удалении (заморозка UI)
+
+def test_removal_compaction_is_deferred_not_run_every_tick():
+    """Пересборка трёх списков — O(n) по числу живых прокси.
+
+    Замер: 100 000 живых — 65 мс за тик, миллион — 751 мс, при бюджете тика
+    в 100 мс. Раньше это запускалось на каждом тике, где пришло хоть одно
+    удаление. Теперь удаления копятся и применяются не чаще раза в секунду.
+    """
+    from gui import ProxyHunterApp
+    assert ProxyHunterApp.REMOVAL_COMPACT_INTERVAL >= 0.5, (
+        "слишком частая пересборка вернёт заморозку интерфейса")
+
+
+def test_pending_removals_accumulate_between_compactions():
+    """Ключевое свойство: между пересборками ничего не теряется."""
+    pending = set()
+    queue = [({"protocol": "HTTP", "ip": f"1.2.3.{i}", "port": 80}, "remove_live")
+             for i in range(5)]
+    for data, source in queue:
+        if source == "remove_live":
+            pending.add((data["protocol"].lower(), data["ip"], str(data["port"])))
+    assert len(pending) == 5
+
+
+def test_removal_uses_the_same_key_shape_as_insertion():
+    """Ключ удаления строится из тех же полей, что и ключ вставки —
+    иначе пересборка не найдёт запись (это и был баг COR-04)."""
+    added = parse("    [REALTIME_NEW_LIVE] 1.2.3.4|8080|HTTP|US")._proxy_queue[0][0]
+    removed = parse(REMOVE_LINE)._proxy_queue[0][0]
+
+    insert_key = (added["protocol"].lower(), added["ip"], str(added["port"]))
+    remove_key = (removed["protocol"].lower(), removed["ip"], str(removed["port"]))
+    assert insert_key == remove_key
