@@ -13,6 +13,53 @@ import ctypes
 import json
 from collections import deque
 
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip_window = None
+        self.id = None
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+        
+    def enter(self, event=None):
+        self.schedule()
+        
+    def leave(self, event=None):
+        self.unschedule()
+        self.hidetip()
+        
+    def schedule(self):
+        self.unschedule()
+        self.id = self.widget.after(500, self.showtip)
+        
+    def unschedule(self):
+        id_ = self.id
+        self.id = None
+        if id_:
+            self.widget.after_cancel(id_)
+            
+    def showtip(self):
+        if self.tooltip_window or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + 20
+        self.tooltip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        tw.attributes("-topmost", True)
+        
+        label = tk.Label(tw, text=self.text, justify='left',
+                         background="#1E293B", foreground="white", relief='solid', borderwidth=1,
+                         font=("Segoe UI", 10))
+        label.pack(ipadx=4, ipady=2)
+        
+    def hidetip(self):
+        tw = self.tooltip_window
+        self.tooltip_window = None
+        if tw:
+            tw.destroy()
+
 class MEMORYSTATUSEX(ctypes.Structure):
     _fields_ = [
         ("dwLength", ctypes.c_ulong),
@@ -264,7 +311,6 @@ REGIONS = {
     },
     "🌍 Остальные": {
         "AD": "Андорра",
-        "AF": "Афганистан",
         "AG": "Антигуа и Барбуда",
         "AI": "Ангилья",
         "AQ": "Антарктида",
@@ -321,7 +367,6 @@ REGIONS = {
         "KI": "Кирибати",
         "KM": "Коморы",
         "KN": "Сент-Китс и Невис",
-        "KP": "КНДР",
         "KY": "Острова Кайман",
         "LA": "Лаос",
         "LC": "Сент-Люсия",
@@ -362,7 +407,6 @@ REGIONS = {
         "SJ": "Шпицберген и Ян-Майен",
         "SL": "Сьерра-Леоне",
         "SM": "Сан-Марино",
-        "SO": "Сомали",
         "SR": "Суринам",
         "SS": "Южный Судан",
         "ST": "Сан-Томе и Принсипи",
@@ -531,7 +575,6 @@ REGIONS = {
     },
     "🌍 Others": {
         "AD": "Andorra",
-        "AF": "Afghanistan",
         "AG": "Antigua & Barbuda",
         "AI": "Anguilla",
         "AQ": "Antarctica",
@@ -588,7 +631,6 @@ REGIONS = {
         "KI": "Kiribati",
         "KM": "Comoros",
         "KN": "St. Kitts & Nevis",
-        "KP": "North Korea",
         "KY": "Cayman Islands",
         "LA": "Laos",
         "LC": "St. Lucia",
@@ -629,7 +671,6 @@ REGIONS = {
         "SJ": "Svalbard & Jan Mayen",
         "SL": "Sierra Leone",
         "SM": "San Marino",
-        "SO": "Somalia",
         "SR": "Suriname",
         "SS": "South Sudan",
         "ST": "São Tomé & Príncipe",
@@ -677,6 +718,12 @@ LANG = {
         "lang_lbl": "Language:",
         "tab_settings": "Settings",
         "tab_countries": "Countries",
+        "tab_proxies": "Proxies",
+        "tab_github": "GitHub API",
+        "github_token_label": "Personal Access Token:",
+        "github_token_placeholder": "ghp_...",
+        "github_token_save": "Save Token",
+        "github_token_status": "Token saved!",
         "threads": "Threads",
         "timeout": "Timeout (sec)",
         "ping": "Max Ping (ms)",
@@ -957,7 +1004,12 @@ LANG = {
         "chk_blacklisted": "💀 В блэклисте",
         "chk_clean": "✨ Чистый",
         "output_dir_lbl": "Папка сохранения:",
-        "output_dir_btn": "Выбрать"
+        "output_dir_btn": "Выбрать",
+        "tab_github": "API ГитХаба",
+        "github_token_label": "Токен (Personal Access Token):",
+        "github_token_placeholder": "ghp_...",
+        "github_token_save": "Сохранить",
+        "github_token_status": "Сохранено!"
     }
 }
 import os
@@ -1028,6 +1080,28 @@ class ProxyHunterApp(ctk.CTk):
         self.bind_all("<Button-1>", self._on_click_outside)
         
     
+    def _load_settings(self):
+        try:
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return {}
+
+    def _save_settings(self):
+        try:
+            settings = self._load_settings()
+            if hasattr(self, "github_token_var"):
+                settings["github_token"] = self.github_token_var.get()
+            with open("settings.json", "w", encoding="utf-8") as f:
+                json.dump(settings, f, indent=4)
+            if hasattr(self, "lbl_github_status"):
+                self.lbl_github_status.configure(text=self._t("github_token_status"))
+                self.lbl_github_status.after(3000, lambda: self.lbl_github_status.configure(text=""))
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+
     def _safe_config(self, widget, **kwargs):
         try:
             if hasattr(widget, "winfo_exists") and widget.winfo_exists():
@@ -1041,12 +1115,8 @@ class ProxyHunterApp(ctk.CTk):
     def _format_country(self, iso_code):
         if not iso_code or iso_code.lower() == 'unknown':
             return self._t("source_unknown") if "source_unknown" in LANG[self.current_lang] else "Unknown"
-        try:
-            flag = chr(ord(iso_code[0].upper()) + 127397) + chr(ord(iso_code[1].upper()) + 127397)
-        except Exception:
-            flag = ""
         name = ISO_TO_NAME.get(self.current_lang, {}).get(iso_code, iso_code)
-        return f"{flag} {name}".strip()
+        return name.strip()
 
         
     def _set_language(self, lang):
@@ -1112,6 +1182,10 @@ class ProxyHunterApp(ctk.CTk):
         self._safe_config(self.res_switch, text=self._t("source_residential"))
         if hasattr(self, "dc_switch"): self._safe_config(self.dc_switch, text=self._t("source_datacenter"))
         if hasattr(self, "mob_switch"): self._safe_config(self.mob_switch, text=self._t("source_mobile"))
+        
+        if hasattr(self, "lbl_github_token"): self._safe_config(self.lbl_github_token, text=self._t("github_token_label"))
+        if hasattr(self, "entry_github_token"): self._safe_config(self.entry_github_token, placeholder_text=self._t("github_token_placeholder"))
+        if hasattr(self, "btn_save_github"): self._safe_config(self.btn_save_github, text=self._t("github_token_save"))
         
         if not self.is_running:
             self._safe_config(self.start_btn, text="", image=self.icons["play"])
@@ -1394,6 +1468,7 @@ class ProxyHunterApp(ctk.CTk):
                 
                 # Check if random labels exist
                 if hasattr(self, "lbl_random_http"): self._safe_config(self.lbl_random_http, text=self._t("random_count") + " HTTP")
+                if hasattr(self, "lbl_random_https"): self._safe_config(self.lbl_random_https, text=self._t("random_count") + " HTTPS")
                 if hasattr(self, "lbl_random_socks4"): self._safe_config(self.lbl_random_socks4, text=self._t("random_count") + " SOCKS4")
                 if hasattr(self, "lbl_random_socks5"): self._safe_config(self.lbl_random_socks5, text=self._t("random_count") + " SOCKS5")
                 
@@ -1563,7 +1638,7 @@ class ProxyHunterApp(ctk.CTk):
         default_threads = min(500, self._hw_max_threads)
 
         self._add_slider(frame, "Threads", 10, self._hw_max_threads, default_threads, 1, "threads")
-        self._add_slider(frame, "Timeout", 1, 60, 5, 1, "timeout")
+        self._add_slider(frame, "Timeout", 1, 300, 5, 1, "timeout")
         self._add_slider(frame, "Max Ping", 50, 2000, 700, 10, "ping")
         self._add_slider(frame, "Min Speed", 0.1, 10, 1.0, 0.1, "speed")
 
@@ -1610,6 +1685,70 @@ class ProxyHunterApp(ctk.CTk):
         self.btn_out_dir = ctk.CTkButton(dir_inner, text=self._t("output_dir_btn"), width=60, fg_color=CARD2, hover_color=BORDER, command=self._select_output_dir)
         self.btn_out_dir.pack(side="left")
         self.interactive_widgets.append(self.btn_out_dir)
+
+        # GitHub API Token
+        ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
+        gh_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        gh_frame.pack(fill="x", padx=10, pady=4)
+        
+        self.lbl_github_token = ctk.CTkLabel(gh_frame, text=self._t("github_token_label"), font=("Segoe UI", 12, "bold"), text_color=MUTED)
+        self.lbl_github_token.pack(anchor="w", pady=(0, 5))
+        
+        gh_inner = ctk.CTkFrame(gh_frame, fg_color="transparent")
+        gh_inner.pack(fill="x")
+        
+        self.github_token_var = tk.StringVar()
+        
+        settings = self._load_settings()
+        if "github_token" in settings:
+            self.github_token_var.set(settings["github_token"])
+            
+        self.entry_github_token = ctk.CTkEntry(
+            gh_inner, 
+            textvariable=self.github_token_var,
+            placeholder_text=self._t("github_token_placeholder"),
+            font=("Consolas", 12),
+            fg_color="#060B14", border_color=BORDER, text_color="#E2E8F0",
+            show="*"
+        )
+        self.entry_github_token.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        
+        def _gh_paste(e):
+            try:
+                self.entry_github_token.insert("insert", self.entry_github_token.clipboard_get())
+                return "break"
+            except: pass
+        
+        def _gh_select_all(e):
+            self.entry_github_token.select_range(0, "end")
+            self.entry_github_token.icursor("end")
+            return "break"
+            
+        def _gh_copy(e):
+            try:
+                if self.entry_github_token.select_present():
+                    self.entry_github_token.clipboard_clear()
+                    self.entry_github_token.clipboard_append(self.entry_github_token.selection_get())
+                    return "break"
+            except: pass
+
+        for key in ["<Control-v>", "<Control-V>"]: self.entry_github_token.bind(key, _gh_paste)
+        for key in ["<Control-c>", "<Control-C>"]: self.entry_github_token.bind(key, _gh_copy)
+        for key in ["<Control-a>", "<Control-A>"]: self.entry_github_token.bind(key, _gh_select_all)
+        
+        self.btn_save_github = ctk.CTkButton(
+            gh_inner, 
+            text=self._t("github_token_save"),
+            font=("Segoe UI", 12),
+            width=100,
+            fg_color=CARD2, hover_color=BORDER,
+            command=self._save_settings
+        )
+        self.btn_save_github.pack(side="left")
+        self.interactive_widgets.append(self.btn_save_github)
+        
+        self.lbl_github_status = ctk.CTkLabel(gh_frame, text="", font=("Segoe UI", 12, "bold"), text_color="#00FF00")
+        self.lbl_github_status.pack(anchor="e")
 
         # Spacer + HW info
         ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
@@ -2284,6 +2423,9 @@ class ProxyHunterApp(ctk.CTk):
                 cb.configure(state=state)
                 cb.grid(row=idx // FIXED_COLS, column=idx % FIXED_COLS, sticky="w", padx=4, pady=2)
                 
+                # Привязка тултипа к полному названию страны
+                ToolTip(cb, name)
+                
                 self._country_cbs[iso] = (cb, region_name)
 
             # Планируем загрузку следующего региона через 10мс
@@ -2437,9 +2579,9 @@ class ProxyHunterApp(ctk.CTk):
         self.random_en_switch.pack(anchor="w", padx=10, pady=(0, 10))
         
         # Настройки количества с мощной валидацией
-        self.random_counts = {"http": ctk.StringVar(value="5000000"), "socks4": ctk.StringVar(value="5000000"), "socks5": ctk.StringVar(value="5000000")}
+        self.random_counts = {"http": ctk.StringVar(value="5000000"), "https": ctk.StringVar(value="5000000"), "socks4": ctk.StringVar(value="5000000"), "socks5": ctk.StringVar(value="5000000")}
         
-        for proto in ["http", "socks4", "socks5"]:
+        for proto in ["http", "https", "socks4", "socks5"]:
             lbl = self._add_number_input(
                 parent=scroll,
                 label_text=f'{self._t("random_count")} {proto.upper()}',
@@ -2750,6 +2892,8 @@ class ProxyHunterApp(ctk.CTk):
         if self.is_running and hasattr(self, "realtime_proxies"):
             data_list = self.realtime_proxies.get(mapped_src, [])
             for data in data_list:
+                if data["country"] in ("AF", "KP", "SO"):
+                    continue
                 c_name = self._format_country(data["country"])
                 p_name = data["protocol"].upper()
                 self._current_raw_data.append((p_name, data["ip"], data["port"], c_name))
@@ -2768,6 +2912,8 @@ class ProxyHunterApp(ctk.CTk):
                         next(reader)
                         for row in reader:
                             if len(row) >= 4:
+                                if row[3] in ("AF", "KP", "SO"):
+                                    continue
                                 c_name = self._format_country(row[3])
                                 p_name = row[0].upper()
                                 self._current_raw_data.append((p_name, row[1], row[2], c_name))
@@ -3535,10 +3681,11 @@ class ProxyHunterApp(ctk.CTk):
         mob_val = self.mob_var.get()
         
         # Случайные генерации
-        random_counts_val = {"http": 0, "socks4": 0, "socks5": 0}
+        random_counts_val = {"http": 0, "https": 0, "socks4": 0, "socks5": 0}
         if getattr(self, "random_gen_enabled", None) and self.random_gen_enabled.get() and hasattr(self, "random_counts"):
             random_counts_val = {
                 "http": int(float(self.random_counts["http"].get())),
+                "https": int(float(self.random_counts["https"].get())),
                 "socks4": int(float(self.random_counts["socks4"].get())),
                 "socks5": int(float(self.random_counts["socks5"].get()))
             }
@@ -3559,7 +3706,8 @@ class ProxyHunterApp(ctk.CTk):
                     collect_mob=mob_val,
                     random_counts=random_counts_val,
                     output_dir=self.output_dir.get(),
-                    lang=self.current_lang
+                    lang=self.current_lang,
+                    github_token=self.github_token_var.get() if hasattr(self, 'github_token_var') else ""
                 )
                 self.hunter_instance.run()
                 if hasattr(self, "_delayed_live_logs") and self._delayed_live_logs:
