@@ -1,0 +1,17 @@
+settings.json
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+GeoLite2-*.mmdb
+GeoLite2-*.mmdb.tmp
+results/
+results_*/
+build/
+dist/
+installer/
+*.manifest
+*.tmp

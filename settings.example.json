@@ -1,0 +1,7 @@
+{
+    "_comment": "Скопируйте в settings.json и заполните. settings.json не коммитится. Токен GitHub можно задать через переменную окружения GITHUB_TOKEN.",
+    "github_token": "",
+    "github_tm_enabled": false,
+    "github_tm_days": 30,
+    "output_dir": "./Proxies"
+}
