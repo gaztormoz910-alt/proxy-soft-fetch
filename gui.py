@@ -794,6 +794,7 @@ LANG = {
         "all_protocols": "All Protocols",
         "all_countries_filter": "All Countries",
         "protocols_n": "Protocols ▼",
+        "countries_n": "Countries ▼",
         "apply_filter": "Apply Filter",
         "reset_filter": "Reset Filter",
         "select_all_btn": "Select All",

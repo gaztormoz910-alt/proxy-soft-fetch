@@ -163,3 +163,25 @@ def test_backend_still_emits_the_leading_pipe_format():
     assert '[REALTIME_REMOVE_LIVE]|{proto}|{ip}|{port}' in src, (
         "формат маркера в fetch_proxy.py изменился — поправьте разбор в gui._parse_stats"
     )
+
+
+# ------------------------------------------- COR-10: полнота словарей LANG
+
+def test_lang_dicts_have_identical_key_sets():
+    """Пропущенный ключ виден пользователю буквально: _t() возвращает сам ключ,
+    и .format() его не меняет — на кнопке появляется текст вроде 'countries_n'."""
+    ru, en = set(gui.LANG["RU"]), set(gui.LANG["EN"])
+    assert ru - en == set(), f"нет в EN: {sorted(ru - en)}"
+    assert en - ru == set(), f"нет в RU: {sorted(en - ru)}"
+
+
+def test_no_translation_leaks_its_own_key_as_the_value():
+    for lang, table in gui.LANG.items():
+        for key, value in table.items():
+            assert value != key, f"{lang}['{key}'] — значение совпадает с ключом"
+
+
+@pytest.mark.parametrize("key", ["countries_n", "protocols_n"])
+def test_filter_button_labels_exist_in_both_languages(key):
+    for lang in ("RU", "EN"):
+        assert key in gui.LANG[lang], f"{key} отсутствует в LANG['{lang}']"
