@@ -1,0 +1,7 @@
+{
+    "_comment": "Скопируйте в settings.json и заполните. settings.json в .gitignore — секреты в репозиторий не попадут. Токен GitHub можно вместо файла задать переменной окружения GITHUB_TOKEN, она имеет приоритет.",
+    "github_token": "",
+    "github_tm_enabled": false,
+    "github_tm_days": 30,
+    "output_dir": "C:/Users/<user>/Desktop/Proxies"
+}
