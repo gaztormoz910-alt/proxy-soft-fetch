@@ -4680,11 +4680,21 @@ class ProxyHunterApp(ctk.CTk):
         if current_content.replace('\r', '') == ph_text.replace('\r', ''):
             current_content = ""
             
-        all_text = current_content + "\n"
-        
+        # REL-08: копим куски списком и склеиваем один раз. Раньше здесь была
+        # конкатенация `all_text += ...` в цикле — квадратичная по объёму при
+        # разрешённых 50 МБ суммарно.
+        chunks = [current_content, "\n"]
+
         total_size = 0
         for path in paths:
-            fsize = os.path.getsize(path)
+            # REL-08: getsize стоял вне try. Если файл исчез между диалогом
+            # выбора и чтением, OSError уходил в обработчик события Tk и
+            # всплывал трейсбеком поверх интерфейса.
+            try:
+                fsize = os.path.getsize(path)
+            except OSError:
+                self._flash_error_widget(self._chk_btn_load, temp_text=self._t("error_file_type"))
+                continue
             if fsize > 10 * 1024 * 1024:
                 self._flash_error_widget(self._chk_btn_load, temp_text=self._t("error_file_size"))
                 continue
@@ -4694,10 +4704,13 @@ class ProxyHunterApp(ctk.CTk):
             total_size += fsize
             try:
                 with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-                    all_text += f.read() + "\n"
+                    chunks.append(f.read())
+                    chunks.append("\n")
             except Exception:
                 self._flash_error_widget(self._chk_btn_load, temp_text=self._t("error_file_type"))
                 continue
+
+        all_text = "".join(chunks)
 
         pattern = re.compile(r'(?:[a-zA-Z0-9]+://)?(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::\d{1,5})?')
         found = pattern.findall(all_text)
