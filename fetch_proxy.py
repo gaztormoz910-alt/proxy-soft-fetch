@@ -1516,6 +1516,10 @@ class ProxyHunter:
         except ImportError:
             pbar = None
         def _fetch_and_parse(url, proto, fetch_timeout):
+            # COR-05: задача могла простоять в очереди пула минуты — проверяем
+            # отмену до того, как уйти в сеть на fetch_timeout секунд.
+            if self._cancel_event.is_set():
+                return proto, [], False
             content = ProxyUtils.fetch_url(url, fetch_timeout)
             responded = bool(content)
             proxies = []
@@ -1546,12 +1550,18 @@ class ProxyHunter:
                     proxies.extend(ProxyUtils.parse_proxies(content))
             return proto, proxies, responded
 
-        with ThreadPoolExecutor(max_workers=50) as ex:
+        # COR-05: раньше здесь стоял `with ThreadPoolExecutor(...)`. При отмене мы
+        # выходили из цикла as_completed, но выход из блока вызывал
+        # shutdown(wait=True) БЕЗ отмены очереди — и ждал все оставшиеся задачи
+        # (до 1710 штук по 15 с таймаута каждая). Кнопка «Отмена» залипала на
+        # минуты, хотя интерфейс уже рапортовал об остановке.
+        ex = ThreadPoolExecutor(max_workers=50)
+        try:
             fmap = {}
             for url, proto in SOURCES:
                 fetch_timeout = max(15, self.timeout)
                 fmap[ex.submit(_fetch_and_parse, url, proto, fetch_timeout)] = url
-                
+
             for fut in as_completed(fmap):
                 if self._wait_if_paused(): break
                 if self._cancel_event.is_set(): break
@@ -1563,7 +1573,7 @@ class ProxyHunter:
                 except Exception:
                     if pbar: pbar.update(1)
                     continue
-                
+
                 if proxies:
                     total_raw += len(proxies)
                     with self._lock:
@@ -1572,10 +1582,11 @@ class ProxyHunter:
                                 self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
                             else:
                                 self.proxy_protocols[p].add(proto)
-                    if sys.stdout.isatty() or hasattr(sys.stdout, 'write'):
-                        print(f"[REALTIME_TOTAL] {len(self.proxy_protocols)}")
+                    print(f"[REALTIME_TOTAL] {len(self.proxy_protocols)}")
                 if pbar: pbar.update(1)
-        
+        finally:
+            ex.shutdown(wait=False, cancel_futures=True)
+
         if pbar: pbar.close()
         print(f"    {self._t('sources_replied')}: {ok_sources}")
 
@@ -1595,21 +1606,30 @@ class ProxyHunter:
             rate_limits = []
             
             def _resolve_commits(item):
+                if self._cancel_event.is_set():
+                    return [], {}
                 url, proto = item
                 if "raw.githubusercontent.com" in url or "cdn.jsdelivr.net" in url:
                     commits, limit_info = ProxyUtils.fetch_github_commits(url, self.github_token, tm_days*24)
                     return [(c, proto) for c in commits], limit_info
                 return [], {}
 
-            with ThreadPoolExecutor(max_workers=50) as ex:
+            ex = ThreadPoolExecutor(max_workers=50)
+            try:
                 futures = [ex.submit(_resolve_commits, item) for item in SOURCES]
                 for fut in as_completed(futures):
                     if self._cancel_event.is_set(): break
-                    res_urls, limit_info = fut.result()
+                    try:
+                        res_urls, limit_info = fut.result()
+                    except Exception:
+                        continue
                     history_sources.extend(res_urls)
                     if limit_info and 'remaining' in limit_info:
                         rate_limits.append(limit_info)
-            
+            finally:
+                ex.shutdown(wait=False, cancel_futures=True)   # COR-05
+
+
             history_sources = list(dict.fromkeys(history_sources))
             
             limit_after, reset_time_epoch, total_limit = None, None, 5000
@@ -1645,12 +1665,13 @@ class ProxyHunter:
                     pbar_hist = None
                     
                 ok_hist = 0
-                with ThreadPoolExecutor(max_workers=50) as ex:
+                ex = ThreadPoolExecutor(max_workers=50)
+                try:
                     fmap = {}
                     for url, proto in history_sources:
                         fetch_timeout = max(15, self.timeout)
                         fmap[ex.submit(_fetch_and_parse, url, proto, fetch_timeout)] = url
-                        
+
                     for fut in as_completed(fmap):
                         if self._wait_if_paused(): break
                         if self._cancel_event.is_set(): break
@@ -1670,7 +1691,9 @@ class ProxyHunter:
                                     else:
                                         self.proxy_protocols[p].add(proto)
                         if pbar_hist: pbar_hist.update(1)
-                
+                finally:
+                    ex.shutdown(wait=False, cancel_futures=True)   # COR-05
+
                 if pbar_hist: pbar_hist.close()
                 print(f"    Успешно скачано исторических файлов: {ok_hist}/{len(history_sources)}")
         print(f"    {self._t('log_unique_ip')}: {len(self.proxy_protocols)}")
