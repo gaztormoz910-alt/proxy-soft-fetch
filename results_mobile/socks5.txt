@@ -1,0 +1,2 @@
+# Mobile Proxies (SOCKS5): 1
+socks5://67.201.33.10:25283
