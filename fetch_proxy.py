@@ -1406,13 +1406,7 @@ class ProxyHunter:
         self.ip_cache: Dict[str, dict] = {}
         self.asn_cache: Dict[str, str] = {}  # ASN → type (isp/hosting/business) from ipinfo.io
         self.db_reader = None
-        try:
-            import maxminddb
-            import os
-            if os.path.exists('GeoLite2-Country.mmdb'):
-                self.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
-        except Exception:
-            pass
+        self.open_geoip()
         self.total_collected = 0
         
         # Создаётся заново на каждый event loop — см. _reset_speed_semaphore().
@@ -1510,6 +1504,34 @@ class ProxyHunter:
         while self._pause_event.is_set() and not self._cancel_event.is_set():
             time.sleep(0.5)
         return self._cancel_event.is_set()
+    GEOIP_DB_PATH = 'GeoLite2-Country.mmdb'
+
+    def close_geoip(self):
+        """Закрывает открытую базу GeoIP, если она есть."""
+        reader, self.db_reader = getattr(self, 'db_reader', None), None
+        if reader is not None:
+            try:
+                reader.close()
+            except Exception:
+                pass
+
+    def open_geoip(self) -> bool:
+        """Открывает базу GeoIP, предварительно закрыв предыдущую.
+
+        REL-01: раньше база открывалась в __init__, а потом ещё раз в run() и в
+        чекере GUI — старый объект просто перезаписывался. Каждый такой вызов
+        оставлял открытый mmap на 8.4 МБ и файловый дескриптор; на Windows
+        незакрытый хэндл вдобавок мешает os.replace() обновить сам файл базы.
+        """
+        self.close_geoip()
+        try:
+            import maxminddb
+            if os.path.exists(self.GEOIP_DB_PATH):
+                self.db_reader = maxminddb.open_database(self.GEOIP_DB_PATH)
+        except Exception:
+            self.db_reader = None
+        return self.db_reader is not None
+
     def _get_country(self, ip: str) -> str:
         if hasattr(self, 'db_reader') and self.db_reader:
             try:
@@ -2562,17 +2584,18 @@ class ProxyHunter:
             shutil.rmtree(folder_path, ignore_errors=True)
             
         for attempt in range(2):
+            # Файл базы нужно закрыть до скачивания: на Windows открытый mmap
+            # не даёт os.replace() подменить его новой версией.
+            self.close_geoip()
             self._download_mmdb_if_needed()
             try:
-                if os.path.exists('GeoLite2-Country.mmdb'):
-                    import maxminddb as _mmdb
-                    self.db_reader = _mmdb.open_database('GeoLite2-Country.mmdb')
-                    break # Успешно открыли, выходим из цикла
+                if self.open_geoip():
+                    break  # Успешно открыли, выходим из цикла
             except Exception as e:
-                print(self._t("db_load_err").format(attempt+1, e))
-                self.db_reader = None
+                print(self._t("db_load_err").format(attempt + 1, e))
+                self.close_geoip()
                 try:
-                    os.remove('GeoLite2-Country.mmdb')
+                    os.remove(self.GEOIP_DB_PATH)
                     print(self._t("db_corrupted"))
                 except Exception:  # BUG-10 FIX: bare except
                     pass
@@ -2616,12 +2639,7 @@ class ProxyHunter:
         if self._cancel_event.is_set():
             print("❌ " + self._t("user_abort"))
         # C-02 FIX: Закрываем db_reader чтобы не было утечки файловых дескрипторов
-        if hasattr(self, 'db_reader') and self.db_reader:
-            try:
-                self.db_reader.close()
-            except Exception:
-                pass
-            self.db_reader = None
+        self.close_geoip()
 import datetime
 
 # --- Start User's New Sources ---
