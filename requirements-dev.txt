@@ -1,0 +1,8 @@
+# Зависимости только для разработки и тестов.
+# Установка: pip install -r requirements.txt -r requirements-dev.txt
+-r requirements.txt
+
+pytest>=8.0
+pytest-asyncio>=0.24     # тесты асинхронных путей validate()/advanced_filter()
+responses>=0.25          # мок HTTP для requests — тесты сети без сети
+flake8>=7.0
