@@ -86,3 +86,50 @@ def test_collect_without_cancel_still_processes_everything(monkeypatch):
 
     assert set(hunter.proxy_protocols) == {"8.8.8.8:8080", "1.1.1.1:3128"}
     assert hunter.candidate_total == 2
+
+
+# ------------------------ один URL — одно скачивание, даже под двумя протоколами
+
+def test_url_listed_under_two_protocols_is_fetched_once(monkeypatch):
+    """32 URL перечислены в SOURCES дважды с разными протоколами.
+
+    Скачивать один и тот же файл дважды бессмысленно: содержимое одинаковое,
+    отличается только метка протокола.
+    """
+    monkeypatch.setattr(fetch_proxy, "SOURCES", [
+        ("https://both.test/list.txt", "http"),
+        ("https://both.test/list.txt", "socks5"),
+    ])
+    fetched = []
+    monkeypatch.setattr(ProxyUtils, "fetch_url",
+                        staticmethod(lambda url, timeout=10: fetched.append(url) or "8.8.8.8:8080"))
+
+    hunter = ProxyHunter(threads=1)
+    hunter.collect()
+
+    assert fetched == ["https://both.test/list.txt"], "источник скачан больше одного раза"
+    assert hunter.proxy_protocols["8.8.8.8:8080"] == {"http", "socks5"}, (
+        "оба протокола обязаны сохраниться")
+
+
+def test_protocol_all_still_expands_to_three(monkeypatch):
+    monkeypatch.setattr(fetch_proxy, "SOURCES", [("https://a.test/list.txt", "all")])
+    monkeypatch.setattr(ProxyUtils, "fetch_url",
+                        staticmethod(lambda url, timeout=10: "8.8.8.8:8080"))
+
+    hunter = ProxyHunter(threads=1)
+    hunter.collect()
+    assert hunter.proxy_protocols["8.8.8.8:8080"] == {"http", "socks4", "socks5"}
+
+
+def test_all_combines_with_an_explicit_protocol_from_the_same_url(monkeypatch):
+    monkeypatch.setattr(fetch_proxy, "SOURCES", [
+        ("https://a.test/list.txt", "all"),
+        ("https://a.test/list.txt", "vless"),
+    ])
+    monkeypatch.setattr(ProxyUtils, "fetch_url",
+                        staticmethod(lambda url, timeout=10: "8.8.8.8:8080"))
+
+    hunter = ProxyHunter(threads=1)
+    hunter.collect()
+    assert hunter.proxy_protocols["8.8.8.8:8080"] == {"http", "socks4", "socks5", "vless"}
