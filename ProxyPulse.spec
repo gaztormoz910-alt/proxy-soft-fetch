@@ -8,7 +8,7 @@
 
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('assets', 'assets')]
+datas = [('assets', 'assets'), ('VERSION', '.')]
 binaries = []
 hiddenimports = [
     'aiohttp_socks', 'python_socks', 'python_socks.async_', 'socks',

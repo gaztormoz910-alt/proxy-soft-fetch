@@ -7,15 +7,16 @@
 # То же самое, но на серверах GitHub, делает .github/workflows/release.yml —
 # он запускается по тегу и сам публикует релиз.
 
-param([string]$Version = "4.0")
+param([string]$Version = "")
 
 $ErrorActionPreference = "Stop"
 $out  = "C:\Users\Bog_1\ProxyPulse-build"
 $iscc = "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
 
-Write-Host "[1/3] version_info.txt ($Version)..." -ForegroundColor Cyan
-python tools/make_version_info.py $Version
-if ($LASTEXITCODE -ne 0) { throw "make_version_info failed" }
+if (-not $Version) { $Version = (Get-Content VERSION -Raw).Trim() }
+Write-Host "[1/3] version $Version..." -ForegroundColor Cyan
+python tools/set_version.py $Version
+if ($LASTEXITCODE -ne 0) { throw "set_version failed" }
 
 Write-Host "[2/3] PyInstaller..." -ForegroundColor Cyan
 python -m PyInstaller --noconfirm --clean --log-level WARN `

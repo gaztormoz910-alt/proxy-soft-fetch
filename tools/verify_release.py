@@ -66,6 +66,36 @@ def _icon_side(handle):
     return bm.bmWidth
 
 
+ENUMPROC = ctypes.WINFUNCTYPE(wt.BOOL, ctypes.c_void_p, ctypes.c_void_p)
+u.EnumWindows.argtypes = [ENUMPROC, ctypes.c_void_p]
+
+
+def _find_window(pid, timeout=30.0):
+    """Первое видимое окно процесса и его заголовок."""
+    found = []
+
+    @ENUMPROC
+    def collect(hwnd, _):
+        owner = wt.DWORD()
+        u.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+        if owner.value == pid and u.IsWindowVisible(hwnd):
+            n = u.GetWindowTextLengthW(hwnd)
+            if n:
+                b = ctypes.create_unicode_buffer(n + 1)
+                u.GetWindowTextW(hwnd, b, n + 1)
+                found.append((hwnd, b.value))
+        return True
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        del found[:]
+        u.EnumWindows(collect, None)
+        if found:
+            return ctypes.c_void_p(found[0][0]), found[0][1]
+        time.sleep(0.5)
+    return None, ''
+
+
 def _sha256(path):
     h = hashlib.sha256()
     with open(path, 'rb') as fh:
@@ -94,20 +124,22 @@ def main():
     print('sha256 иконки: в сборке %s / в репозитории %s' % (a[:16], b[:16]))
     assert a == b, 'иконка в релизе не совпадает с иконкой в репозитории'
 
+    want_version = io.open('VERSION', encoding='utf-8').read().strip()
+    shipped_ver = io.open(os.path.join(INSTALL_DIR, '_internal', 'VERSION'),
+                          encoding='utf-8').read().strip()
+    print('версия: в релизе %s, в репозитории %s' % (shipped_ver, want_version))
+    assert shipped_ver == want_version,         'релиз собран из версии %s, а в репозитории %s' % (shipped_ver, want_version)
+
     proc = subprocess.Popen([exe])
     try:
-        hwnd = None
-        for _ in range(60):
-            time.sleep(0.5)
-            for title in ('ProxyPulse v4.0', 'Unhandled exception in script'):
-                h = u.FindWindowW(None, title)
-                if h:
-                    hwnd, found = ctypes.c_void_p(h), title
-                    break
-            if hwnd:
-                break
+        # Окно ищем по идентификатору процесса, а не по ожидаемому заголовку:
+        # заголовок здесь и проверяется, а искать окно по нему значило бы
+        # заранее исключить как раз тот случай, который ловим — окно
+        # PyInstaller с текстом "Unhandled exception in script".
+        hwnd, found = _find_window(proc.pid)
         assert hwnd, 'окно не появилось за 30 секунд'
-        assert found.startswith(TITLE_PREFIX), 'окно с заголовком %r' % found
+        print('заголовок окна: %r' % found)
+        assert found == 'ProxyPulse v%s' % want_version,             'окно показывает %r, ожидалось ProxyPulse v%s' % (found, want_version)
         time.sleep(2)
         small = _icon_side(u.SendMessageW(hwnd, WM_GETICON, 0, 0))
         big = _icon_side(u.SendMessageW(hwnd, WM_GETICON, 1, 0))

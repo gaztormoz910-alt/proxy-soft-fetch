@@ -13,7 +13,10 @@
 ; Так собирает CI (версия берётся из тега) и локальный build.ps1 (папка вне
 ; OneDrive). Без переопределения работают значения по умолчанию.
 #ifndef AppVersion
-  #define AppVersion "4.0"
+  ; Единственный источник номера — файл VERSION в корне репозитория.
+  ; CI всё равно передаёт версию из тега через /DAppVersion, но локальная
+  ; сборка и ручной запуск ISCC не должны знать номер наизусть.
+  #define AppVersion Trim(FileRead(FileOpen("VERSION")))
 #endif
 #ifndef SrcDir
   #define SrcDir "dist\ProxyPulse"

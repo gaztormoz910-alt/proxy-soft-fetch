@@ -1063,6 +1063,22 @@ def resource_path(rel):
     return os.path.join(base, rel)
 
 
+def app_version():
+    """Номер версии из файла VERSION — единственного места, где он живёт.
+
+    Раньше версия была вписана руками в заголовок окна, в version_info.txt и в
+    ProxyPulse.iss, и после релиза 4.0.3 окно продолжало показывать 4.0.
+    Теперь VERSION пишет сборка (tools/set_version.py) из номера тега, а
+    заголовок, свойства .exe и установщик читают одно и то же значение.
+    """
+    try:
+        with open(resource_path('VERSION'), encoding='utf-8') as f:
+            v = f.read().strip()
+        return v or '0.0'
+    except Exception:
+        return '0.0'
+
+
 def load_icon(name):
     try:
         light = Image.open(resource_path(f"assets/icons/{name}_dark.png"))
@@ -1099,7 +1115,7 @@ class ProxyHunterApp(ctk.CTk):
             "download": load_icon("download")
         }
 
-        self.title("ProxyPulse v4.0")
+        self.title("ProxyPulse v%s" % app_version())
         try:
             _ico = resource_path("assets/ProxyPulse.ico")
             # default=: иконка ставится классу окна, поэтому её наследуют и
@@ -5768,7 +5784,89 @@ class ProxyHunterApp(ctk.CTk):
         self._update_checker_metrics()
 
 
+def run_selftest(log_path):
+    """Настоящий, но укороченный прогон конвейера внутри собранной программы.
+
+    Проверить сборку запуском окна недостаточно: библиотеки сети, asyncio,
+    сертификаты и запись результатов подключаются только во время охоты, и
+    их отсутствие вылезло бы уже у пользователя посреди прогона. Здесь идёт
+    тот же путь, что и у кнопки СТАРТ — скачивание базы GeoIP, сбор с
+    источников, проверка, фильтрация, сохранение, — но по короткому списку
+    источников и с усечением кандидатов, чтобы уложиться в минуты.
+
+    Вывод перенаправляется в файл: у собранной с console=False программы
+    sys.stdout и sys.stderr равны None, и tqdm внутри охоты упал бы на записи
+    в None.
+    """
+    import traceback
+    from collections import defaultdict
+
+    with open(log_path, 'w', encoding='utf-8') as log:
+        old_out, old_err = sys.stdout, sys.stderr
+        sys.stdout = sys.stderr = log
+        try:
+            import fetch_proxy as fp
+
+            # Короткий список: проверяем работоспособность конвейера, а не
+            # полноту охвата источников.
+            fp.SOURCES = [
+                ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt', 'http'),
+                ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt', 'socks4'),
+                ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt', 'socks5'),
+                ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt', 'http'),
+            ]
+
+            out_dir = os.path.dirname(os.path.abspath(log_path))
+            hunter = fp.ProxyHunter(threads=200, timeout=5, github_tm_enabled=False,
+                                    output_dir=out_dir, lang='RU')
+            hunter.close_geoip()
+            hunter._download_mmdb_if_needed()
+            hunter.open_geoip()
+            if hunter.db_reader is None:
+                print('SELFTEST FAIL: база GeoIP не открылась')
+                return 2
+
+            hunter.collect()
+            collected = len(hunter.proxy_protocols)
+            print('SELFTEST: собрано кандидатов %d' % collected)
+            if collected == 0:
+                print('SELFTEST FAIL: сбор не дал ни одного кандидата')
+                return 3
+
+            # Усечение до вменяемого объёма: проверять десятки тысяч адресов
+            # ради доказательства работоспособности незачем.
+            limit = 400
+            items = list(hunter.proxy_protocols.items())[:limit]
+            hunter.proxy_protocols = defaultdict(set, dict(items))
+            hunter.candidate_total = len(items)
+            print('SELFTEST: к проверке %d' % hunter.candidate_total)
+
+            hunter.validate()
+            print('SELFTEST: живых %d' % len(hunter.live_results))
+            hunter.advanced_filter()
+            hunter.save()
+            print('SELFTEST: сохранено в %s' % out_dir)
+            print('SELFTEST DONE collected=%d checked=%d live=%d'
+                  % (collected, len(items), len(hunter.live_results)))
+            return 0
+        except Exception:
+            traceback.print_exc()
+            print('SELFTEST FAIL: исключение выше')
+            return 1
+        finally:
+            try:
+                log.flush()
+            except Exception:
+                pass
+            sys.stdout, sys.stderr = old_out, old_err
+
+
 if __name__ == "__main__":
+    if '--selftest' in sys.argv:
+        i = sys.argv.index('--selftest')
+        path = sys.argv[i + 1] if len(sys.argv) > i + 1 else 'selftest.log'
+        sys.exit(run_selftest(path))
+
     # Без собственного AppUserModelID Windows считает окно частью python.exe
     # и рисует на панели задач иконку Python вместо нашей.
     try:
