@@ -920,7 +920,16 @@ class ProxyUtils:
             
         if not owner or not repo or not path:
             return [], {}
-            
+
+        # SEC-05: owner/repo/path приходят из строки в SOURCES, которая правится
+        # руками девятью «волнами». Раньше path подставлялся в URL как есть, и
+        # '?' или '&' в нём превратились бы в лишние параметры запроса к GitHub
+        # API — с нашим токеном в заголовке. Экранируем и валидируем.
+        if not re.fullmatch(r'[A-Za-z0-9._-]+', owner) or not re.fullmatch(r'[A-Za-z0-9._-]+', repo):
+            return [], {}
+        import urllib.parse
+        path = urllib.parse.quote(path, safe='/')
+
         import datetime
         since_date = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=hours_back)).strftime('%Y-%m-%dT%H:%M:%SZ')
         
