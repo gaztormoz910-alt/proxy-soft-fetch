@@ -4834,7 +4834,17 @@ class ProxyHunterApp(ctk.CTk):
         
         self.checker_progress.set(0)
         self.checker_lbl_prog.configure(text="0%")
-        self._checker_total = len(proxies_list) * 5
+        # COR-15: раньше здесь было len(proxies) * 5 — все пять шагов независимо
+        # от того, какие проверки включены. Отключённые колонки заполняются
+        # мгновенно строкой «Пропуск», поэтому при одной включённой проверке
+        # полоса прыгала до ~80% и дальше еле ползла. Считаем только те шаги,
+        # которые реально выполняются.
+        self._checker_progress_columns = {"ping"}   # пинг делается всегда
+        for col, var in (("anon", self.do_check_anon), ("bl", self.do_check_bl),
+                         ("speed", self.do_check_speed), ("smtp", self.do_check_smtp)):
+            if var.get():
+                self._checker_progress_columns.add(col)
+        self._checker_total = len(proxies_list) * len(self._checker_progress_columns)
         self._checker_done = 0
         
         self.btn_check_start.configure(text=self._t("cancel"), image=self.icons["cancel"], fg_color=RED, hover_color="#991B1B")
@@ -5253,10 +5263,6 @@ class ProxyHunterApp(ctk.CTk):
             except Exception:
                 pass
         
-        # M-05 FIX: Lock for thread-safe counter increment
-        import threading as _thr
-        _checker_lock = _thr.Lock()
-        
         # BUG-21: Parallel execution with ThreadPoolExecutor
         pool = ThreadPoolExecutor(max_workers=max_workers)
         try:
@@ -5310,18 +5316,47 @@ class ProxyHunterApp(ctk.CTk):
             self._update_checker_metrics()
         self.after(0, _reset_ui)
 
+    # Колонки, каждая из которых означает один завершённый шаг проверки прокси.
+    PROGRESS_COLUMNS = ("ping", "anon", "speed", "smtp", "bl")
+
+    # Маркеры «не живой» в колонке пинга: ожидание проверки, таймаут, ошибка,
+    # пропуск. Общий признак для всех языков — сам символ, а не текст.
+    NOT_ALIVE_MARKERS = ("⏳", "❌", "—")
+
+    @classmethod
+    def _is_alive_cell(cls, ping_value) -> bool:
+        """Живой ли прокси по содержимому колонки «Пинг».
+
+        COR-12: раньше счётчик «Только живые» сравнивал значение с переводами
+        chk_timeout / chk_skip / chk_error и ничего не знал про начальный
+        плейсхолдер «⏳». В результате все ещё не проверенные строки считались
+        живыми: сразу после запуска чекер показывал «Только живые (N)» на весь
+        список, и число потом убывало.
+
+        Тот же предикат использует _apply_checker_filter — раньше эти два места
+        решали одно и то же по-разному.
+        """
+        text = str(ping_value)
+        return bool(text) and not any(m in text for m in cls.NOT_ALIVE_MARKERS)
+
     def _update_check_row(self, proxy_str, col_name, value):
         if not hasattr(self, '_checker_pending_updates'): return
-        
+
         with self._log_lock:
             if proxy_str not in self._checker_pending_updates:
                 self._checker_pending_updates[proxy_str] = {}
             self._checker_pending_updates[proxy_str][col_name] = value
-        
-        # Increment step counter OUTSIDE lock (int increment is atomic in CPython)
-        if col_name in ("ping", "anon", "speed", "smtp", "bl") and hasattr(self, '_checker_total'):
-            self._checker_done += 1
-        
+
+            # REL-07: инкремент внутри того же лока. Прежний комментарий уверял,
+            # что «int increment is atomic in CPython» — это не так: `x += 1` на
+            # атрибуте компилируется в LOAD_ATTR / ADD / STORE_ATTR, и GIL может
+            # смениться между ними. Из тысячи потоков чекера часть инкрементов
+            # терялась, и прогресс-бар недосчитывал. Лок здесь уже захвачен,
+            # так что это бесплатно.
+            counted = getattr(self, '_checker_progress_columns', self.PROGRESS_COLUMNS)
+            if col_name in counted and hasattr(self, '_checker_total'):
+                self._checker_done += 1
+
         # Progress bar is updated by _periodic_flush every 500ms on the main thread
 
     def _flush_checker_updates(self):
@@ -5388,8 +5423,7 @@ class ProxyHunterApp(ctk.CTk):
                 unique_protos.add(proto)
                 self.checker_proto_counts[proto] = self.checker_proto_counts.get(proto, 0) + 1
                 # M-02 FIX: Locale-independent status checking
-                ping_str = str(ping)
-                if ping_str and ping_str != self._t("chk_timeout") and ping_str != self._t("chk_skip") and ping_str != self._t("chk_error"):
+                if self._is_alive_cell(ping):
                     alive_count += 1
                 if str(anon) == self._t("chk_elite"):
                     elite_count += 1
@@ -5494,7 +5528,9 @@ class ProxyHunterApp(ctk.CTk):
                 _, proxy, country, category, ping, anon, bl, speed, smtp = vals
                 
                 hide = False
-                if self.save_req_alive.get() and ("❌" in str(ping) or "⏳" in str(ping) or "—" in str(ping)):
+                # COR-12: тот же предикат, что и в _update_checker_metrics —
+                # раньше фильтр и счётчик решали это по-разному.
+                if self.save_req_alive.get() and not self._is_alive_cell(ping):
                     hide = True
                 if self.save_req_elite.get() and "💎" not in str(anon):
                     hide = True
