@@ -16,6 +16,15 @@ from PIL import Image
 sys.path.insert(0, 'tools')
 from make_icon import SIZES, resize_linear   # noqa: E402
 
+# Скрипт запускают из разных оболочек, в том числе из cmd.exe с кодировкой
+# cp1252, где обычный print с кириллицей падает на UnicodeEncodeError. Проверка,
+# которая зависит от кодировки конкретной консоли, ничего не проверяет.
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+
 MASTER = 'assets/ProxyPulse.png'
 ICO    = 'assets/ProxyPulse.ico'
 
