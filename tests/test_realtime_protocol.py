@@ -185,3 +185,68 @@ def test_no_translation_leaks_its_own_key_as_the_value():
 def test_filter_button_labels_exist_in_both_languages(key):
     for lang in ("RU", "EN"):
         assert key in gui.LANG[lang], f"{key} отсутствует в LANG['{lang}']"
+
+
+# ------------------- _parse_stats не имеет права трогать Tk (заморозка UI)
+
+class TripwireWidget:
+    """Виджет, который падает при любой попытке его тронуть."""
+
+    def __init__(self, name):
+        self.name = name
+
+    def configure(self, **kw):
+        raise AssertionError(
+            f"{self.name}.configure() вызван из _parse_stats — этот метод "
+            f"выполняется на КАЖДОЕ сообщение очереди, до 5000 за тик в 100 мс. "
+            f"Замер: 5000 вызовов .configure() занимают 185 мс, то есть 185% "
+            f"бюджета тика. Главный поток не догоняет очередь, и Windows метит "
+            f"окно «Не отвечает». Складывайте значение в _stat_updates — оно "
+            f"применяется один раз за тик в _flush_log."
+        )
+
+    def set(self, *a, **kw):
+        self.configure()
+
+    def insert(self, *a, **kw):
+        self.configure()
+
+
+@pytest.fixture
+def tripwired():
+    app = FakeApp()
+    for attr in ("lbl_results_count", "stat_total", "stat_live", "stat_elite",
+                 "progress_bar", "progress_pct", "progress_lbl"):
+        setattr(app, attr, TripwireWidget(attr))
+    return app
+
+
+@pytest.mark.parametrize("line", [
+    "[REALTIME_TOTAL] 1094647",
+    "    Уникальных IP:PORT: 500000",
+    "    Сгенерировано рандомных: 100",
+    LIVE_LINE,
+    ELITE_LINE,
+    CATEGORY_LINE,
+    REMOVE_LINE,
+])
+def test_parse_stats_touches_no_widget(tripwired, line):
+    ProxyHunterApp._parse_stats(tripwired, line)
+
+
+def test_total_is_batched_into_stat_updates_not_applied_directly(tripwired):
+    """Значение обязано осесть в _stat_updates, а не уйти в виджет сразу."""
+    ProxyHunterApp._parse_stats(tripwired, "[REALTIME_TOTAL] 1094647")
+    assert tripwired._stat_updates["total"] == "1094647"
+
+
+def test_many_messages_stay_cheap(tripwired):
+    """Пять тысяч сообщений — столько _flush_log обрабатывает за один тик."""
+    import time
+    start = time.perf_counter()
+    for i in range(5000):
+        ProxyHunterApp._parse_stats(tripwired, f"[REALTIME_TOTAL] {i}")
+    elapsed = time.perf_counter() - start
+    assert elapsed < 0.05, (
+        f"разбор 5000 сообщений занял {elapsed*1000:.0f} мс при бюджете тика 100 мс")
+    assert tripwired._stat_updates["total"] == "4999", "должно остаться последнее значение"
