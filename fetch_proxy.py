@@ -72,6 +72,48 @@ SOURCES = [
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt', 'socks5'),
     ('https://proxyroller.com/api/proxies?protocol=http&anonymity=elite&limit=100', 'http'),
+    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.json', 'socks4'),
+    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/proxy.txt', 'http'),
+    ('https://raw.githubusercontent.com/26info/vless-proxy-list/main/working-proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/https.txt', 'http'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolonly&format=text&timeout=20000', 'socks5'),
+    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/http.txt', 'http'),
+    ('https://codeberg.org/dbarker/public-proxy-list/raw/branch/main/proxies.txt', 'http'),
+    ('https://docs.google.com/spreadsheets/d/1guW73RgKLUcLUFGx9QRtqtAmbqMJG7aXKJGlT_XU2t4/export?format=csv', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/duckray-client/free-vless-keys/main/keys.txt', 'http'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/master/HTTPS.txt', 'http'),
+    ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/socks5.txt', 'socks5'),
+    ('https://proxylist.to/proxy-list.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.json', 'socks5'),
+    ('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list.txt', 'http'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies.txt', 'http'),
+    ('https://spys.me/proxy.txt', 'http'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.json', 'http'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/vAHiD55555/ProxyScraper/main/proxies.txt', 'http'),
+    ('https://pastebin.com/raw/XJsxHu4D', 'http'),
+    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_eu.txt', 'http'),
+    ('https://bitbucket.org/vanholt-proxies/public-http-proxies/raw/main/README.md', 'http'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks4&proxy_format=protocolonly&format=text&timeout=20000', 'socks4'),
+    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/json/proxies.json', 'http'),
+    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_all.txt', 'http'),
+    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_ru.txt', 'http'),
+    ('https://telegra.ph/Free-Proxy-List-for-Scraping-and-SEO-Updated-Daily-04-07', 'http'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-http.txt', 'http'),
+    ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.json', 'http'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=protocolonly&format=text&timeout=20000', 'http'),
+    ('https://raw.githubusercontent.com/hookzof/socks5_list/master/tg/mtproto.json', 'socks5')
 ]
 
 class ProxyUtils:
@@ -139,7 +181,7 @@ class ProxyUtils:
 
     @classmethod
     def check_proxy(cls, ip: str, port: int, protos: Set[str], timeout: int) -> Set[str]:
-        if not cls.tcp_ping(ip, port, timeout // 2 or 1): return set()
+        if not cls.tcp_ping(ip, port, timeout): return set()
         working_protos = set()
         for proto in sorted(protos):
             if cls.http_check(ip, port, proto, timeout):
@@ -231,6 +273,11 @@ class ProxyHunter:
                     with self._lock:
                         for p in sorted(working_protos): 
                             self.live_results.append(f"{p}://{ip_port}")
+                            ip, port = ip_port.split(':')
+                            import json
+                            print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ip, 'port': port, 'protocol': p, 'country': 'Unknown'})}")
+                        if len(self.live_results) % 5 == 0 or len(self.live_results) < 10:
+                            print(f"    [REALTIME_LIVE] {len(self.live_results)}")
                 if pbar: pbar.update(1)
 
         if pbar: pbar.close()
@@ -397,6 +444,7 @@ class ProxyHunter:
 
         self.live_results = filtered_by_geo
         print(f"    После проверки ГЕО (локально за микросекунды) осталось: {len(filtered_by_geo)}")
+        print(f"    [REALTIME_LIVE] {len(filtered_by_geo)}")
         
         if self.residential_only and filtered_by_geo:
             residential_ips = set([r.split('://')[1].split(':')[0] for r in filtered_by_geo])
@@ -411,12 +459,20 @@ class ProxyHunter:
         except ImportError: 
             pbar = None
 
-        with ThreadPoolExecutor(max_workers=min(self.threads, 100)) as ex:
+        with ThreadPoolExecutor(max_workers=self.threads) as ex:
             futs = [ex.submit(self._run_single_filter, item) for item in self.live_results]
             for fut in as_completed(futs):
                 res = fut.result()
                 if res:
-                    with self._lock: self.good_results.append(res)
+                    with self._lock: 
+                        self.good_results.append(res)
+                        proto, ipp = res.split('://')
+                        ip, port = ipp.split(':')
+                        country = self.ip_cache.get(ip, {}).get('country', 'Unknown')
+                        import json
+                        print(f"    [REALTIME_NEW_ELITE] {json.dumps({'ip': ip, 'port': port, 'protocol': proto, 'country': country})}")
+                        if len(self.good_results) % 2 == 0 or len(self.good_results) < 5:
+                            print(f"    [REALTIME_ELITE] {len(self.good_results)}")
                 if pbar: pbar.update(1)
 
         if pbar: pbar.close()
