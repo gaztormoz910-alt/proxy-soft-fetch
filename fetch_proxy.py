@@ -71,9 +71,6 @@ SOURCES = [
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt', 'http'),
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/noctiro/getproxy/main/file/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/noctiro/getproxy/main/file/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/noctiro/getproxy/main/file/socks5.txt', 'socks5'),
     ('https://proxyroller.com/api/proxies?protocol=http&anonymity=elite&limit=100', 'http'),
 ]
 
