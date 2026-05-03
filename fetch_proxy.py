@@ -430,46 +430,54 @@ class ProxyHunter:
         self.good_results = sorted(set(self.good_results))
         print(f"    Годных, прошедших все фильтры: {len(self.good_results)}")
 
-    def save(self):
-        # 1. Сохраняем просто "живые"
-        if self.live_results:
-            with open(self.output, 'w', encoding='utf-8') as f:
-                f.write(f"# Живых строк: {len(self.live_results)}\n")
-                for p in self.live_results: f.write(p + '\n')
-            print(f"[✓] Базовый список сохранен в {self.output}")
+    def _save_category(self, folder_name, results_list, description):
+        os.makedirs(folder_name, exist_ok=True)
+        
+        # Группируем по протоколам
+        by_proto = defaultdict(list)
+        for p in results_list:
+            proto, ipp = p.split('://')
+            by_proto[proto.lower()].append(p)
             
-            # Сохранение базового списка в CSV
-            csv_output = self.output.replace('.txt', '.csv') if '.txt' in self.output else self.output + '.csv'
-            with open(csv_output, 'w', encoding='utf-8', newline='') as f:
+        # Сохраняем общий файл (txt + csv)
+        with open(os.path.join(folder_name, 'all.txt'), 'w', encoding='utf-8') as f:
+            f.write(f"# {description}: {len(results_list)}\n")
+            for p in results_list: f.write(p + '\n')
+            
+        with open(os.path.join(folder_name, 'all.csv'), 'w', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Протокол', 'IP', 'Port', 'Страна'])
+            for p in results_list:
+                proto, ipp = p.split('://')
+                ip, port = ipp.split(':')
+                country = self.ip_cache.get(ip, {}).get('country', '')
+                if not country: country = 'Unknown'
+                writer.writerow([proto.upper(), ip, port, country])
+                
+        # Сохраняем файлы по отдельным протоколам (txt + csv)
+        for proto, items in by_proto.items():
+            with open(os.path.join(folder_name, f'{proto}.txt'), 'w', encoding='utf-8') as f:
+                f.write(f"# {description} ({proto.upper()}): {len(items)}\n")
+                for p in items: f.write(p + '\n')
+                
+            with open(os.path.join(folder_name, f'{proto}.csv'), 'w', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['Протокол', 'IP', 'Port', 'Страна'])
-                for p in self.live_results:
-                    proto, ipp = p.split('://')
+                for p in items:
+                    _, ipp = p.split('://')
                     ip, port = ipp.split(':')
                     country = self.ip_cache.get(ip, {}).get('country', '')
                     if not country: country = 'Unknown'
                     writer.writerow([proto.upper(), ip, port, country])
-            print(f"[✓] Базовый CSV сохранен в {csv_output}")
 
-        # 2. Сохраняем "расширенно отфильтрованные"
-        if hasattr(self, 'good_results') and self.good_results:
-            with open(self.output_good, 'w', encoding='utf-8') as f:
-                f.write(f"# Годных строк (Elite/NoDNSBL/Residential/Fast): {len(self.good_results)}\n")
-                for p in self.good_results: f.write(p + '\n')
-            print(f"[✓] ЭЛИТНЫЙ список сохранен в {self.output_good}")
+    def save(self):
+        if self.live_results:
+            self._save_category('results_live', self.live_results, 'Живые прокси')
+            print("[✓] Базовые списки по категориям сохранены в папку 'results_live/'")
             
-            # Сохранение элитного списка в CSV
-            csv_good = self.output_good.replace('.txt', '.csv') if '.txt' in self.output_good else self.output_good + '.csv'
-            with open(csv_good, 'w', encoding='utf-8', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['Протокол', 'IP', 'Port', 'Страна'])
-                for p in self.good_results:
-                    proto, ipp = p.split('://')
-                    ip, port = ipp.split(':')
-                    country = self.ip_cache.get(ip, {}).get('country', '')
-                    if not country: country = 'Unknown'
-                    writer.writerow([proto.upper(), ip, port, country])
-            print(f"[✓] ЭЛИТНЫЙ CSV сохранен в {csv_good}")
+        if hasattr(self, 'good_results') and self.good_results:
+            self._save_category('results_elite', self.good_results, 'Элитные прокси (Elite/NoDNSBL/Fast)')
+            print("[✓] Элитные списки по категориям сохранены в папку 'results_elite/'")
 
     def run(self):
         t0 = time.time()
