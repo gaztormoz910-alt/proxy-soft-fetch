@@ -454,7 +454,13 @@ class ProxyHunter:
                 if not country: country = 'Unknown'
                 writer.writerow([proto.upper(), ip, port, country])
                 
-        # Сохраняем файлы по отдельным протоколам (txt + csv)
+        # Сохраняем ТОЛЬКО уникальные IP (общий список)
+        unique_ips = sorted(set(p.split('://')[1].split(':')[0] for p in results_list))
+        with open(os.path.join(folder_name, 'all_ips.txt'), 'w', encoding='utf-8') as f:
+            f.write(f"# {description} (Только уникальные IP): {len(unique_ips)}\n")
+            for ip in unique_ips: f.write(ip + '\n')
+                
+        # Сохраняем файлы по отдельным протоколам (txt + csv + ips)
         for proto, items in by_proto.items():
             with open(os.path.join(folder_name, f'{proto}.txt'), 'w', encoding='utf-8') as f:
                 f.write(f"# {description} ({proto.upper()}): {len(items)}\n")
@@ -469,6 +475,12 @@ class ProxyHunter:
                     country = self.ip_cache.get(ip, {}).get('country', '')
                     if not country: country = 'Unknown'
                     writer.writerow([proto.upper(), ip, port, country])
+                    
+            # Сохраняем ТОЛЬКО уникальные IP для конкретного протокола
+            proto_ips = sorted(set(p.split('://')[1].split(':')[0] for p in items))
+            with open(os.path.join(folder_name, f'{proto}_ips.txt'), 'w', encoding='utf-8') as f:
+                f.write(f"# {description} ({proto.upper()} - Только уникальные IP): {len(proto_ips)}\n")
+                for ip in proto_ips: f.write(ip + '\n')
 
     def save(self):
         if self.live_results:
