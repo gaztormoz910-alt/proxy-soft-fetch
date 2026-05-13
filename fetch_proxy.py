@@ -7,6 +7,7 @@ import argparse
 import sys
 import os
 import csv
+import json
 import dns.resolver
 import dns.reversename
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -171,12 +172,11 @@ class ProxyUtils:
     def http_check(ip: str, port: int, proto: str, timeout: int) -> bool:
         proxy_url = f"{proto}://{ip}:{port}"
         proxies = {'http': proxy_url, 'https': proxy_url}
-        for url in ['http://httpbin.org/ip', 'http://ifconfig.me/ip']:
-            try:
-                resp = requests.get(url, proxies=proxies, timeout=timeout)
-                if resp.status_code == 200: return True
-            except Exception: 
-                continue
+        try:
+            resp = requests.get("http://gstatic.com/generate_204", proxies=proxies, timeout=timeout)
+            if resp.status_code == 204: return True
+        except Exception: 
+            pass
         return False
 
     @classmethod
@@ -195,10 +195,9 @@ class ProxyHunter:
     
     def __init__(self, threads: int = 300, timeout: int = 3, countries: Optional[List[str]] = None, 
                  max_ping: float = 700.0, min_speed: float = 1.0,
-                 check_smtp: bool = True, residential_only: bool = False,
-                 pause_event: threading.Event = None, cancel_event: threading.Event = None):
+                 check_smtp: bool = True, residential_only: bool = False):
         
-        self.threads = min(threads, 500)
+        self.threads = min(threads, 5000)
         self.timeout = timeout
         
         default_countries = ['US','CA','GB','AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE',
@@ -216,21 +215,36 @@ class ProxyHunter:
         self._lock = threading.Lock()
         
         self.ip_cache: Dict[str, dict] = {}
+        self.db_reader = None
+        
+        self._pause_event = threading.Event()
+        self._cancel_event = threading.Event()
 
-        # Управление паузой и отменой
-        self._pause_event = pause_event    # threading.Event — set = пауза
-        self._cancel_event = cancel_event  # threading.Event — set = отмена
+    def pause(self):
+        self._pause_event.set()
 
-    def _check_pause_cancel(self) -> bool:
-        """Проверяет состояние паузы/отмены. Возвращает True если отменено."""
-        if self._cancel_event and self._cancel_event.is_set():
-            return True
-        if self._pause_event and self._pause_event.is_set():
-            while self._pause_event.is_set():
-                if self._cancel_event and self._cancel_event.is_set():
-                    return True
-                time.sleep(0.2)
-        return False
+    def resume(self):
+        self._pause_event.clear()
+
+    def cancel(self):
+        self._cancel_event.set()
+        self.resume()  # Unblock paused threads
+
+    def _wait_if_paused(self) -> bool:
+        """Returns True if cancelled, False if ready to continue"""
+        while self._pause_event.is_set() and not self._cancel_event.is_set():
+            time.sleep(0.5)
+        return self._cancel_event.is_set()
+
+    def _get_country(self, ip: str) -> str:
+        if hasattr(self, 'db_reader') and self.db_reader:
+            try:
+                geo_info = self.db_reader.get(ip)
+                if geo_info and 'country' in geo_info:
+                    return geo_info['country']['iso_code']
+            except Exception:
+                pass
+        return 'Unknown'
 
     def collect(self):
         print(f"\n[+] ШАГ 1: Сбор из {len(SOURCES)} источников...")
@@ -244,6 +258,8 @@ class ProxyHunter:
         with ThreadPoolExecutor(max_workers=min(len(SOURCES), 30)) as ex:
             fmap = {ex.submit(ProxyUtils.fetch_url, url, 12): (url, proto) for url, proto in SOURCES}
             for fut in as_completed(fmap):
+                if self._wait_if_paused(): break
+                if self._cancel_event.is_set(): break
                 url, proto = fmap[fut]
                 content = fut.result()
                 if content:
@@ -263,18 +279,29 @@ class ProxyHunter:
         if not self.proxy_protocols: return
         candidates = list(self.proxy_protocols.items())
         total = len(candidates)
-        stop = threading.Event()
         print(f"\n[+] ШАГ 2: Базовая проверка {total} прокси на живость...")
 
         def worker(item: Tuple[str, Set[str]]) -> Optional[Tuple[str, Set[str]]]:
-            if stop.is_set(): return None
-            if self._check_pause_cancel():
-                stop.set()
-                return None
+            if self._wait_if_paused(): return None
+            if self._cancel_event.is_set(): return None
             ip_port, protos = item
             ip, port_s = ip_port.split(':')
             working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout)
-            if working: return (ip_port, working)
+            if working: 
+                if self._cancel_event.is_set(): return None
+                
+                # Фильтр по странам — сразу отсеиваем невыбранные страны
+                country = self._get_country(ip)
+                if self.countries and country.upper() not in self.countries:
+                    return None
+                
+                if self._wait_if_paused(): return None
+                
+                # Перенесенные из расширенной фильтрации проверки (DNSBL и Ботнет-порты)
+                net_info = self._check_rdns_and_bl(ip)
+                if net_info.get('dnsbl') or net_info.get('bad_ports'):
+                    return None
+                return (ip_port, working)
             return None
 
         try:
@@ -286,6 +313,8 @@ class ProxyHunter:
         with ThreadPoolExecutor(max_workers=self.threads) as ex:
             futs = [ex.submit(worker, item) for item in candidates]
             for fut in as_completed(futs):
+                if self._wait_if_paused(): break
+                if self._cancel_event.is_set(): break
                 res = fut.result()
                 if res:
                     ip_port, working_protos = res
@@ -293,8 +322,10 @@ class ProxyHunter:
                         for p in sorted(working_protos): 
                             self.live_results.append(f"{p}://{ip_port}")
                             ip, port = ip_port.split(':')
-                            import json
-                            print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ip, 'port': port, 'protocol': p, 'country': 'Unknown'})}")
+                            country = self.ip_cache.get(ip, {}).get('country', '') or self._get_country(ip)
+                            if ip not in self.ip_cache: self.ip_cache[ip] = {}
+                            self.ip_cache[ip]['country'] = country
+                            print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ip, 'port': port, 'protocol': p, 'country': country})}")
                         if len(self.live_results) % 5 == 0 or len(self.live_results) < 10:
                             print(f"    [REALTIME_LIVE] {len(self.live_results)}")
                 if pbar: pbar.update(1)
@@ -322,6 +353,8 @@ class ProxyHunter:
         """Пакетный запрос в ip-api.com для кэширования гео/ISP"""
         chunks = [list(ips)[i:i+100] for i in range(0, len(ips), 100)]
         for chunk in chunks:
+            if self._wait_if_paused(): break
+            if self._cancel_event.is_set(): break
             try:
                 resp = requests.post("http://ip-api.com/batch?fields=query,isp,org,hosting,mobile,countryCode", json=chunk, timeout=10)
                 if resp.status_code == 200:
@@ -354,13 +387,27 @@ class ProxyHunter:
         dirty_rdns = any(x in rdns for x in ['amazonaws', 'googleusercontent', 'digitalocean', 'hetzner', 'ovh', 'linode'])
 
         rev_ip = '.'.join(reversed(ip.split('.')))
-        bls = ['zen.spamhaus.org', 'b.barracudacentral.org', 'bl.spamcop.net', 'dnsbl.sorbs.net']
+        bls = [
+            'zen.spamhaus.org', 
+            'b.barracudacentral.org', 
+            'bl.spamcop.net', 
+            'cbl.abuseat.org',
+            'psbl.surriel.com',
+            'dnsbl.sorbs.net'
+        ]
         is_bl = False
         for bl in bls:
+            if self._cancel_event.is_set(): break
             try:
-                fast_resolver.resolve(f'{rev_ip}.{bl}', 'A')
-                is_bl = True
-                break
+                answers = fast_resolver.resolve(f'{rev_ip}.{bl}', 'A')
+                for rdata in answers:
+                    ip_str = rdata.to_text()
+                    # Игнорируем ответы вида 127.255.255.X (ошибка Spamhaus: "Public DNS blocked")
+                    # Настоящие попадания в блеклист всегда в диапазоне 127.0.0.X или 127.0.1.X
+                    if ip_str.startswith('127.0.0.') or ip_str.startswith('127.0.1.'):
+                        is_bl = True
+                        break
+                if is_bl: break
             except Exception: 
                 pass
 
@@ -377,9 +424,8 @@ class ProxyHunter:
 
     def _run_single_filter(self, item: str) -> Optional[str]:
         """Логика расширенной проверки одного прокси"""
-        if self._check_pause_cancel():
-            return None
-
+        if self._wait_if_paused(): return None
+        if self._cancel_event.is_set(): return None
         proto, ipp = item.split('://')
         ip, port_s = ipp.split(':')
         port = int(port_s)
@@ -389,7 +435,7 @@ class ProxyHunter:
             return None
 
         net_info = self._check_rdns_and_bl(ip)
-        if net_info.get('rdns_dirty') or net_info.get('dnsbl') or net_info.get('bad_ports'):
+        if net_info.get('rdns_dirty'):
             return None
 
         proxy_url = f"{proto}://{ip}:{port}"
@@ -404,16 +450,44 @@ class ProxyHunter:
         except Exception: 
             return None
 
-        start = time.time()
+        if self._wait_if_paused(): return None
+
+        # 1. Точный замер TCP-пинга до самого прокси (без учета HTTP-оверхеда)
+        ping_start = time.time()
         try:
-            resp = requests.get('https://speed.cloudflare.com/__down?bytes=100000', proxies=proxies, timeout=self.timeout)
-            elapsed = (time.time() - start)
-            ping_ms = elapsed * 1000
-            speed_mbps = (100000 * 8) / elapsed / 1000000
-            if ping_ms > self.max_ping or speed_mbps < self.min_speed:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(3.0)
+                sock.connect((ip, port))
+            ping_ms = (time.time() - ping_start) * 1000
+        except Exception:
+            return None
+            
+        if ping_ms > self.max_ping:
+            return None
+
+        # 2. Точный замер чистой пропускной способности (без учета времени подключения)
+        try:
+            resp = requests.get('https://speed.cloudflare.com/__down?bytes=200000', 
+                                proxies=proxies, timeout=self.timeout, stream=True)
+            if resp.status_code != 200: return None
+            
+            dl_start = time.time()
+            downloaded = 0
+            for chunk in resp.iter_content(chunk_size=32768):
+                if chunk: downloaded += len(chunk)
+                
+            dl_time = time.time() - dl_start
+            if dl_time <= 0: dl_time = 0.001
+            
+            # Перевод байт/с в Мбит/с
+            speed_mbps = (downloaded * 8) / dl_time / 1000000
+            
+            if speed_mbps < self.min_speed:
                 return None
         except Exception: 
             return None
+
+        if self._wait_if_paused(): return None
 
         if self.check_smtp:
             smtp_ok = False
@@ -434,42 +508,10 @@ class ProxyHunter:
     def advanced_filter(self):
         if not self.live_results: return
         print(f"\n[+] ШАГ 3: Расширенная фильтрация {len(self.live_results)} прокси...")
+        print(f"    [Фильтрация по странам и DNSBL уже пройдена на Шаге 2]")
         
-        self._download_mmdb_if_needed()
-        db_reader = None
-        try:
-            if os.path.exists('GeoLite2-Country.mmdb'):
-                db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
-        except Exception as e:
-            print(f"Ошибка загрузки локальной базы: {e}")
-
-        filtered_by_geo = []
-        for item in self.live_results:
-            ip = item.split('://')[1].split(':')[0]
-            country = ''
-            if db_reader:
-                try:
-                    geo_info = db_reader.get(ip)
-                    if geo_info and 'country' in geo_info:
-                        country = geo_info['country']['iso_code']
-                except Exception: pass
-            
-            if self.countries and country.upper() not in self.countries:
-                continue
-            
-            if ip not in self.ip_cache: self.ip_cache[ip] = {}
-            self.ip_cache[ip]['country'] = country
-            filtered_by_geo.append(item)
-            
-        if db_reader:
-            db_reader.close()
-
-        self.live_results = filtered_by_geo
-        print(f"    После проверки ГЕО (локально за микросекунды) осталось: {len(filtered_by_geo)}")
-        print(f"    [REALTIME_LIVE] {len(filtered_by_geo)}")
-        
-        if self.residential_only and filtered_by_geo:
-            residential_ips = set([r.split('://')[1].split(':')[0] for r in filtered_by_geo])
+        if self.residential_only and self.live_results:
+            residential_ips = set([r.split('://')[1].split(':')[0] for r in self.live_results])
             print(f"    Запрашиваю тип прокси (Residential) для {len(residential_ips)} IP через ip-api...")
             self._batch_ip_info(residential_ips)
         elif not self.residential_only:
@@ -484,6 +526,8 @@ class ProxyHunter:
         with ThreadPoolExecutor(max_workers=self.threads) as ex:
             futs = [ex.submit(self._run_single_filter, item) for item in self.live_results]
             for fut in as_completed(futs):
+                if self._wait_if_paused(): break
+                if self._cancel_event.is_set(): break
                 res = fut.result()
                 if res:
                     with self._lock: 
@@ -558,12 +602,23 @@ class ProxyHunter:
     def run(self):
         t0 = time.time()
         print("\n🚀 ULTIMATE PROXY HUNTER v4.0 (ADVANCED FILTERS)")
+        
+        self._download_mmdb_if_needed()
+        try:
+            if os.path.exists('GeoLite2-Country.mmdb'):
+                self.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
+        except Exception as e:
+            print(f"Ошибка загрузки локальной базы: {e}")
+            self.db_reader = None
+            
         self.collect()
-        self.validate()
-        self.advanced_filter()
+        if not self._cancel_event.is_set(): self.validate()
+        if not self._cancel_event.is_set(): self.advanced_filter()
         self.save()
         m, s = divmod(int(time.time() - t0), 60)
         print(f"\n⏱   Общее время работы: {m}м {s}с")
+        if self._cancel_event.is_set():
+            print("❌ Работа была прервана пользователем.")
 
 def main():
     parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
