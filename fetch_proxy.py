@@ -23,104 +23,274 @@ except ImportError:
 #  РАСШИРЕННЫЙ СПИСОК ИСТОЧНИКОВ (Объединенный)
 # ═══════════════════════════════════════════════════════════════
 SOURCES = [
-    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all', 'http'),
-    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4&timeout=10000&country=all', 'socks4'),
-    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5&timeout=10000&country=all', 'socks5'),
+    # === HTTP / HTTPS ===
+    ('http://htmlweb.ru/analiz/proxy_list.php', 'http'),
     ('https://api.openproxylist.xyz/http.txt', 'http'),
-    ('https://api.openproxylist.xyz/socks4.txt', 'socks4'),
-    ('https://api.openproxylist.xyz/socks5.txt', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc', 'http'),
+    ('https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=10000&country=all', 'http'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all', 'http'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&proxy_format=protocolipport&format=json', 'http'),
+    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&proxy_format=protocolipport&format=text', 'http'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text', 'http'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=http', 'http'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=json', 'http'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text', 'http'),
+    ('https://cdn.jsdelivr.net/gh/databay-labs/free-proxy-list/http.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/all/data.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/DE/data.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/FR/data.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/GB/data.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/US/data.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/http/data.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/https/data.txt', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=csv', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=json', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=json&protocol=http', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=json&protocol=https', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&country=DE', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&country=GB', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&country=NL', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&country=RU', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&country=US', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http', 'http'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=https', 'http'),
+    ('https://flashproxy.com/resources/free-proxies', 'http'),
     ('https://free-proxy-list.net/', 'http'),
-    ('https://www.sslproxies.org/', 'http'),
-    ('https://www.us-proxy.org/', 'http'),
+    ('https://free-proxy-list.net/anonymous-proxy.html', 'http'),
+    ('https://free-proxy-list.net/uk-proxy.html', 'http'),
+    ('https://free.geonix.com/ru/', 'http'),
+    ('https://hidemium.io/free-proxy', 'http'),
+    ('https://hidemy.name/ru/proxy-list/', 'http'),
+    ('https://litport.net/api/free-proxy', 'http'),
+    ('https://proxy-spider.com/api/proxies.example.txt', 'http'),
+    ('https://proxyelite.info/ru/free/', 'http'),
+    ('https://proxyfreeonly.com/ru/free-proxy-list', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc', 'http'),
+    ('https://proxymania.su/free-proxy', 'http'),
+    ('https://proxyspace.pro/http.txt', 'http'),
+    ('https://proxyspace.pro/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/http_proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/https_proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/GoekhanDev/free-proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/MrMarble/proxy-list/main/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/proxy.txt', 'http'),
+    ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-http.txt', 'http'),
+    ('https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/https.txt', 'http'),
     ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt', 'http'),
-    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS4_RAW.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5_RAW.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.json', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/all.txt', 'http'),
-    ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/all.json', 'http'),
-    ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/https.txt', 'http'),
-    ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks5.txt', 'socks5'),
-    ('https://www.socks-proxy.net/', 'socks5'),
-    ('https://raw.githubusercontent.com/Ian-Lusule/Proxies/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/Ian-Lusule/Proxies/main/proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/all-proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxygenerator1/ProxyGenerator/main/MostStable/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt', 'http'),
-    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt', 'socks5'),
-    ('https://proxyroller.com/api/proxies?protocol=http&anonymity=elite&limit=100', 'http'),
-    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.json', 'socks4'),
-    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/proxy.txt', 'http'),
-    ('https://raw.githubusercontent.com/26info/vless-proxy-list/main/working-proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/https.txt', 'http'),
-    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolonly&format=text&timeout=20000', 'socks5'),
-    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/http.txt', 'http'),
-    ('https://codeberg.org/dbarker/public-proxy-list/raw/branch/main/proxies.txt', 'http'),
-    ('https://docs.google.com/spreadsheets/d/1guW73RgKLUcLUFGx9QRtqtAmbqMJG7aXKJGlT_XU2t4/export?format=csv', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/duckray-client/free-vless-keys/main/keys.txt', 'http'),
-    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/roosterkid/openproxylist/master/HTTPS.txt', 'http'),
-    ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/socks5.txt', 'socks5'),
-    ('https://proxylist.to/proxy-list.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.json', 'socks5'),
+    ('https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/almroot/proxylist/master/list.txt', 'http'),
+    ('https://raw.githubusercontent.com/aslisk/proxyhttps/main/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/berkay-digital/Proxy-Scraper/main/proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt', 'http'),
     ('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list.txt', 'http'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies.txt', 'http'),
-    ('https://spys.me/proxy.txt', 'http'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.json', 'http'),
-    ('https://raw.githubusercontent.com/zloi-user/hideip.me/master/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/vAHiD55555/ProxyScraper/main/proxies.txt', 'http'),
-    ('https://pastebin.com/raw/XJsxHu4D', 'http'),
-    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_eu.txt', 'http'),
-    ('https://bitbucket.org/vanholt-proxies/public-http-proxies/raw/main/README.md', 'http'),
-    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks4&proxy_format=protocolonly&format=text&timeout=20000', 'socks4'),
-    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/json/proxies.json', 'http'),
-    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_all.txt', 'http'),
-    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_ru.txt', 'http'),
-    ('https://telegra.ph/Free-Proxy-List-for-Scraping-and-SEO-Updated-Daily-04-07', 'http'),
+    ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/http.txt', 'http'),
     ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-http.txt', 'http'),
-    ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.json', 'http'),
-    ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=protocolonly&format=text&timeout=20000', 'http'),
-    ('https://raw.githubusercontent.com/hookzof/socks5_list/master/tg/mtproto.json', 'socks5')
+    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies.json', 'http'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/all.txt', 'http'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/officialputuid/KangProxy/KangProxy/http/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/opsxcq/proxy-list/master/list.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.csv', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.json', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/BR/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/CA/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/DE/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/FR/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/GB/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/IN/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/JP/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/NL/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/RU/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/SG/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/US/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/https/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxylist-to/proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt', 'http'),
+    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies_anonymous/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt', 'http'),
+    ('https://raw.githubusercontent.com/saisuiu/uiu/main/free.txt', 'http'),
+    ('https://raw.githubusercontent.com/stormsia/proxy-list/main/working_proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/sunny9577/proxy-scraper/master/proxies.txt', 'http'),
+    ('https://raw.githubusercontent.com/themiralay/Proxy-List-World/master/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/trio666/proxy-checker/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/trio666/proxy-checker/main/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/https.txt', 'http'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/proxylist.json', 'http'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/proxylist.txt', 'http'),
+    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/yuceltoluyag/GoodProxy/main/raw.txt', 'http'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/https.txt', 'http'),
+    ('https://rootjazz.com/proxies/proxies.txt', 'http'),
+    ('https://spys.me/proxy.txt', 'http'),
+    ('https://sunny9577.github.io/proxy-scraper/generated/http_proxies.txt', 'http'),
+    ('https://toproxylab.com/ru/spisok-besplatnyh-proksi-serverov', 'http'),
+    ('https://vakhov.github.io/fresh-proxy-list/http.txt', 'http'),
+    ('https://vakhov.github.io/fresh-proxy-list/https.txt', 'http'),
+    ('https://vakhov.github.io/fresh-proxy-list/proxylist.txt', 'http'),
+    ('https://www.google-proxy.net/', 'http'),
+    ('https://www.my-proxy.com/free-proxy-list.html', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=http', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=https', 'http'),
+    ('https://www.proxynova.com/proxy-server-list/', 'http'),
+    ('https://www.sslproxies.org/', 'http'),
+    ('https://www.us-proxy.org/', 'http'),
+    # === SOCKS4 ===
+    ('https://api.openproxylist.xyz/socks4.txt', 'socks4'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4&timeout=10000&country=all', 'socks4'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=json&protocol=socks4', 'socks4'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=socks4', 'socks4'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/socks4/data.txt', 'socks4'),
+    ('https://databay.com/api/v1/proxy-list?format=json&protocol=socks4', 'socks4'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks4', 'socks4'),
+    ('https://proxyspace.pro/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/socks4_proxies.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks4/raw/all.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/GoekhanDev/free-proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/officialputuid/KangProxy/KangProxy/socks4/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies_anonymous/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS4_RAW.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/trio666/proxy-checker/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/socks4.txt', 'socks4'),
+    ('https://sunny9577.github.io/proxy-scraper/generated/socks4_proxies.txt', 'socks4'),
+    ('https://vakhov.github.io/fresh-proxy-list/socks4.txt', 'socks4'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks4', 'socks4'),
+    ('https://www.socks-proxy.net/', 'socks4'),
+    # === SOCKS5 ===
+    ('https://api.openproxylist.xyz/socks5.txt', 'socks5'),
+    ('https://api.proxyscrape.com/?request=getproxies&proxytype=socks5&timeout=10000&country=all', 'socks5'),
+    ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5&timeout=10000&country=all', 'socks5'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=json&protocol=socks5', 'socks5'),
+    ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=socks5', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/databay-labs/free-proxy-list/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/socks5/data.txt', 'socks5'),
+    ('https://databay.com/api/v1/proxy-list?format=json&protocol=socks5', 'socks5'),
+    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks5', 'socks5'),
+    ('https://proxyspace.pro/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/socks5_proxies.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks5/raw/all.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/GoekhanDev/free-proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/elliottophellia/yakumo/master/results/socks5/global/socks5_checked.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/officialputuid/KangProxy/KangProxy/socks5/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies_anonymous/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5_RAW.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/trio666/proxy-checker/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/socks5.txt', 'socks5'),
+    ('https://spys.me/socks.txt', 'socks5'),
+    ('https://sunny9577.github.io/proxy-scraper/generated/socks5_proxies.txt', 'socks5'),
+    ('https://vakhov.github.io/fresh-proxy-list/socks5.txt', 'socks5'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks5', 'socks5'),
 ]
+
+# === ПАГИНАЦИЯ (ДИНАМИЧЕСКИЕ ИСТОЧНИКИ) ===
+SOURCES.extend([
+    (f'https://www.freeproxy.world/?type=&anonymity=&country=&speed=&port=&page={p}', 'http') for p in range(1, 11)
+])
+SOURCES.extend([
+    (f'https://proxybros.com/free-proxy-list/{p}/', 'http') for p in range(1, 11)
+])
+SOURCES.extend([
+    (f'https://proxyhub.me/en/all-free-proxy-list.html?page={p}', 'http') for p in range(1, 11)
+])
+SOURCES.extend([
+    (f'https://proxylister.com/ru/protocols/http/?page={p}', 'http') for p in range(1, 6)
+])
+SOURCES.extend([
+    (f'https://proxylister.com/ru/protocols/socks4/?page={p}', 'socks4') for p in range(1, 6)
+])
+SOURCES.extend([
+    (f'https://proxylister.com/ru/protocols/socks5/?page={p}', 'socks5') for p in range(1, 6)
+])
+SOURCES.append(('https://fineproxy.org/ru/free-proxies/oceania/australia/', 'http'))
+SOURCES.append(('https://good-proxies.ru/proxy-list/free/us/', 'http'))
+SOURCES.append(('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt', 'http'))
+SOURCES.append(('https://raw.githubusercontent.com/scidam/proxy-list/master/proxy.json', 'http'))
+SOURCES.append(('https://raw.githubusercontent.com/Vadim287/free-proxy/main/proxies.txt', 'http'))
+SOURCES.append(('https://raw.githubusercontent.com/Jakee8718/Free-Proxies/main/proxies.txt', 'http'))
 
 class ProxyUtils:
     """Утилиты для работы с сетью и парсинга прокси"""
     
-    PROXY_RE  = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5})\b')
+    PROXY_RE  = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})[:\s,;|"\']+(\d{1,5})\b')
     JSON_IP_FIRST = re.compile(r'(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"[^}]*?(?:"port")\s*:\s*"?(\d{1,5})"?', re.IGNORECASE)
     JSON_PORT_FIRST = re.compile(r'(?:"port")\s*:\s*"?(\d{1,5})"?[^}]*?(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"', re.IGNORECASE)
     TABLE_RE  = re.compile(r'<td[^>]*>\s*(\d{1,3}(?:\.\d{1,3}){3})\s*</td>\s*<td[^>]*>\s*(\d{1,5})\s*</td>', re.IGNORECASE | re.DOTALL)
@@ -133,6 +303,16 @@ class ProxyUtils:
 
     @classmethod
     def parse_proxies(cls, content: str) -> List[str]:
+        # Автоматический декод Base64, если весь ответ это зашифрованная строка (часто бывает на GitHub)
+        stripped = content.replace('\\n', '').replace('\\r', '').strip()
+        if len(stripped) > 20 and re.match(r'^[A-Za-z0-9+/]+={0,2}$', stripped):
+            import base64
+            try:
+                decoded = base64.b64decode(stripped).decode('utf-8')
+                content = content + "\\n" + decoded
+            except Exception:
+                pass
+
         found = set()
         for ip, port in cls.JSON_IP_FIRST.findall(content):
             if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
@@ -142,7 +322,39 @@ class ProxyUtils:
             if cls.is_valid(ip.strip(), int(port)): found.add(f"{ip.strip()}:{port}")
         for ip, port in cls.PROXY_RE.findall(content):
             if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
+            
+        # Парсинг зашифрованных протоколов (VLESS, VMess, SS, Trojan, MTProto и др.)
+        URI_RE = re.compile(r'((?:vless|vmess|ss|ssr|trojan|tuic|hysteria2|tg)://[^\s"\'<>]+|https://t\.me/proxy\?[^\s"\'<>]+)', re.IGNORECASE)
+        IPV4_CHECK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
+        for uri in URI_RE.findall(content):
+            # Принимаем только конфиги с реальным IPv4-адресом (не домены)
+            ext_ip, _ = cls.extract_ip_port(uri)
+            if IPV4_CHECK.match(ext_ip) and cls.is_valid(ext_ip, 1):
+                found.add(uri)
+            
         return list(found)
+
+    @staticmethod
+    def extract_ip_port(uri: str) -> tuple[str, str]:
+        import urllib.parse
+        import base64
+        import json
+        try:
+            if uri.startswith("vmess://"):
+                b64 = uri[8:]
+                pad = len(b64) % 4
+                if pad: b64 += "=" * (4 - pad)
+                data = json.loads(base64.b64decode(b64).decode('utf-8', errors='ignore'))
+                return data.get('add', 'Config'), str(data.get('port', 'N/A'))
+            elif uri.startswith("tg://proxy") or uri.startswith("https://t.me/proxy") or uri.startswith("mtproto://"):
+                p = urllib.parse.urlparse(uri)
+                q = urllib.parse.parse_qs(p.query)
+                return q.get("server", ["Config"])[0], q.get("port", ["N/A"])[0]
+            else:
+                p = urllib.parse.urlparse(uri)
+                return p.hostname or "Config", str(p.port) if p.port else "N/A"
+        except Exception:
+            return "Config", "N/A"
 
     @staticmethod
     def fetch_url(url: str, timeout: int = 10) -> str:
@@ -285,6 +497,22 @@ class ProxyHunter:
             if self._wait_if_paused(): return None
             if self._cancel_event.is_set(): return None
             ip_port, protos = item
+            
+            # Пропускаем зашифрованные конфиги напрямую в результаты (они не чекаются обычным TCP-пингом)
+            if '://' in ip_port:
+                scheme = ip_port.split('://', 1)[0].lower()
+                if scheme in ('tg', 'https'): scheme = 'mtproto'
+                # Извлекаем IP и проверяем, что это реальный IPv4 (не домен)
+                ext_ip, _ = ProxyUtils.extract_ip_port(ip_port)
+                if not re.match(r'^\d{1,3}(?:\.\d{1,3}){3}$', ext_ip):
+                    return None  # Пропускаем конфиги с доменами — нам нужны только реальные IP
+                # Фильтр по странам для зашифрованных прокси
+                if self.countries:
+                    country = self._get_country(ext_ip)
+                    if country.upper() not in self.countries:
+                        return None
+                return (ip_port, {scheme})
+                
             ip, port_s = ip_port.split(':')
             working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout)
             if working: 
@@ -320,12 +548,22 @@ class ProxyHunter:
                     ip_port, working_protos = res
                     with self._lock:
                         for p in sorted(working_protos): 
-                            self.live_results.append(f"{p}://{ip_port}")
-                            ip, port = ip_port.split(':')
-                            country = self.ip_cache.get(ip, {}).get('country', '') or self._get_country(ip)
-                            if ip not in self.ip_cache: self.ip_cache[ip] = {}
-                            self.ip_cache[ip]['country'] = country
-                            print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ip, 'port': port, 'protocol': p, 'country': country})}")
+                            if '://' in ip_port:
+                                norm_uri = f"{p}://{ip_port.split('://', 1)[1]}"
+                                self.live_results.append(norm_uri)
+                                ext_ip, ext_port = ProxyUtils.extract_ip_port(norm_uri)
+                                ext_country = self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
+                                if ext_ip != "Config":
+                                    if ext_ip not in self.ip_cache: self.ip_cache[ext_ip] = {}
+                                    self.ip_cache[ext_ip]['country'] = ext_country
+                                print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ext_ip, 'port': ext_port, 'protocol': p.upper(), 'country': ext_country})}")
+                            else:
+                                self.live_results.append(f"{p}://{ip_port}")
+                                ip, port = ip_port.split(':')
+                                country = self.ip_cache.get(ip, {}).get('country', '') or self._get_country(ip)
+                                if ip not in self.ip_cache: self.ip_cache[ip] = {}
+                                self.ip_cache[ip]['country'] = country
+                                print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ip, 'port': port, 'protocol': p, 'country': country})}")
                         if len(self.live_results) % 5 == 0 or len(self.live_results) < 10:
                             print(f"    [REALTIME_LIVE] {len(self.live_results)}")
                 if pbar: pbar.update(1)
@@ -336,8 +574,18 @@ class ProxyHunter:
 
     def _download_mmdb_if_needed(self):
         db_path = 'GeoLite2-Country.mmdb'
+        needs_download = False
+        
         if not os.path.exists(db_path):
+            needs_download = True
             print(f"\n[!] Локальная база {db_path} не найдена. Скачиваю (около 5MB)...")
+        else:
+            # Обновляем базу, если она старше 7 дней (604800 секунд)
+            if time.time() - os.path.getmtime(db_path) > 604800:
+                needs_download = True
+                print(f"\n[!] Локальная база {db_path} устарела (старше 7 дней). Обновляю...")
+                
+        if needs_download:
             url = 'https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb'
             try:
                 r = requests.get(url, stream=True, timeout=30)
@@ -345,9 +593,9 @@ class ProxyHunter:
                 with open(db_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
-                print("[✓] Локальная база успешно скачана!")
+                print("[✓] Локальная база успешно скачана/обновлена!")
             except Exception as e:
-                print(f"[x] Ошибка скачивания базы: {e}")
+                print(f"[x] Ошибка обновления базы: {e}")
 
     def _batch_ip_info(self, ips: Set[str]):
         """Пакетный запрос в ip-api.com для кэширования гео/ISP"""
@@ -426,8 +674,15 @@ class ProxyHunter:
         """Логика расширенной проверки одного прокси"""
         if self._wait_if_paused(): return None
         if self._cancel_event.is_set(): return None
-        proto, ipp = item.split('://')
-        ip, port_s = ipp.split(':')
+        proto, ipp = item.split('://', 1)
+        
+        # Зашифрованные прокси пропускаем как "элитные" без проверок (их нельзя проверить через httpbin)
+        if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+            return item
+        
+        if ':' not in ipp:
+            return None
+        ip, port_s = ipp.split(':', 1)
         port = int(port_s)
 
         ip_info = self.ip_cache.get(ip, {})
@@ -532,11 +787,17 @@ class ProxyHunter:
                 if res:
                     with self._lock: 
                         self.good_results.append(res)
-                        proto, ipp = res.split('://')
-                        ip, port = ipp.split(':')
-                        country = self.ip_cache.get(ip, {}).get('country', 'Unknown')
-                        import json
-                        print(f"    [REALTIME_NEW_ELITE] {json.dumps({'ip': ip, 'port': port, 'protocol': proto, 'country': country})}")
+                        proto, ipp = res.split('://', 1)
+                        if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                            import json
+                            ext_ip, ext_port = ProxyUtils.extract_ip_port(res)
+                            ext_country = self.ip_cache.get(ext_ip, {}).get('country') or self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
+                            print(f"    [REALTIME_NEW_ELITE] {json.dumps({'ip': ext_ip, 'port': ext_port, 'protocol': proto.upper(), 'country': ext_country})}")
+                        else:
+                            ip, port = ipp.split(':')
+                            country = self.ip_cache.get(ip, {}).get('country') or self._get_country(ip)
+                            import json
+                            print(f"    [REALTIME_NEW_ELITE] {json.dumps({'ip': ip, 'port': port, 'protocol': proto, 'country': country})}")
                         if len(self.good_results) % 2 == 0 or len(self.good_results) < 5:
                             print(f"    [REALTIME_ELITE] {len(self.good_results)}")
                 if pbar: pbar.update(1)
@@ -550,7 +811,7 @@ class ProxyHunter:
         
         by_proto = defaultdict(list)
         for p in results_list:
-            proto, ipp = p.split('://')
+            proto, ipp = p.split('://', 1)
             by_proto[proto.lower()].append(p)
             
         with open(os.path.join(folder_name, 'all.txt'), 'w', encoding='utf-8') as f:
@@ -559,14 +820,24 @@ class ProxyHunter:
             
         with open(os.path.join(folder_name, 'all.csv'), 'w', encoding='utf-8', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['Протокол', 'IP', 'Port', 'Страна'])
+            writer.writerow(['Протокол', 'IP/Config', 'Port', 'Страна'])
             for p in results_list:
-                proto, ipp = p.split('://')
-                ip, port = ipp.split(':')
-                country = self.ip_cache.get(ip, {}).get('country', 'Unknown') or 'Unknown'
-                writer.writerow([proto.upper(), ip, port, country])
+                proto, ipp = p.split('://', 1)
+                if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                    ext_ip, ext_port = ProxyUtils.extract_ip_port(p)
+                    ext_country = self.ip_cache.get(ext_ip, {}).get('country', 'Unknown') if ext_ip != "Config" else "Unknown"
+                    writer.writerow([proto.upper(), ext_ip, ext_port, ext_country])
+                else:
+                    ip, port = ipp.split(':', 1)
+                    country = self.ip_cache.get(ip, {}).get('country', 'Unknown') or 'Unknown'
+                    writer.writerow([proto.upper(), ip, port, country])
                 
-        unique_ips = sorted(set(p.split('://')[1].split(':')[0] for p in results_list))
+        unique_ips = set()
+        for p in results_list:
+            proto, ipp = p.split('://', 1)
+            if proto.lower() not in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                unique_ips.add(ipp.split(':', 1)[0])
+        unique_ips = sorted(unique_ips)
         with open(os.path.join(folder_name, 'all_ips.txt'), 'w', encoding='utf-8') as f:
             f.write(f"# {description} (Только уникальные IP): {len(unique_ips)}\n")
             for ip in unique_ips: f.write(ip + '\n')
@@ -578,14 +849,24 @@ class ProxyHunter:
                 
             with open(os.path.join(folder_name, f'{proto}.csv'), 'w', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(['Протокол', 'IP', 'Port', 'Страна'])
+                writer.writerow(['Протокол', 'IP/Config', 'Port', 'Страна'])
                 for p in items:
-                    _, ipp = p.split('://')
-                    ip, port = ipp.split(':')
-                    country = self.ip_cache.get(ip, {}).get('country', 'Unknown') or 'Unknown'
-                    writer.writerow([proto.upper(), ip, port, country])
+                    _, ipp = p.split('://', 1)
+                    if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                        ext_ip, _ = ProxyUtils.extract_ip_port(p)
+                        country = self.ip_cache.get(ext_ip, {}).get('country') or self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
+                        writer.writerow([proto.upper(), ipp, 'N/A', country])
+                    else:
+                        ip, port = ipp.split(':', 1)
+                        country = self.ip_cache.get(ip, {}).get('country') or self._get_country(ip)
+                        writer.writerow([proto.upper(), ip, port, country])
                     
-            proto_ips = sorted(set(p.split('://')[1].split(':')[0] for p in items))
+            proto_ips = set()
+            for p in items:
+                _, ipp = p.split('://', 1)
+                if proto.lower() not in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                    proto_ips.add(ipp.split(':', 1)[0])
+            proto_ips = sorted(proto_ips)
             with open(os.path.join(folder_name, f'{proto}_ips.txt'), 'w', encoding='utf-8') as f:
                 f.write(f"# {description} ({proto.upper()} - Только уникальные IP): {len(proto_ips)}\n")
                 for ip in proto_ips: f.write(ip + '\n')
@@ -632,7 +913,8 @@ def main():
     
     args = parser.parse_args()
     check_smtp_bool = args.check_smtp == 'True'
-    countries_list = [c.strip().upper() for c in args.countries.split(',')] if args.countries else None
+    countries_list = [c.strip().upper() for c in args.countries.split(',')
+    ] if args.countries else None
 
     try:
         import tqdm
