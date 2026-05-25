@@ -13,7 +13,8 @@ import dns.reversename
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 from typing import List, Set, Tuple, Optional, Dict
-
+import random
+import ipaddress
 try:
     import maxminddb
 except ImportError:
@@ -54,16 +55,12 @@ SOURCES = [
     ('https://databay.com/api/v1/proxy-list?format=txt&country=US', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=https', 'http'),
-    ('https://flashproxy.com/resources/free-proxies', 'http'),
     ('https://free-proxy-list.net/', 'http'),
     ('https://free-proxy-list.net/anonymous-proxy.html', 'http'),
     ('https://free-proxy-list.net/uk-proxy.html', 'http'),
-    ('https://free.geonix.com/ru/', 'http'),
     ('https://hidemium.io/free-proxy', 'http'),
-    ('https://hidemy.name/ru/proxy-list/', 'http'),
     ('https://litport.net/api/free-proxy', 'http'),
     ('https://proxy-spider.com/api/proxies.example.txt', 'http'),
-    ('https://proxyelite.info/ru/free/', 'http'),
     ('https://proxyfreeonly.com/ru/free-proxy-list', 'http'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc', 'http'),
     ('https://proxymania.su/free-proxy', 'http'),
@@ -77,16 +74,11 @@ SOURCES = [
     ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/https.txt', 'http'),
     ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/GoekhanDev/free-proxy-list/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/MrMarble/proxy-list/main/all.txt', 'http'),
-    ('https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/https.txt', 'http'),
     ('https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt', 'http'),
-    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/proxy.txt', 'http'),
     ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-http.txt', 'http'),
     ('https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/https.txt', 'http'),
     ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt', 'http'),
@@ -96,15 +88,10 @@ SOURCES = [
     ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/https.txt', 'http'),
     ('https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/http.txt', 'http'),
     ('https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt', 'http'),
-    ('https://raw.githubusercontent.com/almroot/proxylist/master/list.txt', 'http'),
-    ('https://raw.githubusercontent.com/aslisk/proxyhttps/main/https.txt', 'http'),
     ('https://raw.githubusercontent.com/berkay-digital/Proxy-Scraper/main/proxies.txt', 'http'),
-    ('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt', 'http'),
-    ('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list.txt', 'http'),
     ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/http.txt', 'http'),
     ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-http.txt', 'http'),
     ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt', 'http'),
     ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt', 'http'),
     ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt', 'http'),
@@ -112,8 +99,6 @@ SOURCES = [
     ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies.json', 'http'),
     ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/all.txt', 'http'),
     ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/officialputuid/KangProxy/KangProxy/http/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/opsxcq/proxy-list/master/list.txt', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.csv', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.json', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt', 'http'),
@@ -130,12 +115,8 @@ SOURCES = [
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/US/data.txt', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/https/data.txt', 'http'),
-    ('https://raw.githubusercontent.com/proxylist-to/proxy-list/main/http.txt', 'http'),
-    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt', 'http'),
-    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies_anonymous/http.txt', 'http'),
     ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt', 'http'),
-    ('https://raw.githubusercontent.com/saisuiu/uiu/main/free.txt', 'http'),
     ('https://raw.githubusercontent.com/stormsia/proxy-list/main/working_proxies.txt', 'http'),
     ('https://raw.githubusercontent.com/sunny9577/proxy-scraper/master/proxies.txt', 'http'),
     ('https://raw.githubusercontent.com/themiralay/Proxy-List-World/master/data.txt', 'http'),
@@ -146,11 +127,9 @@ SOURCES = [
     ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/https.txt', 'http'),
     ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/proxylist.json', 'http'),
     ('https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/proxylist.txt', 'http'),
-    ('https://raw.githubusercontent.com/xing2kong/ProxyScraper2/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/yuceltoluyag/GoodProxy/main/raw.txt', 'http'),
     ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/http.txt', 'http'),
     ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/https.txt', 'http'),
-    ('https://rootjazz.com/proxies/proxies.txt', 'http'),
     ('https://spys.me/proxy.txt', 'http'),
     ('https://sunny9577.github.io/proxy-scraper/generated/http_proxies.txt', 'http'),
     ('https://toproxylab.com/ru/spisok-besplatnyh-proksi-serverov', 'http'),
@@ -159,9 +138,6 @@ SOURCES = [
     ('https://vakhov.github.io/fresh-proxy-list/proxylist.txt', 'http'),
     ('https://www.google-proxy.net/', 'http'),
     ('https://www.my-proxy.com/free-proxy-list.html', 'http'),
-    ('https://www.proxy-list.download/api/v1/get?type=http', 'http'),
-    ('https://www.proxy-list.download/api/v1/get?type=https', 'http'),
-    ('https://www.proxynova.com/proxy-server-list/', 'http'),
     ('https://www.sslproxies.org/', 'http'),
     ('https://www.us-proxy.org/', 'http'),
     # === SOCKS4 ===
@@ -179,10 +155,8 @@ SOURCES = [
     ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks4/raw/all.txt', 'socks4'),
     ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/GoekhanDev/free-proxy-list/main/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt', 'socks4'),
@@ -194,15 +168,11 @@ SOURCES = [
     ('https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/officialputuid/KangProxy/KangProxy/socks4/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt', 'socks4'),
-    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies_anonymous/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS4_RAW.txt', 'socks4'),
     ('https://raw.githubusercontent.com/trio666/proxy-checker/main/socks4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/socks4.txt', 'socks4'),
@@ -210,7 +180,6 @@ SOURCES = [
     ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/socks4.txt', 'socks4'),
     ('https://sunny9577.github.io/proxy-scraper/generated/socks4_proxies.txt', 'socks4'),
     ('https://vakhov.github.io/fresh-proxy-list/socks4.txt', 'socks4'),
-    ('https://www.proxy-list.download/api/v1/get?type=socks4', 'socks4'),
     ('https://www.socks-proxy.net/', 'socks4'),
     # === SOCKS5 ===
     ('https://api.openproxylist.xyz/socks5.txt', 'socks5'),
@@ -228,10 +197,8 @@ SOURCES = [
     ('https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks5/raw/all.txt', 'socks5'),
     ('https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/GoekhanDev/free-proxy-list/main/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/Noctiro/getproxy/master/file/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt', 'socks5'),
@@ -241,15 +208,11 @@ SOURCES = [
     ('https://raw.githubusercontent.com/elliottophellia/yakumo/master/results/socks5/global/socks5_checked.txt', 'socks5'),
     ('https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt', 'socks5'),
     ('https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies-socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/officialputuid/KangProxy/KangProxy/socks5/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies_anonymous/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5_RAW.txt', 'socks5'),
     ('https://raw.githubusercontent.com/trio666/proxy-checker/main/socks5.txt', 'socks5'),
     ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/socks5.txt', 'socks5'),
@@ -258,34 +221,22 @@ SOURCES = [
     ('https://spys.me/socks.txt', 'socks5'),
     ('https://sunny9577.github.io/proxy-scraper/generated/socks5_proxies.txt', 'socks5'),
     ('https://vakhov.github.io/fresh-proxy-list/socks5.txt', 'socks5'),
-    ('https://www.proxy-list.download/api/v1/get?type=socks5', 'socks5'),
 ]
 
 # === ПАГИНАЦИЯ (ДИНАМИЧЕСКИЕ ИСТОЧНИКИ) ===
 SOURCES.extend([
-    (f'https://www.freeproxy.world/?type=&anonymity=&country=&speed=&port=&page={p}', 'http') for p in range(1, 11)
 ])
 SOURCES.extend([
-    (f'https://proxybros.com/free-proxy-list/{p}/', 'http') for p in range(1, 11)
 ])
 SOURCES.extend([
-    (f'https://proxyhub.me/en/all-free-proxy-list.html?page={p}', 'http') for p in range(1, 11)
 ])
 SOURCES.extend([
-    (f'https://proxylister.com/ru/protocols/http/?page={p}', 'http') for p in range(1, 6)
 ])
 SOURCES.extend([
-    (f'https://proxylister.com/ru/protocols/socks4/?page={p}', 'socks4') for p in range(1, 6)
 ])
 SOURCES.extend([
-    (f'https://proxylister.com/ru/protocols/socks5/?page={p}', 'socks5') for p in range(1, 6)
 ])
-SOURCES.append(('https://fineproxy.org/ru/free-proxies/oceania/australia/', 'http'))
 SOURCES.append(('https://good-proxies.ru/proxy-list/free/us/', 'http'))
-SOURCES.append(('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt', 'http'))
-SOURCES.append(('https://raw.githubusercontent.com/scidam/proxy-list/master/proxy.json', 'http'))
-SOURCES.append(('https://raw.githubusercontent.com/Vadim287/free-proxy/main/proxies.txt', 'http'))
-SOURCES.append(('https://raw.githubusercontent.com/Jakee8718/Free-Proxies/main/proxies.txt', 'http'))
 
 class ProxyUtils:
     """Утилиты для работы с сетью и парсинга прокси"""
@@ -357,10 +308,11 @@ class ProxyUtils:
             return "Config", "N/A"
 
     @staticmethod
-    def fetch_url(url: str, timeout: int = 10) -> str:
+    def fetch_url(url: str, timeout: int = 10, via_proxy: Optional[str] = None) -> str:
         headers = {'User-Agent': 'Mozilla/5.0'}
+        proxies = {'http': via_proxy, 'https': via_proxy} if via_proxy else None
         try:
-            resp = requests.get(url, headers=headers, timeout=timeout, stream=True)
+            resp = requests.get(url, headers=headers, timeout=timeout, stream=True, proxies=proxies)
             resp.raise_for_status()
             chunks, size = [], 0
             for chunk in resp.iter_content(chunk_size=8192):
@@ -372,42 +324,186 @@ class ProxyUtils:
             return ''
 
     @staticmethod
-    def tcp_ping(ip: str, port: int, timeout: int) -> bool:
+    def _parse_proxy_uri(uri: str) -> tuple[str, str, int]:
+        import urllib.parse
+        p = urllib.parse.urlparse(uri)
+        return p.scheme.lower(), p.hostname or '', p.port or 80
+
+    @staticmethod
+    def tcp_ping(ip: str, port: int, timeout: int, via_proxy: Optional[str] = None) -> bool:
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(timeout)
-                return sock.connect_ex((ip, port)) == 0
+            if via_proxy:
+                import socks
+                ptype_str, pip, pport = ProxyUtils._parse_proxy_uri(via_proxy)
+                if ptype_str == 'http': ptype = socks.HTTP
+                elif ptype_str == 'socks4': ptype = socks.SOCKS4
+                elif ptype_str == 'socks5': ptype = socks.SOCKS5
+                else: ptype = socks.SOCKS5
+                with socks.socksocket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                    sock.settimeout(timeout)
+                    sock.set_proxy(ptype, pip, int(pport))
+                    return sock.connect_ex((ip, port)) == 0
+            else:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                    sock.settimeout(timeout)
+                    return sock.connect_ex((ip, port)) == 0
         except Exception: 
             return False
 
     @staticmethod
-    def http_check(ip: str, port: int, proto: str, timeout: int) -> bool:
+    def http_check(ip: str, port: int, proto: str, timeout: int, via_proxy: Optional[str] = None) -> bool:
         proxy_url = f"{proto}://{ip}:{port}"
-        proxies = {'http': proxy_url, 'https': proxy_url}
-        try:
-            resp = requests.get("http://gstatic.com/generate_204", proxies=proxies, timeout=timeout)
-            if resp.status_code == 204: return True
-        except Exception: 
-            pass
-        return False
+        
+        if via_proxy:
+            # requests doesn't support connecting to a proxy THROUGH a proxy natively.
+            # We must use socks.socksocket monkey patch or a custom Transport.
+            # The easiest way is to use socks monkey patch for this check.
+            import socks
+            ptype_str, pip, pport = ProxyUtils._parse_proxy_uri(via_proxy)
+            if ptype_str == 'http': ptype = socks.HTTP
+            elif ptype_str == 'socks4': ptype = socks.SOCKS4
+            elif ptype_str == 'socks5': ptype = socks.SOCKS5
+            else: ptype = socks.SOCKS5
+            
+            old_socket = socket.socket
+            try:
+                socks.set_default_proxy(ptype, pip, int(pport))
+                socket.socket = socks.socksocket
+                resp = requests.get("http://gstatic.com/generate_204", proxies={'http': proxy_url, 'https': proxy_url}, timeout=timeout)
+                if resp.status_code == 204: return True
+            except Exception:
+                pass
+            finally:
+                socket.socket = old_socket
+                socks.set_default_proxy()
+            return False
+        else:
+            proxies = {'http': proxy_url, 'https': proxy_url}
+            try:
+                resp = requests.get("http://gstatic.com/generate_204", proxies=proxies, timeout=timeout)
+                if resp.status_code == 204: return True
+            except Exception: 
+                pass
+            return False
 
     @classmethod
-    def check_proxy(cls, ip: str, port: int, protos: Set[str], timeout: int) -> Set[str]:
-        if not cls.tcp_ping(ip, port, timeout): return set()
+    def check_proxy(cls, ip: str, port: int, protos: Set[str], timeout: int, via_proxy: Optional[str] = None) -> Set[str]:
+        if not cls.tcp_ping(ip, port, timeout, via_proxy=via_proxy): return set()
         working_protos = set()
         for proto in sorted(protos):
-            if cls.http_check(ip, port, proto, timeout):
+            if cls.http_check(ip, port, proto, timeout, via_proxy=via_proxy):
                 working_protos.add(proto)
                 break
         return working_protos
 
+
+class RandomProxyGenerator:
+    """Генератор рандомных IP:PORT для массовой проверки"""
+
+    RESERVED_NETWORKS = [
+        ipaddress.ip_network('10.0.0.0/8'),
+        ipaddress.ip_network('172.16.0.0/12'),
+        ipaddress.ip_network('192.168.0.0/16'),
+        ipaddress.ip_network('127.0.0.0/8'),
+        ipaddress.ip_network('224.0.0.0/4'),
+        ipaddress.ip_network('240.0.0.0/4'),
+        ipaddress.ip_network('0.0.0.0/8'),
+        ipaddress.ip_network('100.64.0.0/10'),
+        ipaddress.ip_network('169.254.0.0/16'),
+        ipaddress.ip_network('198.18.0.0/15'),
+        ipaddress.ip_network('192.0.0.0/24'),
+        ipaddress.ip_network('192.0.2.0/24'),
+        ipaddress.ip_network('198.51.100.0/24'),
+        ipaddress.ip_network('203.0.113.0/24'),
+        ipaddress.ip_network('233.252.0.0/24')
+    ]
+
+    POPULAR_PORTS = {
+        'http': [80, 8080, 3128, 8888, 8000, 8443, 443, 8118, 9080, 8081, 8082, 8090, 1080, 3129, 8180, 9090, 8008, 8880, 8123, 8899],
+        'socks4': [1080, 4145, 1081, 1085, 4153, 10808, 9050, 9051, 31337, 50000, 4480, 1088, 1180, 5000, 6969],
+        'socks5': [1080, 1081, 9050, 9051, 7777, 10808, 1085, 4145, 5555, 50000, 8889, 1088, 4480, 1180, 6969]
+    }
+
+    @classmethod
+    def _is_reserved(cls, ip_obj: ipaddress.IPv4Address) -> bool:
+        for net in cls.RESERVED_NETWORKS:
+            if ip_obj in net:
+                return True
+        return False
+
+    @classmethod
+    def generate(cls, count: int, protocol: str) -> Set[str]:
+        proxies = set()
+        pool = cls.POPULAR_PORTS.get(protocol.lower(), [80, 8080])
+        
+        while len(proxies) < count:
+            ip_int = random.randint(1, 0xFFFFFFFF - 1)
+            try:
+                ip_obj = ipaddress.IPv4Address(ip_int)
+                if cls._is_reserved(ip_obj):
+                    continue
+                
+                # Микс портов: 50% из пула, 50% полностью рандомные
+                if random.random() < 0.5:
+                    port = random.choice(pool)
+                else:
+                    port = random.randint(1, 65535)
+                    
+                proxies.add(f"{ip_obj}:{port}")
+            except Exception:
+                pass
+        return proxies
+
+    @classmethod
+    def generate_all(cls, counts: Dict[str, int]) -> Dict[str, Set[str]]:
+        results = {}
+        for proto, count in counts.items():
+            if count > 0:
+                results[proto] = cls.generate(count, proto)
+        return results
+
+
+class _ProxyRotator:
+    """Потокобезопасная ротация прокси с автоудалением мёртвых"""
+    def __init__(self, proxies: List[str], remove_dead: bool = False):
+        self._proxies = list(proxies)
+        self._index = 0
+        self._lock = threading.Lock()
+        self._dead = set()
+        self._remove_dead = remove_dead
+
+    def next(self) -> Optional[str]:
+        with self._lock:
+            alive_proxies = [p for p in self._proxies if p not in self._dead]
+            if not alive_proxies:
+                return None
+            
+            if self._index >= len(alive_proxies):
+                self._index = 0
+                
+            proxy = alive_proxies[self._index]
+            self._index = (self._index + 1) % len(alive_proxies)
+            return proxy
+
+    def mark_dead(self, proxy: str):
+        if self._remove_dead:
+            with self._lock:
+                self._dead.add(proxy)
+
+    @property
+    def alive_count(self) -> int:
+        with self._lock:
+            return len([p for p in self._proxies if p not in self._dead])
 
 class ProxyHunter:
     """Главный класс сборщика и валидатора прокси"""
     
     def __init__(self, threads: int = 300, timeout: int = 3, countries: Optional[List[str]] = None, 
                  max_ping: float = 700.0, min_speed: float = 1.0,
-                 check_smtp: bool = True, residential_only: bool = False):
+                 check_smtp: bool = True, residential_only: bool = False,
+                 chain_proxies: Optional[List[str]] = None,
+                 chain_auto_remove_dead: bool = False,
+                 random_counts: Optional[Dict[str, int]] = None):
         
         self.threads = min(threads, 5000)
         self.timeout = timeout
@@ -420,6 +516,10 @@ class ProxyHunter:
         self.min_speed = min_speed
         self.check_smtp = check_smtp
         self.residential_only = residential_only
+        self.chain_proxies = chain_proxies
+        self.chain_auto_remove_dead = chain_auto_remove_dead
+        self.random_counts = random_counts or {"http": 0, "socks4": 0, "socks5": 0}
+        self._rotator = None
 
         self.proxy_protocols: Dict[str, Set[str]] = defaultdict(set)
         self.live_results: List[str] = []
@@ -468,12 +568,18 @@ class ProxyHunter:
             pbar = None
 
         with ThreadPoolExecutor(max_workers=min(len(SOURCES), 30)) as ex:
-            fmap = {ex.submit(ProxyUtils.fetch_url, url, 12): (url, proto) for url, proto in SOURCES}
+            fmap = {}
+            for url, proto in SOURCES:
+                via = self._rotator.next() if self._rotator else None
+                fmap[ex.submit(ProxyUtils.fetch_url, url, 12, via)] = (url, proto, via)
+                
             for fut in as_completed(fmap):
                 if self._wait_if_paused(): break
                 if self._cancel_event.is_set(): break
-                url, proto = fmap[fut]
+                url, proto, via = fmap[fut]
                 content = fut.result()
+                if not content and via and self._rotator:
+                    self._rotator.mark_dead(via)
                 if content:
                     ok_sources += 1
                     proxies = ProxyUtils.parse_proxies(content)
@@ -486,6 +592,21 @@ class ProxyHunter:
         if pbar: pbar.close()
         print(f"    Ответило источников: {ok_sources}/{len(SOURCES)}")
         print(f"    Собрано (Уникальных IP:PORT): {len(self.proxy_protocols)}")
+
+    def collect_random(self):
+        total_random = sum(self.random_counts.values())
+        if total_random == 0:
+            return
+            
+        print(f"\n[+] ШАГ 1.5: Генерация рандомных прокси...")
+        random_proxies = RandomProxyGenerator.generate_all(self.random_counts)
+        count = 0
+        with self._lock:
+            for proto, proxies in random_proxies.items():
+                for p in proxies:
+                    self.proxy_protocols[p].add(proto)
+                count += len(proxies)
+        print(f"    Сгенерировано рандомных: {count}")
 
     def validate(self):
         if not self.proxy_protocols: return
@@ -514,7 +635,8 @@ class ProxyHunter:
                 return (ip_port, {scheme})
                 
             ip, port_s = ip_port.split(':')
-            working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout)
+            via = self._rotator.next() if self._rotator else None
+            working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout, via_proxy=via)
             if working: 
                 if self._cancel_event.is_set(): return None
                 
@@ -530,6 +652,11 @@ class ProxyHunter:
                 if net_info.get('dnsbl') or net_info.get('bad_ports'):
                     return None
                 return (ip_port, working)
+            else:
+                if via and self._rotator:
+                    # In real scenario we might mark it dead, but many proxies just timeout. 
+                    # Only mark dead if we want aggressive removal. We will rely on fetch_url failures for marking dead to be safer.
+                    pass
             return None
 
         try:
@@ -884,15 +1011,27 @@ class ProxyHunter:
         t0 = time.time()
         print("\n🚀 ULTIMATE PROXY HUNTER v4.0 (ADVANCED FILTERS)")
         
-        self._download_mmdb_if_needed()
-        try:
-            if os.path.exists('GeoLite2-Country.mmdb'):
-                self.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
-        except Exception as e:
-            print(f"Ошибка загрузки локальной базы: {e}")
-            self.db_reader = None
+        if self.chain_proxies:
+            self._rotator = _ProxyRotator(self.chain_proxies, remove_dead=self.chain_auto_remove_dead)
+            print(f"[+] Прокси-цепочка: {self._rotator.alive_count} прокси для маскировки")
+            
+        for attempt in range(2):
+            self._download_mmdb_if_needed()
+            try:
+                if os.path.exists('GeoLite2-Country.mmdb'):
+                    self.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
+                    break # Успешно открыли, выходим из цикла
+            except Exception as e:
+                print(f"Ошибка загрузки локальной базы (попытка {attempt+1}): {e}")
+                self.db_reader = None
+                try:
+                    os.remove('GeoLite2-Country.mmdb')
+                    print("Битый файл базы удалён, скачиваем заново...")
+                except:
+                    pass
             
         self.collect()
+        if not self._cancel_event.is_set(): self.collect_random()
         if not self._cancel_event.is_set(): self.validate()
         if not self._cancel_event.is_set(): self.advanced_filter()
         self.save()

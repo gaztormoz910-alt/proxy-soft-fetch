@@ -1,0 +1,1089 @@
+{
+  "check_date": "2026-05-24T17:48:04.026266+00:00",
+  "summary": {
+    "total_urls": 195,
+    "alive_with_proxies": 194,
+    "accessible_but_empty": 0,
+    "dead_unreachable": 1,
+    "github_repos_total": 38,
+    "github_active": 18,
+    "github_stale": 0,
+    "github_archived": 0,
+    "github_deleted": 0
+  },
+  "dead_sources": [
+    {
+      "url": "https://good-proxies.ru/proxy-list/free/us/",
+      "error": "HTTP 520",
+      "protocol": "http"
+    }
+  ],
+  "empty_sources": [],
+  "stale_repos": [],
+  "archived_repos": [],
+  "deleted_repos": [],
+  "active_repos": [
+    {
+      "repo": "ALIILAPRO/Proxy",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:30:58Z"
+    },
+    {
+      "repo": "Anonym0usWork1221/Free-Proxies",
+      "days_ago": 0,
+      "last_push": "2026-05-24T16:52:30Z"
+    },
+    {
+      "repo": "LoneKingCode/free-proxy-db",
+      "days_ago": 0,
+      "last_push": "2026-05-24T12:00:18Z"
+    },
+    {
+      "repo": "MrMarble/proxy-list",
+      "days_ago": 0,
+      "last_push": "2026-05-24T16:46:03Z"
+    },
+    {
+      "repo": "Noctiro/getproxy",
+      "days_ago": 0,
+      "last_push": "2026-05-24T13:00:03Z"
+    },
+    {
+      "repo": "ProxyScraper/ProxyScraper",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:00:03Z"
+    },
+    {
+      "repo": "Skillter/ProxyGather",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:37:50Z"
+    },
+    {
+      "repo": "TheSpeedX/SOCKS-List",
+      "days_ago": 0,
+      "last_push": "2026-05-24T15:57:13Z"
+    },
+    {
+      "repo": "Thordata/awesome-free-proxy-list",
+      "days_ago": 0,
+      "last_push": "2026-05-24T01:24:28Z"
+    },
+    {
+      "repo": "dinoz0rg/proxy-list",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:05:16Z"
+    },
+    {
+      "repo": "komutan234/Proxy-List-Free",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:38:10Z"
+    },
+    {
+      "repo": "mmpx12/proxy-list",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:30:13Z"
+    },
+    {
+      "repo": "proxifly/free-proxy-list",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:38:31Z"
+    },
+    {
+      "repo": "r00tee/Proxy-List",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:45:33Z"
+    },
+    {
+      "repo": "tuanminpay/live-proxy",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:08:19Z"
+    },
+    {
+      "repo": "zloi-user/hideip.me",
+      "days_ago": 0,
+      "last_push": "2026-05-24T17:41:24Z"
+    },
+    {
+      "repo": "BreakingTechFr/Proxy_Free",
+      "days_ago": 51,
+      "last_push": "2026-04-03T05:25:59Z"
+    },
+    {
+      "repo": "ClearProxy/checked-proxy-list",
+      "days_ago": 60,
+      "last_push": "2026-03-25T06:19:13Z"
+    }
+  ],
+  "alive_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/http.txt",
+      "proxy_count": 28902,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/http.txt",
+      "proxy_count": 28806,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/socks4.txt",
+      "proxy_count": 28736,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/socks4.txt",
+      "proxy_count": 28655,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/http.txt",
+      "proxy_count": 28531,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks5.txt",
+      "proxy_count": 25653,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tuanminpay/live-proxy/master/socks5.txt",
+      "proxy_count": 25653,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tuanminpay/live-proxy/master/http.txt",
+      "proxy_count": 21154,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt",
+      "proxy_count": 19049,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/yuceltoluyag/GoodProxy/main/raw.txt",
+      "proxy_count": 19031,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks4.txt",
+      "proxy_count": 18695,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tuanminpay/live-proxy/master/socks4.txt",
+      "proxy_count": 18690,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/socks5_proxies.txt",
+      "proxy_count": 18106,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&proxy_format=protocolipport&format=text",
+      "proxy_count": 16506,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.openproxylist.xyz/socks5.txt",
+      "proxy_count": 15405,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks5.txt",
+      "proxy_count": 14847,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Noctiro/getproxy/master/file/socks5.txt",
+      "proxy_count": 13861,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5&timeout=10000&country=all",
+      "proxy_count": 10216,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://api.proxyscrape.com/?request=getproxies&proxytype=socks5&timeout=10000&country=all",
+      "proxy_count": 10088,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/socks5.txt",
+      "proxy_count": 9692,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks5.txt",
+      "proxy_count": 9670,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://hidemium.io/free-proxy",
+      "proxy_count": 7448,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/http.txt",
+      "proxy_count": 7066,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.openproxylist.xyz/http.txt",
+      "proxy_count": 6774,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BreakingTechFr/Proxy_Free/main/proxies/socks4.txt",
+      "proxy_count": 6731,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Firmfox/Proxify/main/proxies/socks4.txt",
+      "proxy_count": 6620,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks5.txt",
+      "proxy_count": 6471,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://proxyspace.pro/socks5.txt",
+      "proxy_count": 6323,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt",
+      "proxy_count": 5769,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt",
+      "proxy_count": 5736,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt",
+      "proxy_count": 5736,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Noctiro/getproxy/master/file/http.txt",
+      "proxy_count": 5595,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/socks5.txt",
+      "proxy_count": 5461,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/SoliSpirit/proxy-list/main/https.txt",
+      "proxy_count": 4713,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Noctiro/getproxy/master/file/socks4.txt",
+      "proxy_count": 4493,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://api.openproxylist.xyz/socks4.txt",
+      "proxy_count": 4486,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://proxyspace.pro/socks4.txt",
+      "proxy_count": 4333,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt",
+      "proxy_count": 4325,
+      "protocol": "http"
+    },
+    {
+      "url": "https://proxyspace.pro/http.txt",
+      "proxy_count": 4246,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.json",
+      "proxy_count": 4076,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/socks5.txt",
+      "proxy_count": 3710,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.csv",
+      "proxy_count": 3480,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt",
+      "proxy_count": 3480,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/http_proxies.txt",
+      "proxy_count": 3472,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt",
+      "proxy_count": 3437,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt",
+      "proxy_count": 3417,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/http.txt",
+      "proxy_count": 3417,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt",
+      "proxy_count": 3417,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/https.txt",
+      "proxy_count": 3126,
+      "protocol": "http"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/all/data.txt",
+      "proxy_count": 3085,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks4.txt",
+      "proxy_count": 3081,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt",
+      "proxy_count": 2890,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt",
+      "proxy_count": 2890,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/databay-labs/free-proxy-list/http.txt",
+      "proxy_count": 2759,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/sunny9577/proxy-scraper/master/proxies.txt",
+      "proxy_count": 2242,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Noctiro/getproxy/master/file/https.txt",
+      "proxy_count": 2235,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text",
+      "proxy_count": 2000,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text",
+      "proxy_count": 2000,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=socks5",
+      "proxy_count": 2000,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/http.txt",
+      "proxy_count": 1750,
+      "protocol": "http"
+    },
+    {
+      "url": "https://sunny9577.github.io/proxy-scraper/generated/http_proxies.txt",
+      "proxy_count": 1743,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/http.txt",
+      "proxy_count": 1705,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mmpx12/proxy-list/master/proxies.txt",
+      "proxy_count": 1473,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/http.txt",
+      "proxy_count": 1465,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=http",
+      "proxy_count": 1425,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/socks4_proxies.txt",
+      "proxy_count": 1350,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/trio666/proxy-checker/main/http.txt",
+      "proxy_count": 1209,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all",
+      "proxy_count": 1180,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=10000&country=all",
+      "proxy_count": 1173,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/http.txt",
+      "proxy_count": 1172,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt",
+      "proxy_count": 1167,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt",
+      "proxy_count": 1166,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/stormsia/proxy-list/main/working_proxies.txt",
+      "proxy_count": 1156,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/all.txt",
+      "proxy_count": 890,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt",
+      "proxy_count": 843,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/socks5/data.txt",
+      "proxy_count": 840,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/socks4/data.txt",
+      "proxy_count": 792,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/trio666/proxy-checker/main/socks5.txt",
+      "proxy_count": 774,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies.json",
+      "proxy_count": 754,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/https/data.txt",
+      "proxy_count": 752,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/zloi-user/hideip.me/main/https.txt",
+      "proxy_count": 751,
+      "protocol": "http"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/https/data.txt",
+      "proxy_count": 735,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/proxylist.txt",
+      "proxy_count": 722,
+      "protocol": "http"
+    },
+    {
+      "url": "https://vakhov.github.io/fresh-proxy-list/proxylist.txt",
+      "proxy_count": 722,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/proxylist.json",
+      "proxy_count": 722,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt",
+      "proxy_count": 719,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/protocols/http/data.txt",
+      "proxy_count": 708,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=json&protocol=socks5",
+      "proxy_count": 694,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&proxy_format=protocolipport&format=json",
+      "proxy_count": 686,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=json",
+      "proxy_count": 668,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks4.txt",
+      "proxy_count": 660,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/trio666/proxy-checker/main/socks4.txt",
+      "proxy_count": 651,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
+      "proxy_count": 633,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/socks4.txt",
+      "proxy_count": 630,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/MrMarble/proxy-list/main/all.txt",
+      "proxy_count": 611,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/US/data.txt",
+      "proxy_count": 551,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks5/raw/all.txt",
+      "proxy_count": 545,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/http.txt",
+      "proxy_count": 530,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/http.txt",
+      "proxy_count": 528,
+      "protocol": "http"
+    },
+    {
+      "url": "https://vakhov.github.io/fresh-proxy-list/http.txt",
+      "proxy_count": 528,
+      "protocol": "http"
+    },
+    {
+      "url": "https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc",
+      "proxy_count": 500,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=json&protocol=socks4",
+      "proxy_count": 500,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=csv",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=json",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=json&protocol=http",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&country=GB",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&country=DE",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&country=RU",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&country=NL",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=json&protocol=https",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&protocol=https",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&country=US",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&protocol=http",
+      "proxy_count": 497,
+      "protocol": "http"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&protocol=socks4",
+      "proxy_count": 497,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=json&protocol=socks5",
+      "proxy_count": 497,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://databay.com/api/v1/proxy-list?format=txt&protocol=socks5",
+      "proxy_count": 497,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/themiralay/Proxy-List-World/master/data.txt",
+      "proxy_count": 480,
+      "protocol": "http"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/US/data.txt",
+      "proxy_count": 463,
+      "protocol": "http"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/databay-labs/free-proxy-list/socks5.txt",
+      "proxy_count": 461,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-socks5.txt",
+      "proxy_count": 454,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt",
+      "proxy_count": 439,
+      "protocol": "http"
+    },
+    {
+      "url": "https://spys.me/proxy.txt",
+      "proxy_count": 400,
+      "protocol": "http"
+    },
+    {
+      "url": "https://spys.me/socks.txt",
+      "proxy_count": 400,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/socks5.txt",
+      "proxy_count": 348,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=json&protocol=socks4",
+      "proxy_count": 346,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/berkay-digital/Proxy-Scraper/main/proxies.txt",
+      "proxy_count": 339,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=socks4",
+      "proxy_count": 339,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://sunny9577.github.io/proxy-scraper/generated/socks4_proxies.txt",
+      "proxy_count": 328,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/http.txt",
+      "proxy_count": 321,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/elliottophellia/yakumo/master/results/socks5/global/socks5_checked.txt",
+      "proxy_count": 321,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks4.txt",
+      "proxy_count": 309,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/LoneKingCode/free-proxy-db/main/proxies/socks4.txt",
+      "proxy_count": 308,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/http.txt",
+      "proxy_count": 302,
+      "protocol": "http"
+    },
+    {
+      "url": "https://free-proxy-list.net/",
+      "proxy_count": 300,
+      "protocol": "http"
+    },
+    {
+      "url": "https://www.socks-proxy.net/",
+      "proxy_count": 300,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://proxyspace.pro/https.txt",
+      "proxy_count": 299,
+      "protocol": "http"
+    },
+    {
+      "url": "https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4&timeout=10000&country=all",
+      "proxy_count": 297,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/zloi-user/hideip.me/main/socks5.txt",
+      "proxy_count": 284,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mmpx12/proxy-list/master/socks5.txt",
+      "proxy_count": 278,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-http.txt",
+      "proxy_count": 276,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/dinoz0rg/proxy-list/main/checked_proxies/socks4.txt",
+      "proxy_count": 240,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
+      "proxy_count": 221,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks5.txt",
+      "proxy_count": 201,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://www.us-proxy.org/",
+      "proxy_count": 200,
+      "protocol": "http"
+    },
+    {
+      "url": "https://sunny9577.github.io/proxy-scraper/generated/socks5_proxies.txt",
+      "proxy_count": 171,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/socks4.txt",
+      "proxy_count": 168,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://vakhov.github.io/fresh-proxy-list/socks4.txt",
+      "proxy_count": 168,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt",
+      "proxy_count": 155,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS4_RAW.txt",
+      "proxy_count": 150,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks4/raw/all.txt",
+      "proxy_count": 139,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-socks4.txt",
+      "proxy_count": 137,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/zloi-user/hideip.me/main/http.txt",
+      "proxy_count": 132,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt",
+      "proxy_count": 123,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/socks4.txt",
+      "proxy_count": 122,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Thordata/awesome-free-proxy-list/main/proxies/socks4.txt",
+      "proxy_count": 119,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks4.txt",
+      "proxy_count": 117,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/FR/data.txt",
+      "proxy_count": 114,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/FR/data.txt",
+      "proxy_count": 114,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt",
+      "proxy_count": 114,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt",
+      "proxy_count": 112,
+      "protocol": "http"
+    },
+    {
+      "url": "https://free-proxy-list.net/anonymous-proxy.html",
+      "proxy_count": 100,
+      "protocol": "http"
+    },
+    {
+      "url": "https://free-proxy-list.net/uk-proxy.html",
+      "proxy_count": 100,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/https.txt",
+      "proxy_count": 100,
+      "protocol": "http"
+    },
+    {
+      "url": "https://www.sslproxies.org/",
+      "proxy_count": 100,
+      "protocol": "http"
+    },
+    {
+      "url": "https://www.google-proxy.net/",
+      "proxy_count": 100,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks4.txt",
+      "proxy_count": 78,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://www.my-proxy.com/free-proxy-list.html",
+      "proxy_count": 70,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/DE/data.txt",
+      "proxy_count": 65,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/trio666/proxy-checker/main/https.txt",
+      "proxy_count": 65,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/zloi-user/hideip.me/main/socks4.txt",
+      "proxy_count": 65,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://proxyfreeonly.com/ru/free-proxy-list",
+      "proxy_count": 60,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/IN/data.txt",
+      "proxy_count": 51,
+      "protocol": "http"
+    },
+    {
+      "url": "https://litport.net/api/free-proxy",
+      "proxy_count": 50,
+      "protocol": "http"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/DE/data.txt",
+      "proxy_count": 47,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/GB/data.txt",
+      "proxy_count": 46,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/RU/data.txt",
+      "proxy_count": 46,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/NL/data.txt",
+      "proxy_count": 42,
+      "protocol": "http"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/countries/GB/data.txt",
+      "proxy_count": 40,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/https_proxies.txt",
+      "proxy_count": 40,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks4.txt",
+      "proxy_count": 36,
+      "protocol": "socks4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/CA/data.txt",
+      "proxy_count": 35,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/SG/data.txt",
+      "proxy_count": 35,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/socks5.txt",
+      "proxy_count": 21,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://vakhov.github.io/fresh-proxy-list/socks5.txt",
+      "proxy_count": 21,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/BR/data.txt",
+      "proxy_count": 20,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/JP/data.txt",
+      "proxy_count": 19,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5_RAW.txt",
+      "proxy_count": 17,
+      "protocol": "socks5"
+    },
+    {
+      "url": "https://proxymania.su/free-proxy",
+      "proxy_count": 15,
+      "protocol": "http"
+    },
+    {
+      "url": "http://htmlweb.ru/analiz/proxy_list.php",
+      "proxy_count": 14,
+      "protocol": "http"
+    },
+    {
+      "url": "https://proxy-spider.com/api/proxies.example.txt",
+      "proxy_count": 10,
+      "protocol": "http"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/https.txt",
+      "proxy_count": 6,
+      "protocol": "http"
+    },
+    {
+      "url": "https://vakhov.github.io/fresh-proxy-list/https.txt",
+      "proxy_count": 6,
+      "protocol": "http"
+    },
+    {
+      "url": "https://toproxylab.com/ru/spisok-besplatnyh-proksi-serverov",
+      "proxy_count": 1,
+      "protocol": "http"
+    }
+  ]
+}
