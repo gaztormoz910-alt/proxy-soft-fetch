@@ -19,7 +19,6 @@ try:
     import maxminddb
 except ImportError:
     pass
-
 # ═══════════════════════════════════════════════════════════════
 #  РАСШИРЕННЫЙ СПИСОК ИСТОЧНИКОВ (Объединенный)
 # ═══════════════════════════════════════════════════════════════
@@ -222,7 +221,6 @@ SOURCES = [
     ('https://sunny9577.github.io/proxy-scraper/generated/socks5_proxies.txt', 'socks5'),
     ('https://vakhov.github.io/fresh-proxy-list/socks5.txt', 'socks5'),
 ]
-
 # === ПАГИНАЦИЯ (ДИНАМИЧЕСКИЕ ИСТОЧНИКИ) ===
 SOURCES.extend([
 ])
@@ -237,54 +235,96 @@ SOURCES.extend([
 SOURCES.extend([
 ])
 SOURCES.append(('https://good-proxies.ru/proxy-list/free/us/', 'http'))
-
 class ProxyUtils:
     """Утилиты для работы с сетью и парсинга прокси"""
     
-    PROXY_RE  = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})[:\s,;|"\']+(\d{1,5})\b')
+    PROXY_RE  = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})[:\s,;|\"\']+(\d{1,5})\b')
     JSON_IP_FIRST = re.compile(r'(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"[^}]*?(?:"port")\s*:\s*"?(\d{1,5})"?', re.IGNORECASE)
     JSON_PORT_FIRST = re.compile(r'(?:"port")\s*:\s*"?(\d{1,5})"?[^}]*?(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"', re.IGNORECASE)
     TABLE_RE  = re.compile(r'<td[^>]*>\s*(\d{1,3}(?:\.\d{1,3}){3})\s*</td>\s*<td[^>]*>\s*(\d{1,5})\s*</td>', re.IGNORECASE | re.DOTALL)
-
     @staticmethod
     def is_valid(ip: str, port: int) -> bool:
         parts = ip.split('.')
         return (len(parts) == 4 and all(p.isdigit() and 0 <= int(p) <= 255 for p in parts)
                 and 1 <= port <= 65535 and ip not in ('0.0.0.0', '127.0.0.1', '255.255.255.255'))
-
     @classmethod
     def parse_proxies(cls, content: str) -> List[str]:
-        # Автоматический декод Base64, если весь ответ это зашифрованная строка (часто бывает на GitHub)
-        stripped = content.replace('\\n', '').replace('\\r', '').strip()
+        # Автоматический декод Base64, если весь ответ это зашифрованная строка
+        stripped = content.replace('\n', '').replace('\r', '').strip()
         if len(stripped) > 20 and re.match(r'^[A-Za-z0-9+/]+={0,2}$', stripped):
             import base64
             try:
-                decoded = base64.b64decode(stripped).decode('utf-8')
-                content = content + "\\n" + decoded
+                content = base64.b64decode(stripped).decode('utf-8')
             except Exception:
                 pass
-
         found = set()
-        for ip, port in cls.JSON_IP_FIRST.findall(content):
-            if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
-        for port, ip in cls.JSON_PORT_FIRST.findall(content):
-            if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
-        for ip, port in cls.TABLE_RE.findall(content):
+        
+        # ШАГ 1: Попытка умного парсинга JSON (защита от вложенных структур)
+        try:
+            import json
+            data = json.loads(content)
+            
+            def extract_from_json(obj, depth=0):
+                # Защита от бесконечной рекурсии на глубоко вложенных API (monosans geolocation ~5 уровней)
+                if depth > 5:
+                    return
+                if isinstance(obj, dict):
+                    # Извлекаем IP: приоритет ip > host > exit_ip
+                    ip_val = obj.get('ip', obj.get('host', obj.get('exit_ip', '')))
+                    # Пропускаем ключ 'proxy' — он часто содержит полный URI (proxyscrape) или boolean (ip_data)
+                    
+                    # Конвертируем в строку и валидируем
+                    ip = str(ip_val).strip() if ip_val is not None else ''
+                    
+                    port_val = obj.get('port', '')
+                    port_str = str(port_val).strip() if port_val is not None else ''
+                    
+                    if ip and port_str and port_str.isdigit():
+                        port_int = int(port_str)
+                        if cls.is_valid(ip, port_int):
+                            found.add(f"{ip}:{port_str}")
+                    
+                    # Рекурсия только в объекты, которые вероятно содержат прокси-данные
+                    # (пропускаем вложенные метаданные типа geolocation, ip_data, asn)
+                    skip_keys = {'geolocation', 'location', 'ip_data', 'asn', 'city', 
+                                 'continent', 'country', 'registered_country', 'subdivisions',
+                                 'postal', 'names'}
+                    for key, val in obj.items():
+                        if key not in skip_keys and isinstance(val, (dict, list)):
+                            extract_from_json(val, depth + 1)
+                            
+                elif isinstance(obj, list):
+                    for item in obj:
+                        extract_from_json(item, depth + 1)
+            
+            extract_from_json(data)
+            # Если JSON успешно распарсился и мы нашли прокси, возвращаем результат (без Regex)
+            if found:
+                return list(found)
+        except Exception:
+            pass # Не валидный JSON или пусто — падаем в Regex-фолбэк
+            
+        # ШАГ 2: Fallback на регулярные выражения (для текстовых списков и таблиц)
+        for i, match in enumerate(cls.TABLE_RE.finditer(content)):
+            ip, port = match.groups()
             if cls.is_valid(ip.strip(), int(port)): found.add(f"{ip.strip()}:{port}")
-        for ip, port in cls.PROXY_RE.findall(content):
+            if i % 1000 == 0: time.sleep(0.001)
+        for i, match in enumerate(cls.PROXY_RE.finditer(content)):
+            ip, port = match.groups()
             if cls.is_valid(ip, int(port)): found.add(f"{ip}:{port}")
+            if i % 1000 == 0: time.sleep(0.001)
             
         # Парсинг зашифрованных протоколов (VLESS, VMess, SS, Trojan, MTProto и др.)
-        URI_RE = re.compile(r'((?:vless|vmess|ss|ssr|trojan|tuic|hysteria2|tg)://[^\s"\'<>]+|https://t\.me/proxy\?[^\s"\'<>]+)', re.IGNORECASE)
+        URI_RE = re.compile(r'((?:vless|vmess|ss|ssr|trojan|tuic|hysteria2|tg)://[^\s\"\'<>]+|https://t\.me/proxy\?[^\s\"\'<>]+)', re.IGNORECASE)
         IPV4_CHECK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
-        for uri in URI_RE.findall(content):
-            # Принимаем только конфиги с реальным IPv4-адресом (не домены)
+        for i, match in enumerate(URI_RE.finditer(content)):
+            uri = match.group(1)
             ext_ip, _ = cls.extract_ip_port(uri)
             if IPV4_CHECK.match(ext_ip) and cls.is_valid(ext_ip, 1):
                 found.add(uri)
+            if i % 1000 == 0: time.sleep(0.001)
             
         return list(found)
-
     @staticmethod
     def extract_ip_port(uri: str) -> tuple[str, str]:
         import urllib.parse
@@ -292,7 +332,7 @@ class ProxyUtils:
         import json
         try:
             if uri.startswith("vmess://"):
-                b64 = uri[8:]
+                b64 = uri[8:].split('#')[0]  # BUG-FP07 FIX: strip #remark fragment
                 pad = len(b64) % 4
                 if pad: b64 += "=" * (4 - pad)
                 data = json.loads(base64.b64decode(b64).decode('utf-8', errors='ignore'))
@@ -306,100 +346,51 @@ class ProxyUtils:
                 return p.hostname or "Config", str(p.port) if p.port else "N/A"
         except Exception:
             return "Config", "N/A"
-
     @staticmethod
-    def fetch_url(url: str, timeout: int = 10, via_proxy: Optional[str] = None) -> str:
+    def fetch_url(url: str, timeout: int = 10) -> str:
         headers = {'User-Agent': 'Mozilla/5.0'}
-        proxies = {'http': via_proxy, 'https': via_proxy} if via_proxy else None
         try:
-            resp = requests.get(url, headers=headers, timeout=timeout, stream=True, proxies=proxies)
+            resp = requests.get(url, headers=headers, timeout=timeout, stream=True)
             resp.raise_for_status()
             chunks, size = [], 0
             for chunk in resp.iter_content(chunk_size=8192):
                 chunks.append(chunk.decode('utf-8', errors='ignore'))
                 size += len(chunk)
-                if size > 512 * 1024: break
+                # Увеличен лимит до 2 МБ, чтобы не ломать крупные JSON ответы
+                if size > 2 * 1024 * 1024: break
+            resp.close()
             return ''.join(chunks)
         except Exception: 
             return ''
-
     @staticmethod
-    def _parse_proxy_uri(uri: str) -> tuple[str, str, int]:
-        import urllib.parse
-        p = urllib.parse.urlparse(uri)
-        return p.scheme.lower(), p.hostname or '', p.port or 80
-
-    @staticmethod
-    def tcp_ping(ip: str, port: int, timeout: int, via_proxy: Optional[str] = None) -> bool:
+    def tcp_ping(ip: str, port: int, timeout: int) -> bool:
         try:
-            if via_proxy:
-                import socks
-                ptype_str, pip, pport = ProxyUtils._parse_proxy_uri(via_proxy)
-                if ptype_str == 'http': ptype = socks.HTTP
-                elif ptype_str == 'socks4': ptype = socks.SOCKS4
-                elif ptype_str == 'socks5': ptype = socks.SOCKS5
-                else: ptype = socks.SOCKS5
-                with socks.socksocket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                    sock.settimeout(timeout)
-                    sock.set_proxy(ptype, pip, int(pport))
-                    return sock.connect_ex((ip, port)) == 0
-            else:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                    sock.settimeout(timeout)
-                    return sock.connect_ex((ip, port)) == 0
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(timeout)
+                return sock.connect_ex((ip, port)) == 0
         except Exception: 
             return False
-
     @staticmethod
-    def http_check(ip: str, port: int, proto: str, timeout: int, via_proxy: Optional[str] = None) -> bool:
+    def http_check(ip: str, port: int, proto: str, timeout: int) -> bool:
         proxy_url = f"{proto}://{ip}:{port}"
-        
-        if via_proxy:
-            # requests doesn't support connecting to a proxy THROUGH a proxy natively.
-            # We must use socks.socksocket monkey patch or a custom Transport.
-            # The easiest way is to use socks monkey patch for this check.
-            import socks
-            ptype_str, pip, pport = ProxyUtils._parse_proxy_uri(via_proxy)
-            if ptype_str == 'http': ptype = socks.HTTP
-            elif ptype_str == 'socks4': ptype = socks.SOCKS4
-            elif ptype_str == 'socks5': ptype = socks.SOCKS5
-            else: ptype = socks.SOCKS5
-            
-            old_socket = socket.socket
-            try:
-                socks.set_default_proxy(ptype, pip, int(pport))
-                socket.socket = socks.socksocket
-                resp = requests.get("http://gstatic.com/generate_204", proxies={'http': proxy_url, 'https': proxy_url}, timeout=timeout)
-                if resp.status_code == 204: return True
-            except Exception:
-                pass
-            finally:
-                socket.socket = old_socket
-                socks.set_default_proxy()
-            return False
-        else:
-            proxies = {'http': proxy_url, 'https': proxy_url}
-            try:
-                resp = requests.get("http://gstatic.com/generate_204", proxies=proxies, timeout=timeout)
-                if resp.status_code == 204: return True
-            except Exception: 
-                pass
-            return False
-
+        proxies = {'http': proxy_url, 'https': proxy_url}
+        try:
+            resp = requests.get("http://gstatic.com/generate_204", proxies=proxies, timeout=timeout)
+            if resp.status_code == 204: return True
+        except Exception: 
+            pass
+        return False
     @classmethod
-    def check_proxy(cls, ip: str, port: int, protos: Set[str], timeout: int, via_proxy: Optional[str] = None) -> Set[str]:
-        if not cls.tcp_ping(ip, port, timeout, via_proxy=via_proxy): return set()
+    def check_proxy(cls, ip: str, port: int, protos: Set[str], timeout: int) -> Set[str]:
+        if not cls.tcp_ping(ip, port, timeout): return set()
         working_protos = set()
         for proto in sorted(protos):
-            if cls.http_check(ip, port, proto, timeout, via_proxy=via_proxy):
+            if cls.http_check(ip, port, proto, timeout):
                 working_protos.add(proto)
                 break
         return working_protos
-
-
 class RandomProxyGenerator:
     """Генератор рандомных IP:PORT для массовой проверки"""
-
     RESERVED_NETWORKS = [
         ipaddress.ip_network('10.0.0.0/8'),
         ipaddress.ip_network('172.16.0.0/12'),
@@ -417,26 +408,23 @@ class RandomProxyGenerator:
         ipaddress.ip_network('203.0.113.0/24'),
         ipaddress.ip_network('233.252.0.0/24')
     ]
-
     POPULAR_PORTS = {
         'http': [80, 8080, 3128, 8888, 8000, 8443, 443, 8118, 9080, 8081, 8082, 8090, 1080, 3129, 8180, 9090, 8008, 8880, 8123, 8899],
         'socks4': [1080, 4145, 1081, 1085, 4153, 10808, 9050, 9051, 31337, 50000, 4480, 1088, 1180, 5000, 6969],
         'socks5': [1080, 1081, 9050, 9051, 7777, 10808, 1085, 4145, 5555, 50000, 8889, 1088, 4480, 1180, 6969]
     }
-
     @classmethod
     def _is_reserved(cls, ip_obj: ipaddress.IPv4Address) -> bool:
         for net in cls.RESERVED_NETWORKS:
             if ip_obj in net:
                 return True
         return False
-
     @classmethod
-    def generate(cls, count: int, protocol: str) -> Set[str]:
-        proxies = set()
+    def generate(cls, count: int, protocol: str):
         pool = cls.POPULAR_PORTS.get(protocol.lower(), [80, 8080])
+        generated_count = 0
         
-        while len(proxies) < count:
+        while generated_count < count:
             ip_int = random.randint(1, 0xFFFFFFFF - 1)
             try:
                 ip_obj = ipaddress.IPv4Address(ip_int)
@@ -449,62 +437,74 @@ class RandomProxyGenerator:
                 else:
                     port = random.randint(1, 65535)
                     
-                proxies.add(f"{ip_obj}:{port}")
+                yield f"{ip_obj}:{port}"
+                generated_count += 1
             except Exception:
                 pass
-        return proxies
-
     @classmethod
-    def generate_all(cls, counts: Dict[str, int]) -> Dict[str, Set[str]]:
-        results = {}
+    def generate_all(cls, counts: Dict[str, int]):
         for proto, count in counts.items():
             if count > 0:
-                results[proto] = cls.generate(count, proto)
-        return results
-
-
-class _ProxyRotator:
-    """Потокобезопасная ротация прокси с автоудалением мёртвых"""
-    def __init__(self, proxies: List[str], remove_dead: bool = False):
-        self._proxies = list(proxies)
-        self._index = 0
-        self._lock = threading.Lock()
-        self._dead = set()
-        self._remove_dead = remove_dead
-
-    def next(self) -> Optional[str]:
-        with self._lock:
-            alive_proxies = [p for p in self._proxies if p not in self._dead]
-            if not alive_proxies:
-                return None
-            
-            if self._index >= len(alive_proxies):
-                self._index = 0
-                
-            proxy = alive_proxies[self._index]
-            self._index = (self._index + 1) % len(alive_proxies)
-            return proxy
-
-    def mark_dead(self, proxy: str):
-        if self._remove_dead:
-            with self._lock:
-                self._dead.add(proxy)
-
-    @property
-    def alive_count(self) -> int:
-        with self._lock:
-            return len([p for p in self._proxies if p not in self._dead])
-
+                for proxy in cls.generate(count, proto):
+                    yield proto, proxy
+TRANS = {
+    "RU": {
+        "log_unique_ip": "Уникальных IP:PORT",
+        "step1": "ШАГ 1: Асинхронный сбор из {0} источников...",
+        "step1_5": "ШАГ 1.5: Генерация рандомных прокси...",
+        "step2": "ШАГ 2: Базовая проверка {0} прокси на живость...",
+        "step3": "ШАГ 3: Классификация и фильтрация {0} рабочих прокси...",
+        "tqdm_dl": "Загрузка",
+        "tqdm_check": "Проверка",
+        "tqdm_filter": "Фильтрация",
+        "live_proxies": "Живых прокси:",
+        "elite_proxies": "Элитных прокси, прошедших все фильтры:",
+        "sources_replied": "Ответило источников:",
+        "random_generated": "Сгенерировано рандомных:",
+        "time_total": "Общее время работы: {0}м {1}с",
+        "user_abort": "Работа была прервана пользователем.",
+        "start": "[*] Запуск сбора прокси (Лимит потоков: {max_workers})",
+        "step1": "ШАГ 1: Асинхронный сбор из {0} источников...",
+        "fetch_err": "    [x] Ошибка {source}: {e}",
+        "raw_found": "    [+] Сырых прокси собрано: {0}",
+        "step2": "ШАГ 2: Базовая проверка на живость...",
+        "live_found": "    [✓] Живых прокси: {0}",
+        "step3": "ШАГ 3: Расширенная фильтрация (Анон, Блеклисты, Тип)...",
+        "ipinfo": "    [ipinfo.io] Получены типы для {checked}/{total} ASN",
+        "passed": "    [★] Уникальных IP:PORT прошедших все фильтры: {0}",
+        "done": "\n[✓] Готово! Сохранение результатов...",
+        "save_live": "[✓] Базовые списки по категориям сохранены в папку 'results_live/'",
+        "cancel": "[!] Задача отменена пользователем",
+        "elite": "  [★ ЭЛИТНЫЙ] Прошел все фильтры: {proxy} ({proto}) - {country}",
+        "working": "  [✓ РАБОЧИЙ] Найден: {proxy} ({proto}) - {country}"
+    },
+    "EN": {
+        "start": "[*] Starting proxy collection (Thread limit: {max_workers})",
+        "step1": "STEP 1: Async fetching from {0} sources...",
+        "fetch_err": "    [x] Error {source}: {e}",
+        "raw_found": "    [+] Raw proxies collected: {0}",
+        "step2": "STEP 2: Basic live check...",
+        "live_found": "    [✓] Live proxies: {0}",
+        "step3": "STEP 3: Advanced filtering (Anon, Blacklists, Type)...",
+        "ipinfo": "    [ipinfo.io] Fetched types for {checked}/{total} ASN",
+        "passed": "    [★] Unique IP:PORT passed all filters: {0}",
+        "done": "\n[✓] Done! Saving results...",
+        "save_live": "[✓] Basic category lists saved to 'results_live/' folder",
+        "cancel": "[!] Task cancelled by user",
+        "elite": "  [★ ELITE] Passed all filters: {proxy} ({proto}) - {country}",
+        "working": "  [✓ WORKING] Found: {proxy} ({proto}) - {country}"
+    }
+}
 class ProxyHunter:
     """Главный класс сборщика и валидатора прокси"""
     
     def __init__(self, threads: int = 300, timeout: int = 3, countries: Optional[List[str]] = None, 
                  max_ping: float = 700.0, min_speed: float = 1.0,
-                 check_smtp: bool = True, residential_only: bool = False,
-                 chain_proxies: Optional[List[str]] = None,
-                 chain_auto_remove_dead: bool = False,
-                 random_counts: Optional[Dict[str, int]] = None):
+                 check_smtp: bool = False,
+                 collect_dc: bool = True, collect_res: bool = True, collect_mob: bool = True,
+                 random_counts: Optional[Dict[str, int]] = None, lang: str = "RU"):
         
+        self.lang = lang
         self.threads = min(threads, 5000)
         self.timeout = timeout
         
@@ -515,39 +515,43 @@ class ProxyHunter:
         self.max_ping = max_ping
         self.min_speed = min_speed
         self.check_smtp = check_smtp
-        self.residential_only = residential_only
-        self.chain_proxies = chain_proxies
-        self.chain_auto_remove_dead = chain_auto_remove_dead
-        self.random_counts = random_counts or {"http": 0, "socks4": 0, "socks5": 0}
-        self._rotator = None
-
+        
+        self.collect_dc = collect_dc
+        self.collect_res = collect_res
+        self.collect_mob = collect_mob
+        self.random_counts = random_counts or {'http': 0, 'socks4': 0, 'socks5': 0}
         self.proxy_protocols: Dict[str, Set[str]] = defaultdict(set)
         self.live_results: List[str] = []
-        self.good_results: List[str] = []
+        self.elite_results: List[str] = []
+        
+        self.results_datacenter: List[str] = []
+        self.results_residential: List[str] = []
+        self.results_mobile: List[str] = []
+        
         self._lock = threading.Lock()
         
         self.ip_cache: Dict[str, dict] = {}
+        self.asn_cache: Dict[str, str] = {}  # ASN → type (isp/hosting/business) from ipinfo.io
         self.db_reader = None
         
         self._pause_event = threading.Event()
         self._cancel_event = threading.Event()
-
-    def pause(self):
-        self._pause_event.set()
-
-    def resume(self):
-        self._pause_event.clear()
-
+    def _t(self, key, *args, **kwargs):
+        text = TRANS.get(self.lang, TRANS["EN"]).get(key, key)
+        if args or kwargs:
+            try:
+                return text.format(*args, **kwargs)
+            except Exception:
+                return text
+        return text
     def cancel(self):
         self._cancel_event.set()
         self.resume()  # Unblock paused threads
-
     def _wait_if_paused(self) -> bool:
         """Returns True if cancelled, False if ready to continue"""
         while self._pause_event.is_set() and not self._cancel_event.is_set():
             time.sleep(0.5)
         return self._cancel_event.is_set()
-
     def _get_country(self, ip: str) -> str:
         if hasattr(self, 'db_reader') and self.db_reader:
             try:
@@ -557,29 +561,24 @@ class ProxyHunter:
             except Exception:
                 pass
         return 'Unknown'
-
     def collect(self):
-        print(f"\n[+] ШАГ 1: Сбор из {len(SOURCES)} источников...")
+        print(f"\n[+] " + self._t("step1").format(len(SOURCES)))
         total_raw, ok_sources = 0, 0
         try:
             from tqdm import tqdm
-            pbar = tqdm(total=len(SOURCES), desc="Загрузка")
+            pbar = tqdm(total=len(SOURCES), desc=self._t("tqdm_dl"))
         except ImportError:
             pbar = None
-
         with ThreadPoolExecutor(max_workers=min(len(SOURCES), 30)) as ex:
             fmap = {}
             for url, proto in SOURCES:
-                via = self._rotator.next() if self._rotator else None
-                fmap[ex.submit(ProxyUtils.fetch_url, url, 12, via)] = (url, proto, via)
+                fmap[ex.submit(ProxyUtils.fetch_url, url, 12)] = (url, proto)
                 
             for fut in as_completed(fmap):
                 if self._wait_if_paused(): break
                 if self._cancel_event.is_set(): break
-                url, proto, via = fmap[fut]
+                url, proto = fmap[fut]
                 content = fut.result()
-                if not content and via and self._rotator:
-                    self._rotator.mark_dead(via)
                 if content:
                     ok_sources += 1
                     proxies = ProxyUtils.parse_proxies(content)
@@ -590,30 +589,25 @@ class ProxyHunter:
                 if pbar: pbar.update(1)
         
         if pbar: pbar.close()
-        print(f"    Ответило источников: {ok_sources}/{len(SOURCES)}")
-        print(f"    Собрано (Уникальных IP:PORT): {len(self.proxy_protocols)}")
-
+        print(f"    {self._t('sources_replied')}: {ok_sources}/{len(SOURCES)}")
+        print(f"    {self._t('log_unique_ip')}: {len(self.proxy_protocols)}")
     def collect_random(self):
         total_random = sum(self.random_counts.values())
         if total_random == 0:
             return
             
-        print(f"\n[+] ШАГ 1.5: Генерация рандомных прокси...")
-        random_proxies = RandomProxyGenerator.generate_all(self.random_counts)
+        print(f"\n[+] " + self._t("step1_5"))
         count = 0
         with self._lock:
-            for proto, proxies in random_proxies.items():
-                for p in proxies:
-                    self.proxy_protocols[p].add(proto)
-                count += len(proxies)
-        print(f"    Сгенерировано рандомных: {count}")
-
+            for proto, proxy in RandomProxyGenerator.generate_all(self.random_counts):
+                self.proxy_protocols[proxy].add(proto)
+                count += 1
+        print(f"    {self._t('random_generated')}: {count}")
     def validate(self):
         if not self.proxy_protocols: return
         candidates = list(self.proxy_protocols.items())
         total = len(candidates)
-        print(f"\n[+] ШАГ 2: Базовая проверка {total} прокси на живость...")
-
+        print(f"\n[+] " + self._t("step2").format(total))
         def worker(item: Tuple[str, Set[str]]) -> Optional[Tuple[str, Set[str]]]:
             if self._wait_if_paused(): return None
             if self._cancel_event.is_set(): return None
@@ -634,9 +628,8 @@ class ProxyHunter:
                         return None
                 return (ip_port, {scheme})
                 
-            ip, port_s = ip_port.split(':')
-            via = self._rotator.next() if self._rotator else None
-            working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout, via_proxy=via)
+            ip, port_s = ip_port.rsplit(':', 1)  # BUG-09 FIX: rsplit для защиты от IPv6/мусора
+            working = ProxyUtils.check_proxy(ip, int(port_s), protos, self.timeout)
             if working: 
                 if self._cancel_event.is_set(): return None
                 
@@ -647,65 +640,69 @@ class ProxyHunter:
                 
                 if self._wait_if_paused(): return None
                 
-                # Перенесенные из расширенной фильтрации проверки (DNSBL и Ботнет-порты)
-                net_info = self._check_rdns_and_bl(ip)
-                if net_info.get('dnsbl') or net_info.get('bad_ports'):
-                    return None
                 return (ip_port, working)
-            else:
-                if via and self._rotator:
-                    # In real scenario we might mark it dead, but many proxies just timeout. 
-                    # Only mark dead if we want aggressive removal. We will rely on fetch_url failures for marking dead to be safer.
-                    pass
             return None
-
         try:
             from tqdm import tqdm
-            pbar = tqdm(total=total, desc="Проверка")
+            pbar = tqdm(total=total, desc=self._t("tqdm_check"))
         except ImportError: 
             pbar = None
-
         with ThreadPoolExecutor(max_workers=self.threads) as ex:
-            futs = [ex.submit(worker, item) for item in candidates]
-            for fut in as_completed(futs):
-                if self._wait_if_paused(): break
+            import itertools
+            import concurrent.futures
+            
+            candidate_iter = iter(candidates)
+            active_futs = set()
+            
+            for item in itertools.islice(candidate_iter, self.threads * 2):
+                active_futs.add(ex.submit(worker, item))
+                
+            while active_futs:
+                done, active_futs = concurrent.futures.wait(
+                    active_futs, return_when=concurrent.futures.FIRST_COMPLETED
+                )
+                
+                for fut in done:
+                    if self._wait_if_paused(): break
+                    if self._cancel_event.is_set(): break
+                    res = fut.result()
+                    if res:
+                        ip_port, working_protos = res
+                        with self._lock:
+                            for p in sorted(working_protos): 
+                                if '://' in ip_port:
+                                    norm_uri = f"{p}://{ip_port.split('://', 1)[1]}"
+                                    self.live_results.append(norm_uri)
+                                    ext_ip, ext_port = ProxyUtils.extract_ip_port(norm_uri)
+                                    ext_country = self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
+                                    if ext_ip != "Config":
+                                        if ext_ip not in self.ip_cache: self.ip_cache[ext_ip] = {}
+                                        self.ip_cache[ext_ip]['country'] = ext_country
+                                        print(f"    [REALTIME_NEW_LIVE] {ext_ip}|{ext_port}|{p.upper()}|{ext_country}")
+                                else:
+                                    self.live_results.append(f"{p}://{ip_port}")
+                                    ip, port = ip_port.rsplit(':', 1)  # BUG-09 FIX
+                                    country = self.ip_cache.get(ip, {}).get('country', '') or self._get_country(ip)
+                                    if ip not in self.ip_cache: self.ip_cache[ip] = {}
+                                    self.ip_cache[ip]['country'] = country
+                                    print(f"    [REALTIME_NEW_LIVE] {ip}|{port}|{p.upper()}|{country}")
+                            if len(self.live_results) % 5 == 0 or len(self.live_results) < 10:
+                                print(f"    [REALTIME_LIVE] {len(self.live_results)}")
+                    if pbar: pbar.update(1)
                 if self._cancel_event.is_set(): break
-                res = fut.result()
-                if res:
-                    ip_port, working_protos = res
-                    with self._lock:
-                        for p in sorted(working_protos): 
-                            if '://' in ip_port:
-                                norm_uri = f"{p}://{ip_port.split('://', 1)[1]}"
-                                self.live_results.append(norm_uri)
-                                ext_ip, ext_port = ProxyUtils.extract_ip_port(norm_uri)
-                                ext_country = self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
-                                if ext_ip != "Config":
-                                    if ext_ip not in self.ip_cache: self.ip_cache[ext_ip] = {}
-                                    self.ip_cache[ext_ip]['country'] = ext_country
-                                print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ext_ip, 'port': ext_port, 'protocol': p.upper(), 'country': ext_country})}")
-                            else:
-                                self.live_results.append(f"{p}://{ip_port}")
-                                ip, port = ip_port.split(':')
-                                country = self.ip_cache.get(ip, {}).get('country', '') or self._get_country(ip)
-                                if ip not in self.ip_cache: self.ip_cache[ip] = {}
-                                self.ip_cache[ip]['country'] = country
-                                print(f"    [REALTIME_NEW_LIVE] {json.dumps({'ip': ip, 'port': port, 'protocol': p, 'country': country})}")
-                        if len(self.live_results) % 5 == 0 or len(self.live_results) < 10:
-                            print(f"    [REALTIME_LIVE] {len(self.live_results)}")
-                if pbar: pbar.update(1)
-
+                
+                for item in itertools.islice(candidate_iter, len(done)):
+                    active_futs.add(ex.submit(worker, item))
         if pbar: pbar.close()
         self.live_results = sorted(set(self.live_results))
-        print(f"    Живых прокси: {len(self.live_results)}")
-
+        print(f"    {self._t('live_proxies')} {len(self.live_results)}")
     def _download_mmdb_if_needed(self):
         db_path = 'GeoLite2-Country.mmdb'
         needs_download = False
         
         if not os.path.exists(db_path):
             needs_download = True
-            print(f"\n[!] Локальная база {db_path} не найдена. Скачиваю (около 5MB)...")
+            print(f"\n[!] Локальная база {db_path} не была найдена. Скачиваю (около 5MB)...")
         else:
             # Обновляем базу, если она старше 7 дней (604800 секунд)
             if time.time() - os.path.getmtime(db_path) > 604800:
@@ -714,53 +711,141 @@ class ProxyHunter:
                 
         if needs_download:
             url = 'https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb'
+            tmp_path = db_path + '.tmp'
             try:
                 r = requests.get(url, stream=True, timeout=30)
                 r.raise_for_status()
-                with open(db_path, 'wb') as f:
+                # BUG FIX: Используем временный файл, чтобы не оставить битую базу при обрыве сети
+                with open(tmp_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
-                        f.write(chunk)
+                        if chunk: f.write(chunk)
+                # Если скачивание завершено успешно, атомарно заменяем старый файл новым
+                os.replace(tmp_path, db_path)
                 print("[✓] Локальная база успешно скачана/обновлена!")
             except Exception as e:
-                print(f"[x] Ошибка обновления базы: {e}")
-
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+                print(f"[x] Ошибка обновления базы (работаем без GeoIP): {e}")
     def _batch_ip_info(self, ips: Set[str]):
-        """Пакетный запрос в ip-api.com для кэширования гео/ISP"""
+        """Пакетный запрос в ip-api.com с Exponential Backoff для обхода 429 Rate Limit"""
         chunks = [list(ips)[i:i+100] for i in range(0, len(ips), 100)]
         for chunk in chunks:
             if self._wait_if_paused(): break
             if self._cancel_event.is_set(): break
+            
+            retries = 3
+            backoff = 4
+            for attempt in range(retries):
+                try:
+                    resp = requests.post("http://ip-api.com/batch?fields=query,isp,org,as,hosting,mobile,countryCode", json=chunk, timeout=10)
+                    
+                    if resp.status_code == 429:
+                        # Rate Limit: ждем дольше и пробуем снова
+                        time.sleep(backoff)
+                        backoff *= 2
+                        continue
+                        
+                    if resp.status_code == 200:
+                        try:
+                            json_data = resp.json()
+                            if not isinstance(json_data, list): break # Защита от кривого контракта
+                            
+                            with self._lock: # Защита от состояния гонки (Race Condition)
+                                for data in json_data:
+                                    if not isinstance(data, dict): continue
+                                    query_ip = data.get('query')
+                                    if not query_ip: continue
+                                    
+                                    if query_ip not in self.ip_cache:
+                                        self.ip_cache[query_ip] = {}
+                                        
+                                    self.ip_cache[query_ip].update({
+                                        'country': data.get('countryCode', ''),
+                                        'datacenter': data.get('hosting', False),
+                                        'mobile': data.get('mobile', False),
+                                        'isp': data.get('isp', '').lower(),
+                                        'asn': data.get('as', '')  # e.g. "AS265606 DIGY NETWORKS"
+                                    })
+                            break # Успешно, выходим из цикла ретраев
+                        except Exception:
+                            break # JSON Decode error или другая фатальная ошибка структуры
+                    else:
+                        break # Другие ошибки (500, 403 и т.д.) - пропускаем чанк
+                except Exception:
+                    time.sleep(2)
+                    
+            time.sleep(4) # Базовый кулдаун API
+    def _batch_asn_type(self):
+        """Запрос типа ASN (isp/hosting/business) через ipinfo.io для определения Residential.
+        
+        Проверяем каждый уникальный ASN один раз. Результат кешируется в self.asn_cache.
+        ASN type 'isp' = Residential, 'hosting' = Datacenter, 'business' = Datacenter.
+        """
+        # Собираем уникальные ASN из ip_cache
+        unique_asns = set()
+        with self._lock:
+            for ip, info in self.ip_cache.items():
+                asn_str = info.get('asn', '')
+                if asn_str:
+                    asn_num = asn_str.split()[0]  # "AS265606 DIGY NETWORKS" → "AS265606"
+                    if asn_num.startswith('AS'):
+                        unique_asns.add(asn_num)
+        
+        # Убираем уже закешированные
+        unique_asns -= set(self.asn_cache.keys())
+        if not unique_asns:
+            return
+        
+        print(f"    [ipinfo.io] Проверяю тип {len(unique_asns)} уникальных ASN (Residential/Hosting)...")
+        
+        checked = 0
+        for asn in unique_asns:
+            if self._cancel_event.is_set(): break
+            
             try:
-                resp = requests.post("http://ip-api.com/batch?fields=query,isp,org,hosting,mobile,countryCode", json=chunk, timeout=10)
+                resp = requests.get(f"https://ipinfo.io/{asn}/json", timeout=5,
+                                    headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
                 if resp.status_code == 200:
-                    for data in resp.json():
-                        self.ip_cache[data['query']] = {
-                            'country': data.get('countryCode', ''),
-                            'datacenter': data.get('hosting', False),
-                            'isp': data.get('isp', '').lower()
-                        }
+                    data = resp.json()
+                    asn_type = data.get('type', '').lower()  # "isp", "hosting", "business"
+                    if asn_type:
+                        self.asn_cache[asn] = asn_type
+                        checked += 1
+                elif resp.status_code == 429:
+                    # Rate limit — подождём и продолжим
+                    time.sleep(5)
+                    try:
+                        resp = requests.get(f"https://ipinfo.io/{asn}/json", timeout=5,
+                                            headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            asn_type = data.get('type', '').lower()
+                            if asn_type:
+                                self.asn_cache[asn] = asn_type
+                                checked += 1
+                    except Exception:
+                        pass
             except Exception:
                 pass
-            time.sleep(4)
-
+            
+            time.sleep(0.3)  # Мягкий rate-limit для ipinfo.io
+        
+        print(self._t("ipinfo", checked=checked, total=len(unique_asns)))
     def _check_rdns_and_bl(self, ip: str) -> dict:
         """Кэшируемая проверка RDNS и DNSBL"""
-        if ip in self.ip_cache and 'dnsbl' in self.ip_cache[ip]:
-            return self.ip_cache[ip]
-
+        # BUG-4 FIX: чтение кэша под локом, возврат копии для thread-safety
+        with self._lock:
+            if ip in self.ip_cache and 'dnsbl' in self.ip_cache[ip]:
+                return self.ip_cache[ip].copy()
         fast_resolver = dns.resolver.Resolver()
         fast_resolver.timeout = 1.0
         fast_resolver.lifetime = 1.0
-
         rdns = ""
         try:
             rev_name = dns.reversename.from_address(ip)
             rdns = str(fast_resolver.resolve(rev_name, 'PTR')[0]).lower()
         except Exception: 
             pass
-
-        dirty_rdns = any(x in rdns for x in ['amazonaws', 'googleusercontent', 'digitalocean', 'hetzner', 'ovh', 'linode'])
-
         rev_ip = '.'.join(reversed(ip.split('.')))
         bls = [
             'zen.spamhaus.org', 
@@ -778,161 +863,219 @@ class ProxyHunter:
                 for rdata in answers:
                     ip_str = rdata.to_text()
                     # Игнорируем ответы вида 127.255.255.X (ошибка Spamhaus: "Public DNS blocked")
-                    # Настоящие попадания в блеклист всегда в диапазоне 127.0.0.X или 127.0.1.X
                     if ip_str.startswith('127.0.0.') or ip_str.startswith('127.0.1.'):
                         is_bl = True
                         break
                 if is_bl: break
             except Exception: 
                 pass
-
-        bad_ports = [22, 23, 3389, 3128]
+        bad_ports = [21, 22, 23, 25, 3389, 3128]
         has_bad_port = False
         for port in bad_ports:
             if ProxyUtils.tcp_ping(ip, port, timeout=1):
                 has_bad_port = True
                 break
-
-        if ip not in self.ip_cache: self.ip_cache[ip] = {}
-        self.ip_cache[ip].update({'rdns_dirty': dirty_rdns, 'dnsbl': is_bl, 'bad_ports': has_bad_port})
-        return self.ip_cache[ip]
-
-    def _run_single_filter(self, item: str) -> Optional[str]:
-        """Логика расширенной проверки одного прокси"""
+        # Защита от состояния гонки при записи из множества потоков
+        with self._lock:
+            if ip not in self.ip_cache: self.ip_cache[ip] = {}
+            self.ip_cache[ip].update({'rdns': rdns, 'dnsbl': is_bl, 'bad_ports': has_bad_port})
+            return self.ip_cache[ip].copy()
+    def _run_single_filter(self, item: str) -> Optional[Tuple[str, str]]:
+        """Классификация и фильтрация одного прокси.
+        
+        Классификация СТРОГО по данным ip-api.com:
+          hosting=true  → Datacenter
+          mobile=true   → Mobile
+          оба false     → Residential (ISP)
+        """
         if self._wait_if_paused(): return None
         if self._cancel_event.is_set(): return None
-        proto, ipp = item.split('://', 1)
         
-        # Зашифрованные прокси пропускаем как "элитные" без проверок (их нельзя проверить через httpbin)
-        if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
-            return item
-        
-        if ':' not in ipp:
-            return None
-        ip, port_s = ipp.split(':', 1)
-        port = int(port_s)
-
-        ip_info = self.ip_cache.get(ip, {})
-        if self.residential_only and ip_info.get('datacenter', True):
-            return None
-
-        net_info = self._check_rdns_and_bl(ip)
-        if net_info.get('rdns_dirty'):
-            return None
-
-        proxy_url = f"{proto}://{ip}:{port}"
-        proxies = {'http': proxy_url, 'https': proxy_url}
-
         try:
-            resp = requests.get('http://httpbin.org/headers', proxies=proxies, timeout=self.timeout)
-            if resp.status_code == 200:
-                headers = str(resp.json().get('headers', {})).lower()
-                if 'x-forwarded-for' in headers or 'via' in headers or 'proxy-connection' in headers:
+            proto, ipp = item.split('://', 1)
+        except ValueError:
+            return None
+        
+        encrypted_protos = ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto')
+        
+        # --- Извлечение IP и порта ---
+        if proto.lower() in encrypted_protos:
+            ext_ip, _ = ProxyUtils.extract_ip_port(item)
+            if ext_ip == "Config" or not re.match(r'^\d{1,3}(?:\.\d{1,3}){3}$', ext_ip):
+                # Зашифрованные конфиги без видимого IP — по умолчанию Datacenter
+                if not getattr(self, 'collect_dc', True):
                     return None
-        except Exception: 
+                return (item, "Datacenter")
+            ip = ext_ip
+            port = 443
+        else:
+            if ':' not in ipp: return None
+            ip, port_s = ipp.rsplit(':', 1)
+            try: port = int(port_s)
+            except ValueError: return None
+        
+        # === КЛАССИФИКАЦИЯ ===
+        # ip-api.com → mobile detection
+        # ipinfo.io  → residential detection (ASN type = "isp")
+        with self._lock:
+            ip_info = self.ip_cache.get(ip, {}).copy()
+        
+        has_api_data = 'datacenter' in ip_info
+        is_mobile_api = ip_info.get('mobile', False)       # ip-api.com
+        is_hosting_api = ip_info.get('datacenter', False)  # ip-api.com
+        
+        # Получаем тип ASN из ipinfo.io
+        asn_str = ip_info.get('asn', '')
+        asn_num = asn_str.split()[0] if asn_str else ''
+        asn_type = self.asn_cache.get(asn_num, '')  # "isp", "hosting", "business" или ""
+        
+        # Приоритет классификации:
+        # 1. ip-api.com mobile=true → Mobile
+        # 2. ipinfo.io ASN type="isp" → Residential
+        # 3. ipinfo.io ASN type="hosting"/"business" → Datacenter
+        # 4. Fallback: ip-api.com hosting=true → Datacenter
+        # 5. Fallback: нет данных → Datacenter
+        if is_mobile_api:
+            category = "Mobile"
+        elif asn_type == "isp":
+            category = "Residential"
+        elif asn_type in ("hosting", "business"):
+            category = "Datacenter"
+        elif not has_api_data:
+            category = "Datacenter"
+        elif is_hosting_api:
+            category = "Datacenter"
+        else:
+            category = "Residential"
+        
+        # === ФИЛЬТР по выбору пользователя (галочки в GUI) ===
+        if category == "Datacenter" and not getattr(self, 'collect_dc', True):
             return None
-
-        if self._wait_if_paused(): return None
-
-        # 1. Точный замер TCP-пинга до самого прокси (без учета HTTP-оверхеда)
-        ping_start = time.time()
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(3.0)
-                sock.connect((ip, port))
-            ping_ms = (time.time() - ping_start) * 1000
-        except Exception:
+        if category == "Residential" and not getattr(self, 'collect_res', True):
             return None
-            
-        if ping_ms > self.max_ping:
+        if category == "Mobile" and not getattr(self, 'collect_mob', True):
             return None
-
-        # 2. Точный замер чистой пропускной способности (без учета времени подключения)
-        try:
-            resp = requests.get('https://speed.cloudflare.com/__down?bytes=200000', 
-                                proxies=proxies, timeout=self.timeout, stream=True)
-            if resp.status_code != 200: return None
-            
-            dl_start = time.time()
-            downloaded = 0
-            for chunk in resp.iter_content(chunk_size=32768):
-                if chunk: downloaded += len(chunk)
-                
-            dl_time = time.time() - dl_start
-            if dl_time <= 0: dl_time = 0.001
-            
-            # Перевод байт/с в Мбит/с
-            speed_mbps = (downloaded * 8) / dl_time / 1000000
-            
-            if speed_mbps < self.min_speed:
-                return None
-        except Exception: 
-            return None
-
-        if self._wait_if_paused(): return None
-
-        if self.check_smtp:
-            smtp_ok = False
+        
+        # === ПРОВЕРКА ПИНГА (только для стандартных прокси) ===
+        if proto.lower() not in encrypted_protos and self.max_ping > 0:
             try:
-                if requests.get('http://portquiz.net:25', proxies=proxies, timeout=self.timeout).status_code == 200: 
-                    smtp_ok = True
-            except Exception: pass
+                ping_start = time.time()
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                    sock.settimeout(min(3.0, self.timeout))
+                    sock.connect((ip, port))
+                ping_ms = (time.time() - ping_start) * 1000
+                if ping_ms > self.max_ping:
+                    return None
+            except Exception:
+                return None
+        
+        # === ПРОВЕРКА SMTP (если включена пользователем) ===
+        if self.check_smtp and proto.lower() not in encrypted_protos:
+            proxy_proto = proto.lower()
+            if proxy_proto in ('socks4', 'socks5'):
+                proxy_url = f"{proxy_proto}://{ip}:{port}"
+            elif proxy_proto == 'socks5h':
+                proxy_url = f"socks5h://{ip}:{port}"
+            else:
+                proxy_url = f"http://{ip}:{port}"
+            proxies_dict = {'http': proxy_url, 'https': proxy_url}
             
-            if not smtp_ok:
+            smtp_ok = False
+            for smtp_port in [25, 587]:
                 try:
-                    if requests.get('http://portquiz.net:587', proxies=proxies, timeout=self.timeout).status_code == 200: 
+                    resp = requests.get(f'http://portquiz.net:{smtp_port}',
+                                       proxies=proxies_dict, timeout=self.timeout)
+                    if resp.status_code == 200:
                         smtp_ok = True
-                except Exception: pass
-            if not smtp_ok: return None
-
-        return item
-
+                        break
+                except Exception:
+                    pass
+            if not smtp_ok:
+                return None
+        
+        return (item, category)
     def advanced_filter(self):
         if not self.live_results: return
-        print(f"\n[+] ШАГ 3: Расширенная фильтрация {len(self.live_results)} прокси...")
-        print(f"    [Фильтрация по странам и DNSBL уже пройдена на Шаге 2]")
+        print(f"\n[+] " + self._t("step3").format(len(self.live_results)))
         
-        if self.residential_only and self.live_results:
-            residential_ips = set([r.split('://')[1].split(':')[0] for r in self.live_results])
-            print(f"    Запрашиваю тип прокси (Residential) для {len(residential_ips)} IP через ip-api...")
-            self._batch_ip_info(residential_ips)
-        elif not self.residential_only:
-            print("    Флаг --residential-only не установлен. Пропускаем долгий опрос ip-api.com!")
-
+        # Собираем уникальные IP для пакетного запроса
+        unique_ips = set()
+        for r in self.live_results:
+            ext_ip, _ = ProxyUtils.extract_ip_port(r)
+            if ext_ip != "Config" and re.match(r'^\d{1,3}(?:\.\d{1,3}){3}$', ext_ip):
+                unique_ips.add(ext_ip)
+        
+        # 1) ip-api.com — определяем mobile/hosting флаги для каждого IP
+        print(f"    [ip-api.com] Определяю mobile/hosting для {len(unique_ips)} IP...")
+        self._batch_ip_info(unique_ips)
+        print(f"    [ip-api.com] Данные получены.")
+        
+        # 2) ipinfo.io — определяем тип ASN (isp/hosting/business) для Residential-детекции
+        self._batch_asn_type()
+        print(f"    Классифицирую и фильтрую прокси...")
+        
         try:
             from tqdm import tqdm
-            pbar = tqdm(total=len(self.live_results), desc="Фильтрация")
-        except ImportError: 
+            pbar = tqdm(total=len(self.live_results), desc=self._t("tqdm_filter"))
+        except ImportError:
             pbar = None
-
+        
         with ThreadPoolExecutor(max_workers=self.threads) as ex:
-            futs = [ex.submit(self._run_single_filter, item) for item in self.live_results]
-            for fut in as_completed(futs):
-                if self._wait_if_paused(): break
+            import itertools
+            import concurrent.futures
+            
+            candidate_iter = iter(self.live_results)
+            active_futs = set()
+            
+            for item in itertools.islice(candidate_iter, self.threads * 2):
+                active_futs.add(ex.submit(self._run_single_filter, item))
+            
+            while active_futs:
+                done, active_futs = concurrent.futures.wait(
+                    active_futs, return_when=concurrent.futures.FIRST_COMPLETED
+                )
+                
+                for fut in done:
+                    if self._wait_if_paused(): break
+                    if self._cancel_event.is_set(): break
+                    res_tuple = fut.result()
+                    if res_tuple:
+                        res, category = res_tuple
+                        with self._lock:
+                            self.elite_results.append(res)
+                            if category == "Datacenter": self.results_datacenter.append(res)
+                            elif category == "Residential": self.results_residential.append(res)
+                            elif category == "Mobile": self.results_mobile.append(res)
+                            
+                            # REALTIME вывод для GUI
+                            proto, ipp = res.split('://', 1)
+                            if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                                ext_ip, ext_port = ProxyUtils.extract_ip_port(res)
+                                ext_country = (self.ip_cache.get(ext_ip, {}).get('country') or self._get_country(ext_ip)) if ext_ip != "Config" else "Unknown"
+                                print(f"    [REALTIME_NEW_ELITE] {ext_ip}|{ext_port}|{proto.upper()}|{ext_country}|{category}")
+                            else:
+                                ip, port = ipp.rsplit(':', 1)
+                                country = self.ip_cache.get(ip, {}).get('country') or self._get_country(ip)
+                                print(f"    [REALTIME_NEW_ELITE] {ip}|{port}|{proto}|{country}|{category}")
+                            
+                            total_elite = len(self.elite_results)
+                            if total_elite % 2 == 0 or total_elite < 5:
+                                print(f"    [REALTIME_ELITE] {total_elite}")
+                    if pbar: pbar.update(1)
+                
                 if self._cancel_event.is_set(): break
-                res = fut.result()
-                if res:
-                    with self._lock: 
-                        self.good_results.append(res)
-                        proto, ipp = res.split('://', 1)
-                        if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
-                            import json
-                            ext_ip, ext_port = ProxyUtils.extract_ip_port(res)
-                            ext_country = self.ip_cache.get(ext_ip, {}).get('country') or self._get_country(ext_ip) if ext_ip != "Config" else "Unknown"
-                            print(f"    [REALTIME_NEW_ELITE] {json.dumps({'ip': ext_ip, 'port': ext_port, 'protocol': proto.upper(), 'country': ext_country})}")
-                        else:
-                            ip, port = ipp.split(':')
-                            country = self.ip_cache.get(ip, {}).get('country') or self._get_country(ip)
-                            import json
-                            print(f"    [REALTIME_NEW_ELITE] {json.dumps({'ip': ip, 'port': port, 'protocol': proto, 'country': country})}")
-                        if len(self.good_results) % 2 == 0 or len(self.good_results) < 5:
-                            print(f"    [REALTIME_ELITE] {len(self.good_results)}")
-                if pbar: pbar.update(1)
-
+                
+                for item in itertools.islice(candidate_iter, len(done)):
+                    active_futs.add(ex.submit(self._run_single_filter, item))
+        
         if pbar: pbar.close()
-        self.good_results = sorted(set(self.good_results))
-        print(f"    Годных, прошедших все фильтры: {len(self.good_results)}")
-
+        self.results_datacenter = sorted(set(self.results_datacenter))
+        self.results_residential = sorted(set(self.results_residential))
+        self.results_mobile = sorted(set(self.results_mobile))
+        self.elite_results = sorted(set(self.elite_results))
+        
+        total_elite = len(self.elite_results)
+        print(f"    {self._t('elite_proxies')} {total_elite} (DC: {len(self.results_datacenter)}, Res: {len(self.results_residential)}, Mob: {len(self.results_mobile)})")
     def _save_category(self, folder_name: str, results_list: List[str], description: str):
         os.makedirs(folder_name, exist_ok=True)
         
@@ -997,23 +1140,24 @@ class ProxyHunter:
             with open(os.path.join(folder_name, f'{proto}_ips.txt'), 'w', encoding='utf-8') as f:
                 f.write(f"# {description} ({proto.upper()} - Только уникальные IP): {len(proto_ips)}\n")
                 for ip in proto_ips: f.write(ip + '\n')
-
     def save(self):
         if self.live_results:
             self._save_category('results_live', self.live_results, 'Живые прокси')
-            print("[✓] Базовые списки по категориям сохранены в папку 'results_live/'")
+            print(self._t("save_live"))
             
-        if hasattr(self, 'good_results') and self.good_results:
-            self._save_category('results_elite', self.good_results, 'Элитные прокси (Elite/NoDNSBL/Fast)')
-            print("[✓] Элитные списки по категориям сохранены в папку 'results_elite/'")
-
+        # BUG-7 FIX: Сохраняем elite_results, которые GUI ожидает в results_elite/
+        if self.elite_results:
+            self._save_category('results_elite', self.elite_results, 'Elite Proxies')
+            
+        if hasattr(self, 'results_datacenter') and self.results_datacenter:
+            self._save_category('results_datacenter', self.results_datacenter, 'Datacenter Proxies')
+        if hasattr(self, 'results_residential') and self.results_residential:
+            self._save_category('results_residential', self.results_residential, 'Residential Proxies')
+        if hasattr(self, 'results_mobile') and self.results_mobile:
+            self._save_category('results_mobile', self.results_mobile, 'Mobile Proxies')
     def run(self):
         t0 = time.time()
         print("\n🚀 ULTIMATE PROXY HUNTER v4.0 (ADVANCED FILTERS)")
-        
-        if self.chain_proxies:
-            self._rotator = _ProxyRotator(self.chain_proxies, remove_dead=self.chain_auto_remove_dead)
-            print(f"[+] Прокси-цепочка: {self._rotator.alive_count} прокси для маскировки")
             
         for attempt in range(2):
             self._download_mmdb_if_needed()
@@ -1027,19 +1171,19 @@ class ProxyHunter:
                 try:
                     os.remove('GeoLite2-Country.mmdb')
                     print("Битый файл базы удалён, скачиваем заново...")
-                except:
+                except Exception:  # BUG-10 FIX: bare except
                     pass
             
         self.collect()
         if not self._cancel_event.is_set(): self.collect_random()
         if not self._cancel_event.is_set(): self.validate()
         if not self._cancel_event.is_set(): self.advanced_filter()
-        self.save()
+        if not self._cancel_event.is_set():  # BUG-FP35 FIX: не сохраняем при отмене
+            self.save()
         m, s = divmod(int(time.time() - t0), 60)
-        print(f"\n⏱   Общее время работы: {m}м {s}с")
+        print("\n⏱   " + self._t("time_total").format(m, s))
         if self._cancel_event.is_set():
-            print("❌ Работа была прервана пользователем.")
-
+            print("❌ " + self._t("user_abort"))
 def main():
     parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
     parser.add_argument('--threads', type=int, default=300, help='Количество потоков')
@@ -1054,14 +1198,13 @@ def main():
     check_smtp_bool = args.check_smtp == 'True'
     countries_list = [c.strip().upper() for c in args.countries.split(',')
     ] if args.countries else None
-
     try:
         import tqdm
         import dns.resolver
     except ImportError:
         print("❌ Установите зависимости: pip install tqdm requests dnspython")
         sys.exit(1)
-
+    # BUG-2 FIX: residential_only не существует в __init__, используем collect_dc
     hunter = ProxyHunter(
         threads=args.threads, 
         timeout=args.timeout,
@@ -1069,9 +1212,10 @@ def main():
         max_ping=args.max_ping,
         min_speed=args.min_speed, 
         check_smtp=check_smtp_bool,
-        residential_only=args.residential_only
+        collect_dc=not args.residential_only,
+        collect_res=True,
+        collect_mob=True
     )
     hunter.run()
-
 if __name__ == '__main__':
     main()
