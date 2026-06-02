@@ -454,9 +454,9 @@ LANG = {
         "refresh": "🔄 Refresh",
         "download": "📥 Download:",
         "csv": "CSV (Full)",
-        "txt_proto": "TXT (Protocol://IP:Port)",
-        "txt1": "TXT (IP:Port)",
-        "txt2": "TXT (IP Only)",
+        "txt_proto": "Protocol://IP:Port",
+        "txt1": "IP:Port",
+        "txt2": "IP Only",
         "copied": "✓ Copied!",
         "csv_saved": "✓ CSV saved!",
         "txt_saved": "✓ TXT saved!",
@@ -513,6 +513,8 @@ LANG = {
         "checker_only_smtp": "SMTP Only",
         "checker_download": "Download .txt",
         "checker_saved": "✓ Saved ({0})",
+        "log_live_found": "[+] Live proxy: {0}:{1} ({2} - {3})",
+        "log_elite_found": "[+] 💎 Elite proxy: {0}:{1} ({2} - {3})",
         "error_no_countries": "Select at least 1 country!",
         "error_no_proxies": "No valid proxies found!",
         "error_file_size": "File too large (max 10MB)!",
@@ -520,6 +522,9 @@ LANG = {
         "checker_placeholder_text": "Proxies (full check):\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nOnly IP (reputation check):\n192.168.x.x\n10.0.x.x",
         "tab_proxies": "Proxies",
         "proxy_title": "🔗 Proxies for scanning",
+        "reset_filter": "Reset Filter",
+        "search": "Search...",
+        "copy_lbl": "📋 Copy:",
         "proxy_load": "Load",
         "proxy_clear": "Clear",
         "proxy_scan_via": "Scan through proxies",
@@ -531,7 +536,19 @@ LANG = {
         "random_title": "🎲 RANDOM GENERATION",
         "random_count": "Count:",
         "random_enable": "Generate random on start",
-        "proxy_placeholder": "Paste proxies:\nhttp://ip:port\nsocks5://ip:port"
+        "proxy_placeholder": "Paste proxies:\nhttp://ip:port\nsocks5://ip:port",
+        "chk_ping_ok": "{0} ms",
+        "chk_timeout": "⏳ Timeout",
+        "chk_error": "❌ Error",
+        "chk_skip": "— Skip",
+        "chk_transparent": "Transparent",
+        "chk_elite": "💎 Elite",
+        "chk_speed_ok": "{0} Mbps",
+        "chk_speed_bad": "{0} Mbps",
+        "chk_open": "■ Open",
+        "chk_closed": "🚫 Closed",
+        "chk_blacklisted": "💀 Blacklisted",
+        "chk_clean": "✨ Clean"
     },
     "RU": {
 
@@ -572,9 +589,9 @@ LANG = {
         "refresh": "🔄 Обновить",
         "download": "📥 Скачать:",
         "csv": "CSV (Полный)",
-        "txt_proto": "TXT (Protocol://IP:Port)",
-        "txt1": "TXT (IP:Port)",
-        "txt2": "TXT (Только IP)",
+        "txt_proto": "Protocol://IP:Port",
+        "txt1": "IP:Port",
+        "txt2": "Только IP",
         "copied": "✓ Скопировано!",
         "csv_saved": "✓ CSV сохранен!",
         "txt_saved": "✓ TXT сохранен!",
@@ -631,6 +648,8 @@ LANG = {
         "checker_only_smtp": "Только SMTP",
         "checker_download": "Скачать .txt",
         "checker_saved": "✓ Сохранено ({0})",
+        "log_live_found": "[+] Рабочий прокси: {0}:{1} ({2} - {3})",
+        "log_elite_found": "[+] 💎 Элитный прокси: {0}:{1} ({2} - {3})",
         "error_no_countries": "Выберите хотя бы 1 страну!",
         "error_no_proxies": "Нет валидных прокси!",
         "error_file_size": "Файл слишком большой (макс 10МБ)!",
@@ -638,6 +657,9 @@ LANG = {
         "checker_placeholder_text": "Прокси (полная проверка):\nhttp://user:pass@ip:port\nhttps://user:pass@ip:port\nsocks5h://user:pass@ip:port\n\nТолько IP (проверка репутации):\n192.168.x.x\n10.0.x.x",
         "tab_proxies": "Прокси",
         "proxy_title": "🔗 Прокси для сканирования",
+        "reset_filter": "Сбросить фильтр",
+        "search": "Поиск...",
+        "copy_lbl": "📋 Скопировать:",
         "proxy_load": "Загрузить",
         "proxy_clear": "Очистить",
         "proxy_scan_via": "Сканировать через прокси",
@@ -649,7 +671,19 @@ LANG = {
         "random_title": "🎲 РАНДОМНАЯ ГЕНЕРАЦИЯ",
         "random_count": "Количество:",
         "random_enable": "Генерировать рандомные при запуске",
-        "proxy_placeholder": "Вставьте прокси:\nhttp://ip:port\nsocks5://ip:port"
+        "proxy_placeholder": "Вставьте прокси:\nhttp://ip:port\nsocks5://ip:port",
+        "chk_ping_ok": "{0} мс",
+        "chk_timeout": "⏳ Таймаут",
+        "chk_error": "❌ Ошибка",
+        "chk_skip": "— Пропуск",
+        "chk_transparent": "Transparent",
+        "chk_elite": "💎 Elite",
+        "chk_speed_ok": "{0} Мбит/с",
+        "chk_speed_bad": "{0} Мбит/с",
+        "chk_open": "■ Открыт",
+        "chk_closed": "🚫 Закрыт",
+        "chk_blacklisted": "💀 В блэклисте",
+        "chk_clean": "✨ Чистый"
     }
 }
 import os
@@ -691,7 +725,7 @@ class ProxyHunterApp(ctk.CTk):
 
         self.title("Proxy Hunter v4.0")
         self.geometry("1375x770")
-        self.minsize(1250, 770)
+        self.minsize(1375, 770)
         self.configure(fg_color=BG)
         self.is_running = False
         self.hunter_thread = None
@@ -817,6 +851,12 @@ class ProxyHunterApp(ctk.CTk):
         self._safe_config(self.btn_txt1, text=self._t("txt1"))
         self._safe_config(self.btn_txt2, text=self._t("txt2"))
         
+        if hasattr(self, "lbl_copy_sec"): self._safe_config(self.lbl_copy_sec, text=self._t("copy_lbl"))
+        if hasattr(self, "btn_copy_csv"): self._safe_config(self.btn_copy_csv, text=self._t("csv"))
+        if hasattr(self, "btn_copy_txt_proto"): self._safe_config(self.btn_copy_txt_proto, text=self._t("txt_proto"))
+        if hasattr(self, "btn_copy_txt1"): self._safe_config(self.btn_copy_txt1, text=self._t("txt1"))
+        if hasattr(self, "btn_copy_txt2"): self._safe_config(self.btn_copy_txt2, text=self._t("txt2"))
+        
         # Subtitle
         if hasattr(self, "subtitle_lbl"): self._safe_config(self.subtitle_lbl, text=self._t("subtitle"))
         
@@ -903,12 +943,22 @@ class ProxyHunterApp(ctk.CTk):
         # Terminal tab
         if hasattr(self, "btn_copy_term"):
             self._safe_config(self.btn_copy_term, text=self._t("copy_terminal"))
+        if hasattr(self, "tab_country_search"):
+            self._safe_config(self.tab_country_search, placeholder_text=self._t("search"))
         
         # Results tab filters
         if hasattr(self, "btn_proto_filter"):
-            self._safe_config(self.btn_proto_filter, text=self._t("all_protocols"))
+            a_p = {p for p in getattr(self, "selected_protos", set()) if p in getattr(self, "all_protos_in_db", set())}
+            if not getattr(self, "selected_protos", set()) or len(a_p) == len(getattr(self, "all_protos_in_db", set())):
+                self._safe_config(self.btn_proto_filter, text=self._t("all_protocols"))
+            else:
+                self._safe_config(self.btn_proto_filter, text=self._t("protocols_n").format(len(a_p)))
         if hasattr(self, "btn_country_filter"):
-            self._safe_config(self.btn_country_filter, text=self._t("all_countries_filter"))
+            a_c = {c for c in getattr(self, "selected_countries", set()) if c in getattr(self, "all_countries_in_db", set())}
+            if not getattr(self, "selected_countries", set()) or len(a_c) == len(getattr(self, "all_countries_in_db", set())):
+                self._safe_config(self.btn_country_filter, text=self._t("all_countries_filter"))
+            else:
+                self._safe_config(self.btn_country_filter, text=self._t("countries_n").format(len(a_c)))
 
         # Checker tab — full update
         if hasattr(self, "btn_check_start") and self.btn_check_start.cget("state") != "disabled":
@@ -945,6 +995,41 @@ class ProxyHunterApp(ctk.CTk):
             self.check_tree.heading("anon", text=self._t("checker_h_anon"))
             self.check_tree.heading("bl", text=self._t("checker_h_bl"))
             self.check_tree.heading("speed", text=self._t("checker_h_speed"))
+
+            if hasattr(self, "check_tree"):
+                other_lang = "RU" if self.current_lang == "EN" else "EN"
+                status_keys = ["chk_timeout", "chk_error", "chk_skip", "chk_transparent", "chk_elite", 
+                               "chk_open", "chk_closed", "chk_blacklisted", "chk_clean"]
+                trans_map = {LANG[other_lang][k]: LANG[self.current_lang][k] for k in status_keys}
+                
+                def _translate_vals(vals):
+                    if not vals or len(vals) < 7: return vals
+                    v = list(vals)
+                    if " мс" in str(v[2]) or " ms" in str(v[2]):
+                        val = str(v[2]).replace(" мс", "").replace(" ms", "")
+                        v[2] = self._t("chk_ping_ok").format(val)
+                    elif str(v[2]) in trans_map: v[2] = trans_map[str(v[2])]
+                    
+                    if str(v[3]) in trans_map: v[3] = trans_map[str(v[3])]
+                    if str(v[4]) in trans_map: v[4] = trans_map[str(v[4])]
+                    
+                    if " Мбит/с" in str(v[5]) or " Mbps" in str(v[5]):
+                        val = str(v[5]).replace(" Мбит/с", "").replace(" Mbps", "")
+                        v[5] = self._t("chk_speed_ok").format(val)
+                    elif str(v[5]) in trans_map: v[5] = trans_map[str(v[5])]
+                    
+                    if str(v[6]) in trans_map: v[6] = trans_map[str(v[6])]
+                    return v
+
+                for item in self.check_tree.get_children():
+                    self.check_tree.item(item, values=_translate_vals(self.check_tree.item(item, 'values')))
+                
+                if hasattr(self, "_checker_detached"):
+                    for item, idx in self._checker_detached:
+                        try:
+                            self.check_tree.item(item, values=_translate_vals(self.check_tree.item(item, 'values')))
+                        except: pass
+
 
         if hasattr(self, "progress_lbl"):
             txt = self.progress_lbl.cget("text")
@@ -1057,7 +1142,11 @@ class ProxyHunterApp(ctk.CTk):
             elif hasattr(widget, "_textbox"):
                 widget = widget._textbox
 
-            clipboard = widget.clipboard_get()
+            try:
+                clipboard = widget.clipboard_get()
+            except Exception:
+                return "break"
+                
             import re
             
             results = []
@@ -1076,30 +1165,41 @@ class ProxyHunterApp(ctk.CTk):
                 
             proxies = list(dict.fromkeys(results))
             if not proxies:
-                return # Если ничего не нашли, делаем обычную вставку
-                
-            formatted = "\n".join(proxies) + "\n"
+                text_to_insert = clipboard
+            else:
+                text_to_insert = "\n".join(proxies) + "\n"
             
             # Очищаем плейсхолдер перед вставкой
             if widget == getattr(self, "checker_input", None):
                 ph = getattr(self, "checker_placeholder", "")
-                if widget.get("1.0", "end-1c").strip() == ph.strip():
+                if widget.get("1.0", "end-1c").strip() == ph.strip() or widget.get("0.0", "end-1c").strip() == ph.strip():
                     widget.delete("1.0", "end")
                     widget.configure(fg="#E2E8F0")
-                widget.insert("insert", formatted)
+                widget.insert("insert", text_to_insert)
             else:
                 # Скорее всего это proxy_text
                 ph = getattr(self, "proxy_placeholder_text", "")
                 if widget.get("1.0", "end-1c").strip() == ph.strip() or widget.get("0.0", "end-1c").strip() == ph.strip():
                     widget.delete("1.0", "end")
-                widget.insert("insert", formatted)
+                widget.insert("insert", text_to_insert)
                 if hasattr(self, "_update_chain_count"):
                     self.after(50, self._update_chain_count)
                 
             return "break"
         except Exception:
-            pass
+            return "break"
 
+    def _select_all(self, event):
+        try:
+            widget = event.widget
+            if hasattr(widget, "master") and hasattr(widget.master, "_textbox"):
+                widget = widget.master._textbox
+            elif hasattr(widget, "_textbox"):
+                widget = widget._textbox
+            widget.tag_add("sel", "1.0", "end")
+            return "break"
+        except Exception:
+            pass
     def _on_tab_change(self):
         """Ленивая загрузка вкладок стран и прокси"""
         if self.tab_view.get() in ["Страны", "Countries"] and not getattr(self, "_countries_built", False):
@@ -1239,6 +1339,8 @@ class ProxyHunterApp(ctk.CTk):
             else:
                 _set_border_ok()
                 slider.set(val)
+                try: slider.update_idletasks()
+                except Exception: pass
                 _last_valid_value[0] = val_str
 
         # 6) Жёсткий clamp + восстановление при потере фокуса
@@ -1280,7 +1382,7 @@ class ProxyHunterApp(ctk.CTk):
 
         # 7) При фокусе — выделить весь текст для удобства перезаписи
         def _on_focus_in(e):
-            entry.after(50, lambda: entry.select_range(0, "end"))
+            pass
 
         # 8) Блокировка Ctrl+V мусора — перехватываем вставку и чистим
         def _on_paste(e):
@@ -1351,16 +1453,40 @@ class ProxyHunterApp(ctk.CTk):
             entry.delete(0, "end")
             entry.insert(0, fmt(new))
             slider.set(new)
+            try: slider.update_idletasks()
+            except Exception: pass
             _last_valid_value[0] = fmt(new)
             _set_border_ok()
+            entry.after(10, entry.focus)
 
-        ctk.CTkButton(ctrl, text="-", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
-                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6,
-                       command=lambda: update_val(-step)).pack(side="left", padx=(0, 4))
+        repeat_job = [None]
+        def _start_repeat(delta, initial=True):
+            update_val(delta)
+            def _repeat():
+                _start_repeat(delta, initial=False)
+            delay = 300 if initial else 50
+            repeat_job[0] = entry.after(delay, _repeat)
+
+        def _stop_repeat(*args):
+            if repeat_job[0]:
+                entry.after_cancel(repeat_job[0])
+                repeat_job[0] = None
+
+        btn_minus = ctk.CTkButton(ctrl, text="-", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
+                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6)
+        btn_minus.pack(side="left", padx=(0, 4))
+        btn_minus.bind("<ButtonPress-1>", lambda e: _start_repeat(-step))
+        btn_minus.bind("<ButtonRelease-1>", _stop_repeat)
+        btn_minus.bind("<Leave>", _stop_repeat)
+        
         entry.pack(side="left")
-        ctk.CTkButton(ctrl, text="+", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
-                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6,
-                       command=lambda: update_val(step)).pack(side="left", padx=(4, 0))
+        
+        btn_plus = ctk.CTkButton(ctrl, text="+", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
+                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6)
+        btn_plus.pack(side="left", padx=(4, 0))
+        btn_plus.bind("<ButtonPress-1>", lambda e: _start_repeat(step))
+        btn_plus.bind("<ButtonRelease-1>", _stop_repeat)
+        btn_plus.bind("<Leave>", _stop_repeat)
 
         slider = ctk.CTkSlider(parent, from_=from_, to=to,
                                 number_of_steps=max(10, int((to - from_) / step)),
@@ -1373,6 +1499,8 @@ class ProxyHunterApp(ctk.CTk):
             entry.insert(0, fmt(slider.get()))
             _last_valid_value[0] = fmt(slider.get())
             _set_border_ok()
+            if self.focus_get() != entry:
+                entry.focus()
         slider.configure(command=on_slide)
 
         # ═══ ПРИВЯЗКА ВСЕХ СОБЫТИЙ ═══
@@ -1508,7 +1636,7 @@ class ProxyHunterApp(ctk.CTk):
             if was_clamped: _flash_clamp()
 
         def _on_focus_in(e):
-            entry.after(50, lambda: entry.select_range(0, "end"))
+            pass
 
         def _on_paste(e):
             try:
@@ -1544,6 +1672,7 @@ class ProxyHunterApp(ctk.CTk):
             var.set(fmt(new))
             _last_valid_value[0] = fmt(new)
             _set_border_ok()
+            entry.after(10, entry.focus)
 
         def _on_mousewheel(e):
             if entry == self.focus_get() or inner_entry == self.focus_get():
@@ -1565,13 +1694,34 @@ class ProxyHunterApp(ctk.CTk):
             except Exception: pass
         entry.after(2000, _watchdog)
 
-        ctk.CTkButton(ctrl, text="-", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
-                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6,
-                       command=lambda: update_val(-step)).pack(side="left", padx=(0, 4))
+        repeat_job = [None]
+        def _start_repeat(delta, initial=True):
+            update_val(delta)
+            def _repeat():
+                _start_repeat(delta, initial=False)
+            delay = 300 if initial else 50
+            repeat_job[0] = entry.after(delay, _repeat)
+
+        def _stop_repeat(*args):
+            if repeat_job[0]:
+                entry.after_cancel(repeat_job[0])
+                repeat_job[0] = None
+
+        btn_minus = ctk.CTkButton(ctrl, text="-", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
+                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6)
+        btn_minus.pack(side="left", padx=(0, 4))
+        btn_minus.bind("<ButtonPress-1>", lambda e: _start_repeat(-step))
+        btn_minus.bind("<ButtonRelease-1>", _stop_repeat)
+        btn_minus.bind("<Leave>", _stop_repeat)
+        
         entry.pack(side="left")
-        ctk.CTkButton(ctrl, text="+", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
-                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6,
-                       command=lambda: update_val(step)).pack(side="left", padx=(4, 0))
+        
+        btn_plus = ctk.CTkButton(ctrl, text="+", width=28, height=28, fg_color=BORDER, hover_color="#2D3748",
+                       font=("Segoe UI", 16, "bold"), text_color="white", corner_radius=6)
+        btn_plus.pack(side="left", padx=(4, 0))
+        btn_plus.bind("<ButtonPress-1>", lambda e: _start_repeat(step))
+        btn_plus.bind("<ButtonRelease-1>", _stop_repeat)
+        btn_plus.bind("<Leave>", _stop_repeat)
 
         entry.bind("<KeyRelease>", _sanitize_and_sync)
         entry.bind("<FocusOut>", _on_focus_out)
@@ -1685,6 +1835,25 @@ class ProxyHunterApp(ctk.CTk):
 
         self.country_count_label = ctk.CTkLabel(quick, text="0", font=("Segoe UI", 11, "bold"), text_color=BLUE)
         self.country_count_label.pack(side="right", padx=5)
+        search_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        search_frame.pack(fill="x", padx=10, pady=(0, 8))
+
+        self.tab_country_search = ctk.CTkEntry(search_frame, placeholder_text=self._t("search"), height=28)
+        self.tab_country_search.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.tab_country_search.bind("<KeyRelease>", self._filter_countries_tab)
+
+        def clear_search():
+            self.tab_country_search.delete(0, "end")
+            self._filter_countries_tab()
+
+        self.btn_clear_search = ctk.CTkButton(search_frame, text="✕", width=28, height=28, 
+                                            fg_color=BORDER, hover_color="#374151",
+                                            font=("Segoe UI", 12, "bold"), corner_radius=6,
+                                            command=clear_search)
+        self.btn_clear_search.pack(side="right")
+
+        self._region_frames = {}
+        self._country_cbs = {}
 
         # CTkScrollableFrame ТОЛЬКО для списка стран — единственное место с реальным скроллом
         scroll = ctk.CTkScrollableFrame(parent, fg_color="transparent", corner_radius=0)
@@ -1733,6 +1902,8 @@ class ProxyHunterApp(ctk.CTk):
             grid = ctk.CTkFrame(self._country_scroll, fg_color="transparent")
             grid.pack(fill="x", padx=4, pady=(0, 2))
 
+            self._region_frames[region_name] = (hdr, grid)
+
             # Фиксированная сетка в 2 колонки (боковая панель 450px — всегда 2 колонки)
             FIXED_COLS = 2
             grid.grid_columnconfigure(0, weight=1)
@@ -1748,13 +1919,16 @@ class ProxyHunterApp(ctk.CTk):
                 self.interactive_widgets.append(cb)
                 cb.configure(state=state)
                 cb.grid(row=idx // FIXED_COLS, column=idx % FIXED_COLS, sticky="w", padx=4, pady=2)
+                
+                self._country_cbs[iso] = (cb, region_name)
 
             # Планируем загрузку следующего региона через 10мс
             if self._pending_regions:
                 self.after(10, self._load_next_region)
             else:
                 # Добавляем пустой отступ внизу, чтобы последний ряд не прилипал к краю и скролл работал корректно
-                ctk.CTkFrame(self._country_scroll, fg_color="transparent", height=30).pack(fill="x")
+                self._country_scroll_pad = ctk.CTkFrame(self._country_scroll, fg_color="transparent", height=30)
+                self._country_scroll_pad.pack(fill="x")
                 
                 if hasattr(self, "_old_country_state") and self._old_country_state:
                     for iso, val in self._old_country_state.items():
@@ -1763,6 +1937,45 @@ class ProxyHunterApp(ctk.CTk):
                     self._old_country_state = None
         except Exception as e:
             print(f"Error loading region: {e}")
+
+    def _filter_countries_tab(self, *args):
+        query = self.tab_country_search.get().lower()
+        
+        for region_name, (hdr, grid) in self._region_frames.items():
+            hdr.pack_forget()
+            grid.pack_forget()
+        
+        if hasattr(self, "_country_scroll_pad") and self._country_scroll_pad.winfo_exists():
+            self._country_scroll_pad.pack_forget()
+
+        for region_name, (hdr, grid) in self._region_frames.items():
+            if region_name not in REGIONS[self.current_lang]: continue
+            
+            countries = REGIONS[self.current_lang][region_name]
+            visible_count = 0
+            
+            for iso, name in sorted(countries.items(), key=lambda x: x[1]):
+                if iso not in self._country_cbs: continue
+                cb, _ = self._country_cbs[iso]
+                
+                translations = [iso.lower()]
+                if iso in ISO_TO_NAME.get("EN", {}):
+                    translations.append(ISO_TO_NAME["EN"][iso].lower())
+                if iso in ISO_TO_NAME.get("RU", {}):
+                    translations.append(ISO_TO_NAME["RU"][iso].lower())
+                    
+                if any(query in t for t in translations):
+                    cb.grid(row=visible_count // 2, column=visible_count % 2, sticky="w", padx=4, pady=2)
+                    visible_count += 1
+                else:
+                    cb.grid_remove()
+                    
+            if visible_count > 0:
+                hdr.pack(fill="x", padx=4, pady=(6, 3))
+                grid.pack(fill="x", padx=4, pady=(0, 2))
+                
+        if hasattr(self, "_country_scroll_pad") and self._country_scroll_pad.winfo_exists():
+            self._country_scroll_pad.pack(fill="x")
 
     def _update_count(self):
         count = sum(1 for v in self.country_vars.values() if v.get())
@@ -2095,6 +2308,22 @@ class ProxyHunterApp(ctk.CTk):
                        font=("Segoe UI", 11, "bold"), corner_radius=6, command=self._export_txt_ip)
         self.btn_txt2.pack(side="left", padx=5)
 
+        # Панель Копирования
+        copy_toolbar = ctk.CTkFrame(parent, fg_color="transparent")
+        copy_toolbar.pack(fill="x", pady=(0, 8))
+        
+        self.lbl_copy_sec = ctk.CTkLabel(copy_toolbar, text=self._t("copy_lbl") if hasattr(self, "_t") else "📋 Copy:", font=("Segoe UI", 12, "bold"), text_color=MUTED)
+        self.lbl_copy_sec.pack(side="left", padx=(5, 10))
+        self.btn_copy_txt_proto = ctk.CTkButton(copy_toolbar, text=self._t("txt_proto"), width=180, height=28, fg_color="#0EA5E9", hover_color="#0284C7",
+                       font=("Segoe UI", 11, "bold"), corner_radius=6, command=self._copy_txt_proto_all)
+        self.btn_copy_txt_proto.pack(side="left", padx=5)
+        self.btn_copy_txt1 = ctk.CTkButton(copy_toolbar, text=self._t("txt1"), width=120, height=28, fg_color="#4F46E5", hover_color="#4338CA",
+                       font=("Segoe UI", 11, "bold"), corner_radius=6, command=self._copy_txt_full_all)
+        self.btn_copy_txt1.pack(side="left", padx=5)
+        self.btn_copy_txt2 = ctk.CTkButton(copy_toolbar, text=self._t("txt2"), width=120, height=28, fg_color="#D97706", hover_color="#B45309",
+                       font=("Segoe UI", 11, "bold"), corner_radius=6, command=self._copy_txt_ip_all)
+        self.btn_copy_txt2.pack(side="left", padx=5)
+
         # Таблица результатов (Treeview)
         tree_frame = ctk.CTkFrame(parent, fg_color="#060B14", corner_radius=10, border_width=0)
         tree_frame.pack(fill="both", expand=True, pady=(0, 5))
@@ -2141,14 +2370,19 @@ class ProxyHunterApp(ctk.CTk):
         
         self._current_raw_data = []
         protos, countries = set(), set()
+        self.proto_counts = {}
+        self.country_counts = {}
 
         if self.is_running and hasattr(self, "realtime_proxies"):
             data_list = self.realtime_proxies.get(mapped_src, [])
             for data in data_list:
                 c_name = ISO_TO_NAME[self.current_lang].get(data["country"], data["country"])
-                self._current_raw_data.append((data["protocol"].upper(), data["ip"], data["port"], c_name))
-                protos.add(data["protocol"].upper())
+                p_name = data["protocol"].upper()
+                self._current_raw_data.append((p_name, data["ip"], data["port"], c_name))
+                protos.add(p_name)
                 countries.add(c_name)
+                self.proto_counts[p_name] = self.proto_counts.get(p_name, 0) + 1
+                self.country_counts[c_name] = self.country_counts.get(c_name, 0) + 1
         else:
             folder = f"results_{mapped_src}"
             csv_file = os.path.join(folder, "all.csv")
@@ -2160,31 +2394,45 @@ class ProxyHunterApp(ctk.CTk):
                         for row in reader:
                             if len(row) >= 4:
                                 c_name = ISO_TO_NAME[self.current_lang].get(row[3], row[3])
-                                self._current_raw_data.append((row[0].upper(), row[1], row[2], c_name))
-                                protos.add(row[0].upper())
+                                p_name = row[0].upper()
+                                self._current_raw_data.append((p_name, row[1], row[2], c_name))
+                                protos.add(p_name)
                                 countries.add(c_name)
+                                self.proto_counts[p_name] = self.proto_counts.get(p_name, 0) + 1
+                                self.country_counts[c_name] = self.country_counts.get(c_name, 0) + 1
                 except Exception:
                     pass
 
         self.all_protos_in_db = protos
         self.all_countries_in_db = countries
         
-        self.selected_protos = {p for p in self.selected_protos if p in protos}
-        self.selected_countries = {c for c in self.selected_countries if c in countries}
+        # Translate selected countries to the current language to prevent resetting on language switch
+        new_selected = set()
+        for c in self.selected_countries:
+            iso_code = c
+            for lang, mapping in ISO_TO_NAME.items():
+                for k, v in mapping.items():
+                    if v == c:
+                        iso_code = k
+                        break
+            new_selected.add(ISO_TO_NAME[self.current_lang].get(iso_code, iso_code))
+        self.selected_countries = new_selected
+        active_protos = {p for p in self.selected_protos if p in protos}
+        active_countries = {c for c in self.selected_countries if c in countries}
         
-        if not self.selected_protos or len(self.selected_protos) == len(protos):
+        if not self.selected_protos or len(active_protos) == len(protos):
             self.btn_proto_filter.configure(text=self._t("all_protocols"))
         else:
-            self.btn_proto_filter.configure(text=self._t("protocols_n").format(len(self.selected_protos)))
+            self.btn_proto_filter.configure(text=self._t("protocols_n").format(len(active_protos)))
             
-        if not self.selected_countries or len(self.selected_countries) == len(countries):
+        if not self.selected_countries or len(active_countries) == len(countries):
             self.btn_country_filter.configure(text=self._t("all_countries_filter"))
         else:
-            self.btn_country_filter.configure(text=self._t("countries_n").format(len(self.selected_countries)))
+            self.btn_country_filter.configure(text=self._t("countries_n").format(len(active_countries)))
         
         self._apply_filters()
 
-    def _create_floating_menu(self, btn_widget, items, selected_set, on_apply):
+    def _create_floating_menu(self, btn_widget, items, selected_set, on_apply, counts=None):
         if hasattr(self, "_active_menu") and self._active_menu:
             self._active_menu.destroy()
             if hasattr(self, "_active_menu_bind") and self._active_menu_bind:
@@ -2212,16 +2460,47 @@ class ProxyHunterApp(ctk.CTk):
         menu_frame.place(x=logic_x, y=logic_y)
         menu_frame.lift()
         
+        search_entry = ctk.CTkEntry(menu_frame, placeholder_text=self._t("search"), height=28)
+        search_entry.pack(fill="x", padx=5, pady=(5, 0))
+
         scroll = ctk.CTkScrollableFrame(menu_frame, fg_color="transparent", width=180, height=min(200, max(50, len(items)*30)))
         scroll.pack(padx=5, pady=5)
         
         check_vars = {}
+        cb_widgets = {}
         for item in sorted(items):
             var = ctk.BooleanVar(value=(item in selected_set))
-            cb = ctk.CTkCheckBox(scroll, text=item, variable=var, font=("Segoe UI", 11), 
+            
+            display_text = f"{item} ({counts[item]})" if counts and item in counts else item
+            
+            cb = ctk.CTkCheckBox(scroll, text=display_text, variable=var, font=("Segoe UI", 11), 
                                  checkbox_width=20, checkbox_height=20, corner_radius=4)
             cb.pack(anchor="w", pady=4, padx=2)
             check_vars[item] = var
+            cb_widgets[item] = cb
+            
+        def filter_items(*args):
+            query = search_entry.get().lower()
+            for item, cb in cb_widgets.items():
+                iso_code = item
+                for lang, mapping in ISO_TO_NAME.items():
+                    for k, v in mapping.items():
+                        if v == item:
+                            iso_code = k
+                            break
+                
+                translations = [item.lower()]
+                if iso_code in ISO_TO_NAME.get("EN", {}):
+                    translations.append(ISO_TO_NAME["EN"][iso_code].lower())
+                if iso_code in ISO_TO_NAME.get("RU", {}):
+                    translations.append(ISO_TO_NAME["RU"][iso_code].lower())
+                
+                if any(query in t for t in translations):
+                    cb.pack(anchor="w", pady=4, padx=2)
+                else:
+                    cb.pack_forget()
+                    
+        search_entry.bind("<KeyRelease>", filter_items)
             
         def apply():
             selected_set.clear()
@@ -2239,6 +2518,19 @@ class ProxyHunterApp(ctk.CTk):
             
         btn = ctk.CTkButton(menu_frame, text=self._t("apply_filter"), fg_color=BLUE, hover_color="#2563EB", height=28, command=apply)
         btn.pack(fill="x", padx=5, pady=(0, 5))
+        
+        def reset():
+            selected_set.clear()
+            on_apply()
+            menu_frame.destroy()
+            self._active_menu = None
+            if hasattr(self, "_active_menu_bind") and self._active_menu_bind:
+                try:
+                    self.unbind("<Button-1>", self._active_menu_bind)
+                except Exception: pass
+                
+        btn_reset = ctk.CTkButton(menu_frame, text=self._t("reset_filter") if hasattr(self, "_t") else "Reset Filter", fg_color=BORDER, hover_color="#4A5568", height=28, command=reset)
+        btn_reset.pack(fill="x", padx=5, pady=(0, 5))
         
         def on_click(e):
             if not self._active_menu: return
@@ -2271,24 +2563,26 @@ class ProxyHunterApp(ctk.CTk):
 
     def _on_proto_btn_click(self):
         if not self.all_protos_in_db: return
-        self._create_floating_menu(self.btn_proto_filter, self.all_protos_in_db, self.selected_protos, self._on_proto_apply)
+        self._create_floating_menu(self.btn_proto_filter, self.all_protos_in_db, self.selected_protos, self._on_proto_apply, counts=getattr(self, "proto_counts", {}))
         
     def _on_country_btn_click(self):
         if not self.all_countries_in_db: return
-        self._create_floating_menu(self.btn_country_filter, self.all_countries_in_db, self.selected_countries, self._on_country_apply)
+        self._create_floating_menu(self.btn_country_filter, self.all_countries_in_db, self.selected_countries, self._on_country_apply, counts=getattr(self, "country_counts", {}))
 
     def _on_proto_apply(self):
-        if not self.selected_protos or len(self.selected_protos) == len(self.all_protos_in_db):
+        active_protos = {p for p in self.selected_protos if p in self.all_protos_in_db}
+        if not self.selected_protos or len(active_protos) == len(self.all_protos_in_db):
             self.btn_proto_filter.configure(text=self._t("all_protocols"))
         else:
-            self.btn_proto_filter.configure(text=self._t("protocols_n").format(len(self.selected_protos)))
+            self.btn_proto_filter.configure(text=self._t("protocols_n").format(len(active_protos)))
         self._apply_filters()
 
     def _on_country_apply(self):
-        if not self.selected_countries or len(self.selected_countries) == len(self.all_countries_in_db):
+        active_countries = {c for c in self.selected_countries if c in self.all_countries_in_db}
+        if not self.selected_countries or len(active_countries) == len(self.all_countries_in_db):
             self.btn_country_filter.configure(text=self._t("all_countries_filter"))
         else:
-            self.btn_country_filter.configure(text=self._t("countries_n").format(len(self.selected_countries)))
+            self.btn_country_filter.configure(text=self._t("countries_n").format(len(active_countries)))
         self._apply_filters()
 
     def _apply_filters(self):
@@ -2299,9 +2593,14 @@ class ProxyHunterApp(ctk.CTk):
         sel_countries = self.selected_countries
         count = 0
         
+        active_protos = {p for p in sel_protos if p in self.all_protos_in_db}
+        all_p = not sel_protos or len(active_protos) == len(self.all_protos_in_db)
+        active_countries = {c for c in sel_countries if c in self.all_countries_in_db}
+        all_c = not sel_countries or len(active_countries) == len(self.all_countries_in_db)
+        
         for proto, ip, port, country in getattr(self, "_current_raw_data", []):
-            match_proto = not sel_protos or len(sel_protos) == len(self.all_protos_in_db) or proto in sel_protos
-            match_country = not sel_countries or len(sel_countries) == len(self.all_countries_in_db) or country in sel_countries
+            match_proto = all_p or proto in sel_protos
+            match_country = all_c or country in sel_countries
             
             if match_proto and match_country:
                 self.proxy_tree.insert("", "end", values=(proto, ip, port, country))
@@ -2374,6 +2673,60 @@ class ProxyHunterApp(ctk.CTk):
                 f.write(f"{ip}\n")
         self.result_count_lbl.configure(text=self._t("txt_ip_saved"))
 
+    def _copy_csv_all(self):
+        if not self.proxy_tree.get_children(): return
+        lines = []
+        import io
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([self._t('proto'), self._t('ip'), self._t('port'), self._t('country')])
+        for item in self.proxy_tree.get_children():
+            vals = self.proxy_tree.item(item, 'values')
+            country_name = ISO_TO_NAME[self.current_lang].get(vals[3], vals[3])
+            writer.writerow([vals[0].upper(), vals[1], vals[2], country_name])
+        lines.append(output.getvalue().strip())
+        if lines:
+            self.clipboard_clear()
+            self.clipboard_append("\n".join(lines))
+            self.result_count_lbl.configure(text=self._t("copied"))
+            self.after(2000, self._load_results)
+
+    def _copy_txt_proto_all(self):
+        if not self.proxy_tree.get_children(): return
+        lines = []
+        for item in self.proxy_tree.get_children():
+            vals = self.proxy_tree.item(item, 'values')
+            lines.append(f"{vals[0].lower()}://{vals[1]}:{vals[2]}")
+        if lines:
+            self.clipboard_clear()
+            self.clipboard_append("\n".join(lines))
+            self.result_count_lbl.configure(text=self._t("copied"))
+            self.after(2000, self._load_results)
+
+    def _copy_txt_full_all(self):
+        if not self.proxy_tree.get_children(): return
+        lines = []
+        for item in self.proxy_tree.get_children():
+            vals = self.proxy_tree.item(item, 'values')
+            lines.append(f"{vals[1]}:{vals[2]}")
+        if lines:
+            self.clipboard_clear()
+            self.clipboard_append("\n".join(lines))
+            self.result_count_lbl.configure(text=self._t("copied"))
+            self.after(2000, self._load_results)
+
+    def _copy_txt_ip_all(self):
+        if not self.proxy_tree.get_children(): return
+        ips = set()
+        for item in self.proxy_tree.get_children():
+            vals = self.proxy_tree.item(item, 'values')
+            ips.add(vals[1])
+        if ips:
+            self.clipboard_clear()
+            self.clipboard_append("\n".join(sorted(ips)))
+            self.result_count_lbl.configure(text=self._t("copied"))
+            self.after(2000, self._load_results)
+
     def _card(self, parent, title, accent, emoji, row, col):
         c = ctk.CTkFrame(parent, fg_color=CARD, corner_radius=14, border_width=1, border_color=BORDER)
         c.grid(row=row, column=col, padx=6, pady=(0,10), sticky="ew")
@@ -2396,6 +2749,7 @@ class ProxyHunterApp(ctk.CTk):
         self._stat_updates = {}
         self._log_lock = threading.Lock()
         self._live_log_counter = 0  # Троттлинг логов Live-прокси
+        self._delayed_live_logs = []
         self._flush_log()
 
     def _flush_log(self):
@@ -2429,7 +2783,7 @@ class ProxyHunterApp(ctk.CTk):
                     try:
                         parts = clean.split("[REALTIME_NEW_ELITE]")[1].strip().split("|")
                         msg = self._t("log_elite_found").format(parts[0], parts[1], parts[2], parts[3])
-                        self._enqueue_log(msg, "gold")
+                        self._enqueue_live_log(msg, "gold")
                     except: pass
                 elif clean.startswith("[REALTIME_NEW_LIVE]"):
                     try:
@@ -2463,15 +2817,19 @@ class ProxyHunterApp(ctk.CTk):
         # Update text widget
         if batch:
             try:
-                self.terminal_text.configure(state="normal")
+                if hasattr(self, "terminal_empty_lbl"):
+                    try: self.terminal_empty_lbl.place_forget()
+                    except: pass
+                    
+                self.terminal.configure(state="normal")
                 for text, tag in batch:
-                    self.terminal_text.insert("end", text + "\n", tag)
+                    self.terminal.insert("end", text + "\n", tag)
                 
-                lines_count = int(self.terminal_text.index('end-1c').split('.')[0])
+                lines_count = int(self.terminal.index('end-1c').split('.')[0])
                 if lines_count > 1000:
-                    self.terminal_text.delete("1.0", f"{lines_count - 1000}.0")
-                self.terminal_text.see("end")
-                self.terminal_text.configure(state="disabled")
+                    self.terminal.delete("1.0", f"{lines_count - 1000}.0")
+                self.terminal.see("end")
+                self.terminal.configure(state="disabled")
             except: pass
             
         # Update proxy table
@@ -2515,10 +2873,10 @@ class ProxyHunterApp(ctk.CTk):
             self._log_buffer.append((text, tag))
 
     def _enqueue_live_log(self, msg, tag):
-        """Троттлинг логов Рабочих прокси — показываем каждый 10-й"""
-        self._live_log_counter += 1
-        if self._live_log_counter % 10 == 1:  # 1-й, 11-й, 21-й и т.д.
-            self._enqueue_log(msg, tag)
+        """Накапливаем логи для отложенного вывода после полной проверки"""
+        if not hasattr(self, "_delayed_live_logs"):
+            self._delayed_live_logs = []
+        self._delayed_live_logs.append((msg, tag))
 
     def _get_tag(self, text):
         if "[+]" in text or "ШАГ" in text: return "blue"
@@ -2734,6 +3092,11 @@ class ProxyHunterApp(ctk.CTk):
                     random_counts=random_counts_val
                 )
                 self.hunter_instance.run()
+                if hasattr(self, "_delayed_live_logs") and self._delayed_live_logs:
+                    with self._log_lock:
+                        for msg, tag in self._delayed_live_logs:
+                            self._log_buffer.append((msg, tag))
+                    self._delayed_live_logs = []
                 print(f"\n{self._t('done_msg')}")
                 # Автоматически загружаем результаты и переключаемся на вкладку
                 self.after(500, self._load_results)
@@ -2840,6 +3203,14 @@ class ProxyHunterApp(ctk.CTk):
             self.checker_input.bind("<Control-м>", self._smart_paste)
             self.checker_input.bind("<Control-М>", self._smart_paste)
         except Exception: pass
+        
+        self.checker_input.bind("<Control-a>", self._select_all)
+        self.checker_input.bind("<Command-a>", self._select_all)
+        try:
+            self.checker_input.bind("<Control-ф>", self._select_all)
+            self.checker_input.bind("<Control-Ф>", self._select_all)
+        except Exception: pass
+
 
         right_panel = ctk.CTkFrame(parent, fg_color="#060B14", corner_radius=10)
         right_panel.grid(row=0, column=1, sticky="nsew")
