@@ -1,2 +1,0 @@
-# Mobile Proxies (SOCKS5): 1
-socks5://144.124.232.204:1080
