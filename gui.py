@@ -1557,15 +1557,29 @@ class ProxyHunterApp(ctk.CTk):
             # Очищаем плейсхолдер перед вставкой
             if widget == getattr(self, "checker_input", None):
                 ph = getattr(self, "checker_placeholder", "")
-                if widget.get("1.0", "end-1c").strip() == ph.strip() or widget.get("0.0", "end-1c").strip() == ph.strip():
-                    widget.delete("1.0", "end")
+                val1 = ""
+                try: val1 = widget.get("1.0", "end-1c").strip()
+                except: pass
+                val2 = ""
+                try: val2 = widget.get("0.0", "end-1c").strip()
+                except: pass
+                if val1 == ph.strip() or val2 == ph.strip():
+                    try: widget.delete("1.0", "end")
+                    except: widget.delete("0.0", "end")
                     widget.configure(fg="#E2E8F0")
                 widget.insert("insert", text_to_insert)
             else:
                 # Скорее всего это proxy_text
                 ph = getattr(self, "proxy_placeholder_text", "")
-                if widget.get("1.0", "end-1c").strip() == ph.strip() or widget.get("0.0", "end-1c").strip() == ph.strip():
-                    widget.delete("1.0", "end")
+                val1 = ""
+                try: val1 = widget.get("1.0", "end-1c").strip()
+                except: pass
+                val2 = ""
+                try: val2 = widget.get("0.0", "end-1c").strip()
+                except: pass
+                if val1 == ph.strip() or val2 == ph.strip():
+                    try: widget.delete("1.0", "end")
+                    except: widget.delete("0.0", "end")
                 widget.insert("insert", text_to_insert)
                 if hasattr(self, "_update_chain_count"):
                     self.after(50, self._update_chain_count)
@@ -1589,6 +1603,77 @@ class ProxyHunterApp(ctk.CTk):
             return "break"
         except Exception:
             pass
+
+    def _smart_copy(self, event):
+        try:
+            widget = event.widget
+            if hasattr(widget, "master") and hasattr(widget.master, "_textbox"):
+                widget = widget.master._textbox
+            elif hasattr(widget, "_textbox"):
+                widget = widget._textbox
+            
+            if not widget.tag_ranges("sel"):
+                widget.tag_add("sel", "1.0", "end")
+                
+            self.clipboard_clear()
+            self.clipboard_append(widget.get("sel.first", "sel.last"))
+            return "break"
+        except Exception:
+            pass
+
+    def _bind_treeview_events(self, tree):
+        def on_click(event):
+            region = tree.identify("region", event.x, event.y)
+            if region == "heading" or region == "separator":
+                return
+            item = tree.identify_row(event.y)
+            if not item:
+                tree.selection_remove(tree.selection())
+            elif item in tree.selection():
+                tree.selection_remove(item)
+                return "break"
+
+        def on_double_click(event):
+            item = tree.identify_row(event.y)
+            column = tree.identify_column(event.x)
+            if not item or not column: return
+            try:
+                col_idx = int(column.replace('#', '')) - 1
+                vals = tree.item(item, "values")
+                if col_idx < 0 or col_idx >= len(vals): return
+                text = str(vals[col_idx])
+            except: return
+            try:
+                x, y, width, height = tree.bbox(item, column)
+                entry = tk.Entry(tree, font=tree.cget("font"), justify="center", bg="#060B14", fg="white", readonlybackground="#1A202C")
+                entry.place(x=x, y=y, width=width, height=height)
+                entry.insert(0, text)
+                entry.configure(state="readonly")
+                entry.selection_range(0, 'end')
+                entry.focus_set()
+                def destroy_entry(e=None):
+                    entry.destroy()
+                entry.bind("<FocusOut>", destroy_entry)
+                entry.bind("<Return>", destroy_entry)
+                entry.bind("<Escape>", destroy_entry)
+            except: pass
+
+        def on_ctrl_c(event):
+            sel = tree.selection()
+            if not sel: return
+            item = sel[0]
+            vals = tree.item(item, "values")
+            tree.clipboard_clear()
+            tree.clipboard_append("\t".join(str(v) for v in vals))
+
+        tree.bind("<Button-1>", on_click)
+        tree.bind("<Double-Button-1>", on_double_click)
+        tree.bind("<Control-c>", on_ctrl_c)
+        tree.bind("<Control-C>", on_ctrl_c)
+        try:
+            tree.bind("<Control-с>", on_ctrl_c)
+            tree.bind("<Control-С>", on_ctrl_c)
+        except: pass
     def _on_tab_change(self):
         """Ленивая загрузка вкладок стран и прокси"""
         if self.tab_view.get() in ["Страны", "Countries"] and not getattr(self, "_countries_built", False):
@@ -2846,6 +2931,7 @@ class ProxyHunterApp(ctk.CTk):
 
         cols = ("proto", "ip", "port", "country")
         self.proxy_tree = tk.ttk.Treeview(tree_frame, columns=cols, show="headings", style="Proxy.Treeview", selectmode="extended")
+        self._bind_treeview_events(self.proxy_tree)
         self.proxy_tree.heading("proto", text=self._t("proto"), command=lambda: self._sort_tree("proto", False))
         self.proxy_tree.heading("ip", text=self._t("ip"), command=lambda: self._sort_tree("ip", False))
         self.proxy_tree.heading("port", text=self._t("port"), command=lambda: self._sort_tree("port", False))
@@ -3841,8 +3927,10 @@ class ProxyHunterApp(ctk.CTk):
         try:
             self.checker_input.bind("<Control-ф>", self._select_all)
             self.checker_input.bind("<Control-Ф>", self._select_all)
-            self.checker_input.bind("<Control-с>", lambda e: self.checker_input.event_generate("<<Copy>>"))
-            self.checker_input.bind("<Control-С>", lambda e: self.checker_input.event_generate("<<Copy>>"))
+            self.checker_input.bind("<Control-c>", self._smart_copy)
+            self.checker_input.bind("<Control-C>", self._smart_copy)
+            self.checker_input.bind("<Control-с>", self._smart_copy)
+            self.checker_input.bind("<Control-С>", self._smart_copy)
             self.checker_input.bind("<Control-x>", lambda e: self.checker_input.event_generate("<<Cut>>"))
             self.checker_input.bind("<Control-ч>", lambda e: self.checker_input.event_generate("<<Cut>>"))
             self.checker_input.bind("<Control-Ч>", lambda e: self.checker_input.event_generate("<<Cut>>"))
@@ -3882,6 +3970,7 @@ class ProxyHunterApp(ctk.CTk):
         cols = ("#", "proxy", "country", "ping", "anon", "bl", "speed", "smtp")
         self.check_tree_frame = ctk.CTkFrame(right_panel, fg_color="transparent")
         self.check_tree = tk.ttk.Treeview(self.check_tree_frame, columns=cols, show="headings", style="Proxy.Treeview")
+        self._bind_treeview_events(self.check_tree)
         
         self.check_tree.heading("#", text="#")
         self.check_tree.heading("proxy", text=self._t("checker_h_proxy"))
@@ -4098,8 +4187,20 @@ class ProxyHunterApp(ctk.CTk):
         pattern = re.compile(r'(?:[a-zA-Z0-9]+://)?(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::\d{1,5})?')
         found = pattern.findall(raw_text)
         
-        # Дедупликация с сохранением порядка
-        proxies_list = list(dict.fromkeys(found))
+        # Дедупликация и нормализация (всегда добавляем протокол)
+        seen = set()
+        proxies_list = []
+        for match in found:
+            if "://" in match:
+                proto, ip_port = match.split("://", 1)
+                proto = proto.lower()
+            else:
+                proto = "http"
+                ip_port = match
+            normalized = f"{proto}://{ip_port}"
+            if normalized not in seen:
+                seen.add(normalized)
+                proxies_list.append(normalized)
         
         if not proxies_list:
             self._flash_error_widget(self.btn_check_start, temp_text=self._t("error_no_proxies"))
@@ -4426,7 +4527,10 @@ class ProxyHunterApp(ctk.CTk):
                 self.btn_checker_proto_filter.configure(text=self._t("protocols_n").format(len(active_p)))
                 
             if len(self.checker_all_protos) >= 2:
-                self.btn_checker_proto_filter.pack(side="right", padx=(10, 5), before=self.btn_checker_country_filter)
+                try:
+                    self.btn_checker_proto_filter.pack(side="right", padx=(10, 5), before=self.btn_checker_country_filter)
+                except tk.TclError:
+                    self.btn_checker_proto_filter.pack(side="right", padx=(10, 5))
                 show_frame = True
             else:
                 self.btn_checker_proto_filter.pack_forget()
