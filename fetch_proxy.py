@@ -884,7 +884,7 @@ class ProxyHunter:
                 if pbar: pbar.update(1)
         
         if pbar: pbar.close()
-        print(f"    {self._t('sources_replied')}: {ok_sources}/{len(SOURCES)}")
+        print(f"    {self._t('sources_replied')}: {ok_sources}")
         print(f"    Уникальных IP:PORT после основного парсинга: {len(self.proxy_protocols)}")
 
         # МАШИНА ВРЕМЕНИ (отдельным шагом)
@@ -1532,6 +1532,7 @@ class ProxyHunter:
                     # Страна изменилась и теперь не подходит
                     pass
             self.live_results = valid_live
+            print(f"    [REALTIME_LIVE] {len(self.live_results)}")
 
         import asyncio
         try: from tqdm import tqdm
