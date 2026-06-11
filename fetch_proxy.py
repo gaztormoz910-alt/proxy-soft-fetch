@@ -765,14 +765,14 @@ class ProxyHunter:
                  check_smtp: bool = False,
                  collect_dc: bool = True, collect_res: bool = True, collect_mob: bool = True,
                  random_counts: Optional[Dict[str, int]] = None, lang: str = "RU", output_dir: str = ".",
-                 github_token: str = "", github_tm_enabled: bool = True, github_tm_days: int = 1, ipinfo_token: str = ""):
+                 github_token: str = "", github_tm_enabled: bool = True, github_tm_days: int = 1):
         
         self.output_dir = output_dir
         self.lang = lang
         self.github_token = github_token
         self.github_tm_enabled = github_tm_enabled
         self.github_tm_days = github_tm_days
-        self.ipinfo_token = ipinfo_token
+
         self.threads = min(threads, 5000)
         self.timeout = timeout
         
@@ -1293,32 +1293,17 @@ class ProxyHunter:
             
             for attempt in range(3):
                 try:
-                    url = f"https://ipinfo.io/{asn}/json"
-                    if getattr(self, 'ipinfo_token', ''):
-                        url += f"?token={self.ipinfo_token}"
-                    resp = requests.get(url, timeout=5,
-                                        headers={'Accept': 'application/json', 'User-Agent': 'ProxyHunter/4.0'})
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        asn_type = data.get('type', '').lower()  # "isp", "hosting", "business"
-                        if asn_type:
-                            self.asn_cache[asn] = asn_type
+                    html_url = f"https://ipinfo.io/{asn}"
+                    resp_html = requests.get(html_url, timeout=10,
+                                             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
+                    if resp_html.status_code == 200:
+                        import re
+                        m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<', resp_html.text, re.IGNORECASE)
+                        if m:
+                            self.asn_cache[asn] = m.group(1).lower()
                             checked += 1
-                        break  # Успешно, выходим из цикла retry
-                    elif resp.status_code in (400, 401, 403):
-                        # Бесплатный Lite токен не имеет доступа к /json ASN API.
-                        # Парсим HTML страницу напрямую.
-                        html_url = f"https://ipinfo.io/{asn}"
-                        resp_html = requests.get(html_url, timeout=10,
-                                                 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
-                        if resp_html.status_code == 200:
-                            import re
-                            m = re.search(r'ASN type.*?>(ISP|Hosting|Business)<', resp_html.text, re.IGNORECASE)
-                            if m:
-                                self.asn_cache[asn] = m.group(1).lower()
-                                checked += 1
                         break  # Выходим из цикла retry
-                    elif resp.status_code == 429:
+                    elif resp_html.status_code == 429:
                         time.sleep(5)  # Rate limit — подождём и попробуем снова
                     else:
                         break  # Другая ошибка, нет смысла ретраить
