@@ -2372,7 +2372,7 @@ class ProxyHunterApp(ctk.CTk):
         ctrl = ctk.CTkFrame(row, fg_color="transparent")
         ctrl.pack(side="right")
 
-        is_int = (step >= 1 and from_ >= 1)
+        is_int = (step >= 1)
 
         def fmt(v):
             return str(int(v)) if is_int else f"{v:.1f}"
@@ -2904,7 +2904,7 @@ class ProxyHunterApp(ctk.CTk):
             lbl = self._add_number_input(
                 parent=scroll,
                 label_text=f'{self._t("random_count")} {proto.upper()}',
-                from_=1,
+                from_=0,
                 to=99999999,
                 default=5000000,
                 step=100000,
@@ -3223,23 +3223,45 @@ class ProxyHunterApp(ctk.CTk):
                 self.country_counts[c_name] = self.country_counts.get(c_name, 0) + 1
         else:
             base_dir = self.output_dir.get() if hasattr(self, "output_dir") else "."
-            folder = os.path.join(base_dir, f"results_{mapped_src}")
-            csv_file = os.path.join(folder, "all.csv")
-            if os.path.exists(csv_file):
+            
+            # Маппинг имен файлов для новой структуры
+            file_map = {
+                "live": "alive.txt",
+                "elite": "elite.txt",
+                "datacenter": "datacenter.txt",
+                "residential": "residential.txt",
+                "mobile": "mobile.txt"
+            }
+            txt_file = os.path.join(base_dir, "results", file_map.get(mapped_src, f"{mapped_src}.txt"))
+            
+            if os.path.exists(txt_file):
                 try:
-                    with open(csv_file, 'r', encoding='utf-8') as f:
-                        reader = csv.reader(f)
-                        next(reader)
-                        for row in reader:
-                            if len(row) >= 4:
-                                if row[3] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"):
-                                    continue
-                                c_name = self._format_country(row[3])
-                                p_name = row[0].upper()
-                                self._current_raw_data.append((p_name, row[1], row[2], c_name))
-                                protos.add(p_name)
+                    with open(txt_file, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line or line.startswith('#'): continue
+                            
+                            # Парсинг proto://ip:port
+                            if '://' in line:
+                                proto, ipp = line.split('://', 1)
+                                proto = proto.upper()
+                                if proto.lower() in ('vless', 'vmess', 'ss', 'ssr', 'trojan', 'tuic', 'hysteria2', 'mtproto'):
+                                    import fetch_proxy
+                                    ext_ip, ext_port = fetch_proxy.ProxyUtils.extract_ip_port(line)
+                                    ip_str, port_str = ext_ip, ext_port
+                                else:
+                                    if ':' in ipp:
+                                        ip_str, port_str = ipp.rsplit(':', 1)
+                                    else:
+                                        ip_str, port_str = ipp, ""
+                                
+                                # Мы не храним страну в txt, так что оставляем неизвестной (или можно попробовать закешировать/определить на лету)
+                                c_name = "Unknown" 
+                                
+                                self._current_raw_data.append((proto, ip_str, port_str, c_name))
+                                protos.add(proto)
                                 countries.add(c_name)
-                                self.proto_counts[p_name] = self.proto_counts.get(p_name, 0) + 1
+                                self.proto_counts[proto] = self.proto_counts.get(proto, 0) + 1
                                 self.country_counts[c_name] = self.country_counts.get(c_name, 0) + 1
                 except Exception:
                     pass
@@ -3902,9 +3924,7 @@ class ProxyHunterApp(ctk.CTk):
             # And it properly counts different protocols on the same IP as distinct, matching the backend's set() logic exactly.
             self.stat_live.configure(text=str(len(self.realtime_proxies.get("live", []))))
             
-            total_elite_count = 0
-            for cat in ["elite", "datacenter", "residential", "mobile"]:
-                total_elite_count += len(self.realtime_proxies.get(cat, []))
+            total_elite_count = len(self.realtime_proxies.get("elite", []))
             self.stat_elite.configure(text=str(total_elite_count))
             
             if hasattr(self, 'stat_dc'):
@@ -3978,7 +3998,18 @@ class ProxyHunterApp(ctk.CTk):
                 if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
                 if uniq_id not in self._seen_proxies:
                     self._seen_proxies.add(uniq_id)
-                    cat = data.get("category", "Elite").lower()
+                    self._proxy_queue.append((data, "elite"))
+            except: pass
+        elif "[REALTIME_NEW_CATEGORY]" in text:
+            try:
+                parts = text.split("[REALTIME_NEW_CATEGORY]")[1].strip().split("|")
+                data = {"ip": parts[0], "port": parts[1], "protocol": parts[2], "country": parts[3], "category": parts[4]}
+                if data["country"] in ("RU", "BY", "KZ", "UZ", "AM", "AZ", "KG", "MD", "TJ", "TM", "AF", "KP", "SO"): return
+                uniq_id = f"cat:{data['protocol']}:{data['ip']}:{data['port']}"
+                if not hasattr(self, "_seen_proxies"): self._seen_proxies = set()
+                if uniq_id not in self._seen_proxies:
+                    self._seen_proxies.add(uniq_id)
+                    cat = data.get("category", "datacenter").lower()
                     self._proxy_queue.append((data, cat))
             except: pass
         elif "[REALTIME_REMOVE_LIVE]" in text:
@@ -4974,7 +5005,7 @@ class ProxyHunterApp(ctk.CTk):
                         if self.do_check_speed.get():
                             try:
                                 t0 = time.time()
-                                r = requests.get('https://speed.cloudflare.com/__down?bytes=100000', proxies=proxies_dict, timeout=timeout)
+                                r = requests.get('http://speedtest.tele2.net/100KB.zip', proxies=proxies_dict, timeout=timeout)
                                 dl_time = max(0.001, time.time() - t0)  # BUG-15: Guard ZeroDivision
                                 mbps = round((100000 * 8) / dl_time / 1000000, 1)
                                 if mbps > 0.5:
