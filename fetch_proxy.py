@@ -25,9 +25,7 @@ except ImportError:
 # ═══════════════════════════════════════════════════════════════
 #  РАСШИРЕННЫЙ СПИСОК ИСТОЧНИКОВ (Объединенный)
 # ═══════════════════════════════════════════════════════════════
-SOURCES = [
-    ('http://htmlweb.ru/analiz/proxy_list.php', 'http'),
-    ('https://api.openproxylist.xyz/http.txt', 'http'),
+SOURCES = [    ('https://api.openproxylist.xyz/http.txt', 'http'),
     ('https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=10000&country=all', 'http'),
     ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all', 'http'),
     ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all', 'http'),
@@ -52,7 +50,6 @@ SOURCES = [
     ('https://databay.com/api/v1/proxy-list?format=txt&country=DE', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&country=GB', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&country=NL', 'http'),
-    ('https://databay.com/api/v1/proxy-list?format=txt&country=RU', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&country=US', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http', 'http'),
     ('https://databay.com/api/v1/proxy-list?protocol=http', 'http'),
@@ -62,8 +59,6 @@ SOURCES = [
     ('https://hidemium.io/free-proxy', 'http'),
     ('https://litport.net/api/free-proxy', 'http'),
     ('https://proxy-spider.com/api/proxies.example.txt', 'http'),
-    ('https://proxyfreeonly.com/ru/free-proxy-list', 'http'),
-
     ('https://proxymania.su/free-proxy', 'http'),
     ('https://proxyspace.pro/http.txt', 'http'),
     ('https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/http.txt', 'http'),
@@ -108,7 +103,6 @@ SOURCES = [
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/IN/data.txt', 'all'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/JP/data.txt', 'all'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/NL/data.txt', 'all'),
-    ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/RU/data.txt', 'all'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/SG/data.txt', 'all'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/countries/US/data.txt', 'all'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt', 'all'),
@@ -126,7 +120,6 @@ SOURCES = [
     ('https://raw.githubusercontent.com/zloi-user/hideip.me/main/http.txt', 'http'),
     ('https://spys.me/proxy.txt', 'http'),
     ('https://sunny9577.github.io/proxy-scraper/generated/http_proxies.txt', 'all'),
-    ('https://toproxylab.com/ru/spisok-besplatnyh-proksi-serverov', 'http'),
     ('https://vakhov.github.io/fresh-proxy-list/http.txt', 'http'),
     ('https://vakhov.github.io/fresh-proxy-list/proxylist.txt', 'http'),
     ('https://www.google-proxy.net/', 'http'),
@@ -236,7 +229,6 @@ SOURCES = [
     ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5.txt', 'socks5'),
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolipport&format=text&anonymity=elite', 'socks5'),
     ('https://raw.githubusercontent.com/casals-ar/proxy-list/main/socks5', 'socks5'),
-    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=UA', 'socks5'),
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=PL', 'socks5'),
     ('https://raw.githubusercontent.com/fate0/proxylist/master/proxy.list', 'socks5'),
     ('https://api.proxyscrape.com/proxytable.php?type=socks5', 'socks5'),
@@ -294,7 +286,6 @@ SOURCES = [
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=FR', 'socks5'),
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=CA', 'socks5'),
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=BR', 'socks5'),
-    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=RU', 'socks5'),
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=IN', 'socks5'),
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=ID', 'socks5'),
     ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=CN', 'socks5'),
@@ -320,9 +311,6 @@ SOURCES = [
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=BR', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IN', 'socks5'),
@@ -344,9 +332,6 @@ SOURCES = [
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=2&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&page=3&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
@@ -415,7 +400,6 @@ SOURCES.extend([(f'https://proxylist.geonode.com/api/proxy-list?limit=500&page={
 # PubProxy API (5 запросов - лимит для free-пользователей)
 SOURCES.append(('http://pubproxy.com/api/proxy?limit=5&format=txt&http=true&level=anonymous,elite&type=http,socks4,socks5', 'http'))
 
-SOURCES.append(('https://good-proxies.ru/proxy-list/free/us/', 'http'))
 
 # --- NEW VALIDATED AI SOURCES ---
 SOURCES.extend([
@@ -443,7 +427,6 @@ SOURCES.extend([
     ('https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=2000&country=IN&ssl=yes&anonymity=elite', 'http'),
     ('https://t.me/s/daily_free_proxy', 'all'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=US&protocols=https', 'https'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=RU&protocols=http', 'http'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=GB&protocols=https', 'https'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=DE&protocols=http', 'http'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=DE&protocols=socks4', 'socks4'),
@@ -456,7 +439,6 @@ SOURCES.extend([
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=ID&protocols=http', 'http'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=GB&protocols=socks4', 'socks4'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=GB&protocols=socks5', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=RU&protocols=socks4', 'socks4'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=DE&protocols=socks5', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=FR&protocols=socks5', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=BR&protocols=socks5', 'socks5'),
@@ -470,7 +452,6 @@ SOURCES.extend([
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=https&country=IR', 'https'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=JP', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=socks5&country=IR', 'socks5'),
-    ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=UA', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=IN', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=CA', 'http'),
     ('https://databay.com/api/v1/proxy-list?format=txt&protocol=http&country=IT', 'http'),
@@ -482,7 +463,6 @@ SOURCES.extend([
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=US&protocols=socks5', 'socks5'),
     ('https://hidemy.io/en/proxy-list/', 'all'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=US&protocols=socks4', 'socks4'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=RU&protocols=socks5', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&country=CN&protocols=socks4', 'socks4'),
     ('https://premiumproxy.net/full-proxy-list', 'all'),
     ('https://proxydb.net/?protocol=http&offset=360', 'http'),
@@ -498,7 +478,6 @@ SOURCES.extend([
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=IR', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=KR', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=JP', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=SG', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=CA', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=PL', 'socks5'),
@@ -506,7 +485,6 @@ SOURCES.extend([
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=GB', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=US', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=DE', 'socks5'),
-    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
     ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=NL', 'socks5'),
     ('https://advanced.name/freeproxy?type=socks5&page=2', 'socks5'),
     ('https://advanced.name/freeproxy?type=socks5&page=1', 'socks5'),
@@ -620,7 +598,6 @@ SOURCES.extend([
     ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text&protocol=http', 'http'),
     ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text&protocol=socks4', 'socks4'),
     ('https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text&protocol=socks5', 'socks5'),
-    ('https://api.good-proxies.ru/getfree.php?count=1000&key=freeproxy', 'all'),
     ('https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/HTTP.txt', 'http'),
     ('https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/SOCKS4.txt', 'socks4'),
     ('https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/SOCKS5.txt', 'socks5'),
@@ -684,7 +661,6 @@ SOURCES.extend([
     ('https://html.duckduckgo.com/html/?q=site:fofa.info+"port:3128"+"Squid"&df=w', 'http'),
     ('https://html.duckduckgo.com/html/?q=site:zoomeye.org+"http+proxy"+intext:"8080"&df=w', 'http'),
     ('http://pubproxy.com/api/proxy?limit=5&format=txt&http=true&country=US&type=http', 'http'),
-    ('http://pubproxy.com/api/proxy?limit=5&format=txt&socks5=true&country=RU&type=socks5', 'socks5'),
     ('http://pubproxy.com/api/proxy?limit=5&format=txt&socks4=true&country=DE&type=socks4', 'socks4'),
     ('http://pubproxy.com/api/proxy?limit=5&format=txt&https=true&level=elite', 'https'),
     ('https://gitlab.com/haithamaouati/proxy-list/-/raw/main/http.txt', 'http'),
@@ -716,33 +692,26 @@ SOURCES.extend([
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/all.json', 'http'),
     ('https://codeberg.org/dbarker/public-proxy-list/raw/branch/main/proxies.txt', 'http'),
     ('https://flashproxy.com/resources/free-proxies', 'http'),
-    ('https://proxylister.com/ru/protocols/socks4/?page={p}', 'socks4'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/socks5.txt', 'socks5'),
-    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_ru.txt', 'http'),
     ('https://proxyhub.me/en/all-free-proxy-list.html?page={p}', 'http'),
     ('https://raw.githubusercontent.com/Ian-Lusule/Proxies/main/proxies/http.txt', 'http'),
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=protocolonly&format=text&timeout=20000', 'http'),
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolonly&format=text&timeout=20000', 'socks5'),
-    ('https://free.geonix.com/ru/', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.json', 'http'),
     ('https://proxybros.com/free-proxy-list/{p}/', 'http'),
     ('https://proxylist.to/proxy-list.txt', 'http'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/all.txt', 'http'),
     ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.txt', 'http'),
     ('https://bitbucket.org/vanholt-proxies/public-http-proxies/raw/main/README.md', 'http'),
-    ('https://proxyelite.info/ru/free/', 'http'),
     ('https://www.freeproxy.world/?type=&anonymity=&country=&speed=&port=&page={p}', 'http'),
     ('https://raw.githubusercontent.com/duckray-client/free-vless-keys/main/keys.txt', 'vless'),
     ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.json', 'http'),
-    ('https://hidemy.name/ru/proxy-list/', 'http'),
     ('https://raw.githubusercontent.com/saisuiu/uiu/main/free.txt', 'http'),
     ('https://raw.githubusercontent.com/vAHiD55555/ProxyScraper/main/proxies.txt', 'http'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.json', 'socks5'),
     ('https://proxyroller.com/api/proxies?protocol=http&anonymity=elite&limit=100', 'http'),
     ('https://raw.githubusercontent.com/hookzof/socks5_list/master/tg/mtproto.json', 'mtproto'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.json', 'socks4'),
-    ('https://proxylister.com/ru/protocols/socks5/?page={p}', 'socks5'),
-    ('https://proxylister.com/ru/protocols/http/?page={p}', 'http'),
     ('https://docs.google.com/spreadsheets/d/1guW73RgKLUcLUFGx9QRtqtAmbqMJG7aXKJGlT_XU2t4/export?format=csv', 'http')
 ])
 
@@ -957,7 +926,8 @@ class ProxyUtils:
             return "Config", "N/A"
     @staticmethod
     def fetch_url(url: str, timeout: int = 10) -> str:
-        import random, time
+        import random, time, json, urllib3
+        urllib3.disable_warnings()
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
@@ -965,6 +935,7 @@ class ProxyUtils:
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
         ]
+
         headers = {'User-Agent': random.choice(user_agents)}
         
         # Stagger requests for sites with many pagination links to prevent 429 / DDoS blocks
@@ -972,12 +943,30 @@ class ProxyUtils:
             time.sleep(random.uniform(0.5, 3.0))
 
         try:
-            resp = requests.get(url, headers=headers, timeout=timeout, stream=True)
+            resp = requests.get(url, headers=headers, timeout=timeout, stream=True, verify=False)
             resp.raise_for_status()
+            
+            # Special parsing for JSON APIs
+            if 'application/json' in resp.headers.get('Content-Type', '') or url.endswith('.json'):
+                try:
+                    data = resp.json()
+                    # Flatten JSON to string so the regex can pick up IP:PORT
+                    return str(data)
+                except Exception:
+                    pass
+            
+            # Special parsing for Telegram
+            if 't.me/s/' in url:
+                html_text = resp.text
+                import re
+                # Extract text from tgme_widget_message_text
+                messages = re.findall(r'<div class="tgme_widget_message_text[^>]*>(.*?)</div>', html_text, re.IGNORECASE | re.DOTALL)
+                # Remove html tags
+                clean_text = '\\n'.join([re.sub(r'<[^>]+>', ' ', m) for m in messages])
+                return clean_text
+
             chunks, size = [], 0
             
-            # Добавляем жесткий лимит по времени, чтобы избежать зависаний при tarpit'инге
-            import time
             start_time = time.time()
             
             for chunk in resp.iter_content(chunk_size=8192):
@@ -996,7 +985,8 @@ class ProxyUtils:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.settimeout(timeout)
-                return sock.connect_ex((ip, port)) == 0
+                sock.connect((ip, port))
+                return True
         except Exception: 
             return False
     @staticmethod
@@ -1210,7 +1200,7 @@ TRANS = {
         "ipinfo": "    [ipinfo.io] Получены типы для {checked}/{total} ASN",
         "passed": "    [★] Уникальных IP:PORT прошедших все фильтры: {0}",
         "done": "\n[✓] Готово! Сохранение результатов...",
-        "save_live": "[✓] Базовые списки по категориям сохранены в папку 'results_live/'",
+        "save_live": "[✓] Базовые списки по категориям сохранены в папку 'results/'",
         "cancel": "[!] Задача отменена пользователем",
         "no_candidates": "Нет прокси для проверки.",
         "db_not_found": "\n[!] Локальная база {0} не была найдена. Скачиваю (около 5MB)...",
@@ -1310,6 +1300,13 @@ class ProxyHunter:
         self.ip_cache: Dict[str, dict] = {}
         self.asn_cache: Dict[str, str] = {}  # ASN → type (isp/hosting/business) from ipinfo.io
         self.db_reader = None
+        try:
+            import maxminddb
+            import os
+            if os.path.exists('GeoLite2-Country.mmdb'):
+                self.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
+        except Exception:
+            pass
         self.total_collected = 0
         
         self._pause_event = threading.Event()
@@ -1423,7 +1420,6 @@ class ProxyHunter:
         
         if pbar: pbar.close()
         print(f"    {self._t('sources_replied')}: {ok_sources}")
-        print(f"    Уникальных IP:PORT: {len(self.proxy_protocols)}")
 
         # МАШИНА ВРЕМЕНИ (отдельным шагом)
         if getattr(self, 'github_token', None) and getattr(self, 'github_tm_enabled', True):
@@ -1987,8 +1983,8 @@ class ProxyHunter:
                 import time
                 import aiohttp
                 start_time = time.time()
-                # 100KB payload from Tele2 speed test
-                speed_url = "http://speedtest.tele2.net/100KB.zip"
+                # 100KB payload from Cloudflare speed test (reliable)
+                speed_url = "http://speed.cloudflare.com/__down?bytes=100000"
                 if proto.lower() in ('socks4', 'socks5', 'socks5h'):
                     from aiohttp_socks import ProxyConnector
                     connector = ProxyConnector.from_url(proxy_url)
@@ -2028,7 +2024,7 @@ class ProxyHunter:
                     from aiohttp_socks import ProxyConnector
                     connector = ProxyConnector.from_url(proxy_url)
                     async with aiohttp.ClientSession(connector=connector) as session:
-                        for smtp_port in [25, 587]:
+                        for smtp_port in [25, 587, 465, 2525]:
                             try:
                                 async with session.get(f'http://portquiz.net:{smtp_port}', timeout=self.timeout) as resp:
                                     if resp.status == 200:
@@ -2043,7 +2039,7 @@ class ProxyHunter:
                 try:
                     import aiohttp
                     async with aiohttp.ClientSession() as session:
-                        for smtp_port in [25, 587]:
+                        for smtp_port in [25, 587, 465, 2525]:
                             try:
                                 async with session.get(f'http://portquiz.net:{smtp_port}', proxy=proxy_url, timeout=self.timeout) as resp:
                                     if resp.status == 200:
@@ -2371,6 +2367,467 @@ class ProxyHunter:
             except Exception:
                 pass
             self.db_reader = None
+import datetime
+
+# --- Start User's New Sources ---
+NEW_SOURCES = [
+    ('https://raw.githubusercontent.com/rxyzqc/SOCKS5-Proxy-Gen/main/socks5sites.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/saschazesiger/Free-Proxies/master/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/saschazesiger/Free-Proxies/master/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/saschazesiger/Free-Proxies/master/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/HyperBeats/proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/HyperBeats/proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/HyperBeats/proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/manuGMG/proxy-365/main/SOCKS5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/databay-labs/free-proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/databay-labs/free-proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/databay-labs/free-proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/hproxy-com/free-proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/hproxy-com/free-proxy-list/main/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/hproxy-com/free-proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/hproxy-com/free-proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/GGboogie/PROXY-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/GGboogie/PROXY-List/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/GGboogie/PROXY-List/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/caliphdev/Proxy-List/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/caliphdev/Proxy-List/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/caliphdev/Proxy-List/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/BlackSnowDot/proxylist-update-every-minute/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/BlackSnowDot/proxylist-update-every-minute/main/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/BlackSnowDot/proxylist-update-every-minute/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/BlackSnowDot/proxylist-update-every-minute/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Dev-Team-V/Free-Proxies/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Dev-Team-V/Free-Proxies/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Dev-Team-V/Free-Proxies/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/EnoT-Hub/proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/EnoT-Hub/proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/EnoT-Hub/proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/RX4096/proxy-list/main/online/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/RX4096/proxy-list/main/online/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/RX4096/proxy-list/main/online/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/mertguvencli/http-proxy-list/main/proxy-list/data.txt', 'http'),
+    ('https://raw.githubusercontent.com/Bardiafa/Proxy-Leecher/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/AyoubSirai/proxy-list/main/proxy-list.txt', 'all'),
+    ('https://raw.githubusercontent.com/joshua-ns/Proxy-Scraper/master/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/yixiu001/proxy-list/main/proxy.txt', 'all'),
+
+    ('https://hproxy.com/api/proxy-list?format=txt&protocol=http', 'http'),
+    ('https://hproxy.com/api/proxy-list?format=txt&protocol=https', 'https'),
+    ('https://hproxy.com/api/proxy-list?format=txt&protocol=socks4', 'socks4'),
+    ('https://hproxy.com/api/proxy-list?format=txt&protocol=socks5', 'socks5'),
+    ('https://api.proxyscan.io/download?type=http', 'http'),
+    ('https://api.proxyscan.io/download?type=https', 'https'),
+    ('https://api.proxyscan.io/download?type=socks4', 'socks4'),
+    ('https://api.proxyscan.io/download?type=socks5', 'socks5'),
+
+    ('https://t.me/s/ProxySocks5Free', 'socks5'),
+    ('https://t.me/s/proxies_http', 'http'),
+    ('https://t.me/s/Proxy_List_2026', 'all'),
+    ('https://t.me/s/Proxy_Scrap', 'all'),
+    ('https://t.me/s/elite_proxies_list', 'all'),
+    ('https://t.me/s/socks_proxy_net', 'socks5'),
+    ('https://t.me/s/http_proxies_list', 'http'),
+    ('https://t.me/s/free_proxy_world', 'all'),
+    ('https://t.me/s/proxyhub_net', 'all'),
+
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.com+"HTTP/1.1+200+OK"+"8080"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:rentry.co+"http_proxies"+"port"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:justpaste.it+"proxy+list"+"elite"&df=d', 'all'),
+    ('https://html.duckduckgo.com/html/?q=site:fofa.info+"HTTP+Proxy"+"X-Forwarded-For"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:zoomeye.org+"squid"+"port:3128"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:shodan.io+"HTTP/1.1+200+OK"+"Server:+squid"&df=w', 'http'),
+]
+current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+NEW_SOURCES.append((f'https://checkerproxy.net/api/archive/{current_date}', 'all'))
+SOURCES.extend(NEW_SOURCES)
+
+MORE_SOURCES = [
+    ('https://raw.githubusercontent.com/LalatinaHub/Proxy-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/parserpp/ip_ports/main/proxyinfo.txt', 'all'),
+    ('https://raw.githubusercontent.com/itsallnans/proxy-list/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/Toffanello/Free-Proxy-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/ahmadhasibul/Proxy-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/z2x-team/Proxy-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Zullis/free-proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/andig/proxylist/master/proxy.txt', 'http'),
+    ('https://raw.githubusercontent.com/Spp001/Proxy-List/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/TheLime1/Validity/main/data/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/TheLime1/Validity/main/data/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/TheLime1/Validity/main/data/https.txt', 'https'),
+
+    ('https://www.proxy-list.download/api/v1/get?type=http&anon=anonymous', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=http&anon=transparent', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=https&anon=anonymous', 'https'),
+    ('https://www.proxy-list.download/api/v1/get?type=https&anon=transparent', 'https'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks4&anon=anonymous', 'socks4'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks5&anon=anonymous', 'socks5'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&port=80', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&port=8080', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&port=3128', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&port=1080', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks4&port=4145', 'socks4'),
+
+    ('https://t.me/s/free_proxies_socks5', 'socks5'),
+    ('https://t.me/s/proxylist_24', 'all'),
+    ('https://t.me/s/proxies_daily', 'all'),
+    ('https://t.me/s/proksi_list', 'all'),
+    ('https://t.me/s/Proxy_List_world', 'all'),
+    ('https://t.me/s/proxy_socks5_free_vip', 'socks5'),
+    ('https://t.me/s/socks5_proxy_list_http', 'all'),
+    ('https://t.me/s/v2ray_vpn_configs', 'vless'),
+
+    ('https://html.duckduckgo.com/html/?q=site:controlc.com+"socks5"+intext:"1080"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:pastefs.com+"http+proxy"+intext:"8080"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:hastebin.com+"proxy+list"+intext:"8080"&df=d', 'all'),
+    ('https://html.duckduckgo.com/html/?q=site:dpaste.com+"socks5"+intext:"1080"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:fofa.info+"Server:+tinyproxy"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:fofa.info+"Server:+3proxy"&df=w', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:zoomeye.org+"3proxy"+"port:1080"&df=w', 'socks5')
+]
+SOURCES.extend(MORE_SOURCES)
+
+THIRD_WAVE_SOURCES = [
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies_anonymous/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies_anonymous/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/monosans/proxy-list/main/proxies_anonymous/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/elite/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/elite/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/prxchk/proxy-list/main/elite/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/anonymity/elite/data.txt', 'all'),
+    ('https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/anonymity/anonymous/data.txt', 'all'),
+
+    ('https://html.duckduckgo.com/html/?q=site:gitee.com+"proxy-list"+"http"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:gitee.com+"socks5"+"1080"&df=w', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:gitlab.com+"proxies.txt"+"HTTP/1.1"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:gitlab.com+"socks5.txt"+"port"&df=w', 'socks5'),
+
+    ('https://t.me/s/free_proxy_ipv4', 'all'),
+    ('https://t.me/s/proxylist4all', 'all'),
+    ('https://t.me/s/premium_proxy_list', 'all'),
+    ('https://t.me/s/proxy_server_list', 'all'),
+    ('https://t.me/s/shadowsocks_free', 'socks5'),
+    ('https://t.me/s/v2ray_custom', 'vless'),
+    ('https://t.me/s/Best_Proxies_List', 'all'),
+
+    ('https://raw.githubusercontent.com/Kitsun3Sec/ProxyList/master/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Kitsun3Sec/ProxyList/master/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Kitsun3Sec/ProxyList/master/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Nomad0x0/Awesome-Proxies/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/Toffanello/Free-Proxy-List/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Toffanello/Free-Proxy-List/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Vann-Dev/proxy-list/main/proxies/socks5.txt', 'socks5'),
+
+    ('https://www.proxy-list.download/api/v1/get?type=http&country=US', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=http&country=GB', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=http&country=DE', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks5&country=US', 'socks5'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks5&country=RU', 'socks5'),
+
+    ('https://html.duckduckgo.com/html/?q=intitle:"index+of"+inurl:"proxy.txt"&df=w', 'all'),
+    ('https://html.duckduckgo.com/html/?q=intitle:"index+of"+inurl:"proxies/http.txt"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=intitle:"index+of"+inurl:"socks5.json"&df=w', 'socks5')
+]
+today = datetime.datetime.now()
+yesterday = (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+day_before_yesterday = (today - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
+three_days_ago = (today - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+
+THIRD_WAVE_SOURCES.extend([
+    (f'https://checkerproxy.net/api/archive/{yesterday}', 'all'),
+    (f'https://checkerproxy.net/api/archive/{day_before_yesterday}', 'all'),
+    (f'https://checkerproxy.net/api/archive/{three_days_ago}', 'all')
+])
+SOURCES.extend(THIRD_WAVE_SOURCES)
+
+FOURTH_WAVE_SOURCES = [
+    ('https://raw.githubusercontent.com/NotUnko/Free-Proxy-List/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/TheVoidGroup/Proxy-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/TheVoidGroup/Proxy-List/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/TheVoidGroup/Proxy-List/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/SlavaBogatov/proxy-list/main/proxies.txt', 'all'),
+
+    ('https://html.duckduckgo.com/html/?q=intitle:"SilverBullet+Logs"+"proxy"&df=w', 'all'),
+    ('https://html.duckduckgo.com/html/?q=intitle:"OpenBullet+Logs"+"proxies"&df=w', 'all'),
+    
+    ('https://html.duckduckgo.com/html/?q=site:0bin.net+"socks5"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:zerobin.net+"8080"+OR+"3128"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:paste.ee+"socks5"+intext:"1080"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:paste.ubuntu.com+"HTTP/1.1+200+OK"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:ideone.com+"proxy"+intext:"http"&df=d', 'http'),
+
+    ('https://t.me/s/proxylist_premium', 'all'),
+    ('https://t.me/s/free_proxies_list_2026', 'all'),
+    ('https://t.me/s/MTProto_Proxy_List', 'socks5'),
+    ('https://t.me/s/Socks5_Proxy_List_Vip', 'socks5'),
+    ('https://t.me/s/Proxy_List_Free_VIP', 'all'),
+    ('https://t.me/s/vpn_proxy_custom', 'all'),
+    ('https://t.me/s/working_proxies', 'all'),
+
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=1000&country=all&ssl=yes&anonymity=elite', 'http'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=1000&country=all&anonymity=elite', 'socks5'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&speed=slow&anonymityLevel=transparent', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&speed=slow', 'socks5'),
+
+    ('https://html.duckduckgo.com/html/?q=ext:log+"HTTP/1.1+200+OK"+"X-Forwarded-For"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=intitle:"index+of"+"proxies.txt"&df=d', 'all')
+]
+SOURCES.extend(FOURTH_WAVE_SOURCES)
+
+FIFTH_WAVE_SOURCES = [
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&uptime=90', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=https&uptime=90', 'https'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks4&uptime=90', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&uptime=90', 'socks5'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&ipType=ipv6', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&ipType=ipv6', 'socks5'),
+
+    ('https://html.duckduckgo.com/html/?q=ext:yaml+"proxies:"+"type:+socks5"+"server:"&df=w', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=ext:yaml+"proxies:"+"type:+http"+"server:"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:github.com+inurl:"clash.yaml"+"proxies"&df=w', 'all'),
+
+    ('https://html.duckduckgo.com/html/?q=site:slexy.org+"socks5://"+port&df=w', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:paste2.org+"HTTP/1.1+200+OK"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:rentry.co+"vmess://"&df=w', 'vless'),
+    ('https://html.duckduckgo.com/html/?q=site:telegra.ph+"proxy+list"+intext:"8080"&df=w', 'http'),
+
+    ('https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt', 'all'),
+    ('https://raw.githubusercontent.com/MuhammadBahaa2001/Proxy-List/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/T0x1cA114cK/Proxy-List/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Bardiafa/Proxy-Leecher/main/good.txt', 'all'),
+    ('https://raw.githubusercontent.com/fahimkawsar/proxy-list/main/proxy.txt', 'all'),
+
+    ('https://t.me/s/free_proxy_socks5_http', 'all'),
+    ('https://t.me/s/proxy_list_premium_free', 'all'),
+    ('https://t.me/s/ProxyScraperList', 'all'),
+    ('https://t.me/s/proxies_for_all', 'all'),
+    ('https://t.me/s/openbullet_proxies', 'all'),
+
+    ('https://www.proxy-list.download/api/v1/get?type=http&port=8080', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=http&port=3128', 'http'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks5&port=1080', 'socks5'),
+    ('https://www.proxy-list.download/api/v1/get?type=socks4&port=4145', 'socks4')
+]
+SOURCES.extend(FIFTH_WAVE_SOURCES)
+
+SIXTH_WAVE_SOURCES = [
+    ('https://t.me/s/iran_proxy', 'all'),
+    ('https://t.me/s/proxy_iran_socks5', 'socks5'),
+    ('https://t.me/s/v2rayng_org', 'vless'),
+    ('https://t.me/s/v2rayng_vpn', 'vless'),
+    ('https://t.me/s/free_v2ray_config', 'vless'),
+    ('https://t.me/s/V2ray_Alpha', 'vless'),
+    ('https://t.me/s/Shadowsocks_Proxy_List', 'socks5'),
+    ('https://t.me/s/vpn_fail', 'all'),
+    ('https://t.me/s/vpn_fail_socks5', 'socks5'),
+    ('https://t.me/s/free_proxy_list_socks5', 'socks5'),
+
+    ('https://html.duckduckgo.com/html/?q=site:pastie.org+"socks5"+port&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:paste.fo+"HTTP/1.1"+intext:"8080"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:textbin.net+"proxy"+"8080"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:throwbin.io+"socks5"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:justpaste.it+"socks4"&df=d', 'socks4'),
+
+    ('https://t.me/s/HTTP_Proxy_List_Free', 'http'),
+    ('https://t.me/s/Socks4_Proxy_List_Free', 'socks4'),
+    ('https://t.me/s/Socks5_Proxy_List_Free', 'socks5'),
+    ('https://t.me/s/HTTP_Proxy_List_Vip', 'http'),
+    ('https://t.me/s/socks5_proxy_list_vip', 'socks5'),
+    ('https://t.me/s/proxies_anonymous_elite', 'http'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&anonymityLevel=elite&port=80', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&anonymityLevel=elite&port=1080', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks4&anonymityLevel=elite&port=4145', 'socks4'),
+
+    ('https://raw.githubusercontent.com/Wannabe1337/Proxy-List/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/yuzhen123/Free-Proxy-List/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/sppeding/proxy-list/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/obfuskator/proxy-list/main/proxy.txt', 'all'),
+    ('https://raw.githubusercontent.com/yemixzy/proxy-list/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/tuanminpay/live-proxy/master/all.txt', 'all'),
+
+    ('https://html.duckduckgo.com/html/?q=ext:txt+"HTTP/1.1+200+OK"+"Via:"+"Proxy"&df=w', 'http'),
+    ('https://html.duckduckgo.com/html/?q=ext:txt+"socks5"+"auth:none"&df=w', 'socks5')
+]
+for days_back in range(4, 8):
+    archive_date = (today - datetime.timedelta(days=days_back)).strftime("%Y-%m-%d")
+    SIXTH_WAVE_SOURCES.append((f'https://checkerproxy.net/api/archive/{archive_date}', 'all'))
+SOURCES.extend(SIXTH_WAVE_SOURCES)
+
+SEVENTH_WAVE_SOURCES = [
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=500&country=all&ssl=all&anonymity=elite', 'http'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks4&timeout=500&country=all&anonymity=elite', 'socks4'),
+    ('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=500&country=all&anonymity=elite', 'socks5'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=speed&sort_type=asc&protocols=http', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=speed&sort_type=asc&protocols=https', 'https'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=speed&sort_type=asc&protocols=socks4', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=speed&sort_type=asc&protocols=socks5', 'socks5'),
+
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.pl+"socks5"+intext:"1080"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.pl+"http+proxy"+intext:"8080"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:cl1p.net+"socks5"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:cl1p.net+"proxy+list"+intext:"http"&df=d', 'http'),
+    ('https://html.duckduckgo.com/html/?q=site:ghostbin.me+"socks5://"+port&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:ghostbin.me+"HTTP/1.1+200+OK"&df=d', 'http'),
+
+    ('https://raw.githubusercontent.com/ViggoPro/proxy-list/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/Deybuhnt/proxylist/main/proxies.txt', 'all'),
+    ('https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt', 'https'),
+    ('https://raw.githubusercontent.com/Zullis/free-proxy-list/main/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/Zullis/free-proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/EnoT-Hub/proxy-list/main/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/yemixzy/proxy-list/main/proxies/socks4.txt', 'socks4'),
+    ('https://raw.githubusercontent.com/yemixzy/proxy-list/main/proxies/socks5.txt', 'socks5'),
+
+    ('https://t.me/s/proxy_list_world_free', 'all'),
+    ('https://t.me/s/free_proxy_list_vip', 'all'),
+    ('https://t.me/s/proxy_socks5_http_https_vip', 'all'),
+    ('https://t.me/s/proxies_scraper', 'all'),
+    ('https://t.me/s/socks5_proxy_scraper', 'socks5'),
+    ('https://t.me/s/proxy_list_100', 'all'),
+    ('https://t.me/s/proxylist_update_24', 'all'),
+
+    ('https://html.duckduckgo.com/html/?q=site:rentry.co+"SOCKS4"+intext:"1080"&df=w', 'socks4'),
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.com+ext:txt+"socks5"+intext:"1080"&df=d', 'socks5'),
+    ('https://html.duckduckgo.com/html/?q=site:pastebin.com+ext:txt+"http_proxies"&df=d', 'http'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=RU', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=UA', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&country=KZ', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&country=RU', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&country=UA', 'http'),
+]
+SOURCES.extend(SEVENTH_WAVE_SOURCES)
+
+EIGHTH_WAVE_SOURCES = [
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=http&google=true', 'http'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=https&google=true', 'https'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks4&google=true', 'socks4'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=lastChecked&sort_type=desc&protocols=socks5&google=true', 'socks5'),
+
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=speed&sort_type=asc&protocols=socks5&google=true', 'socks5'),
+    ('https://proxylist.geonode.com/api/proxy-list?limit=500&sort_by=speed&sort_type=asc&protocols=http&google=true', 'http'),
+
+    ('https://t.me/s/Singbox_Config', 'vless'),
+    ('https://t.me/s/xray_proxy', 'vless'),
+    ('https://t.me/s/vless_vmess_trojan_shadowsocks', 'all'),
+    ('https://t.me/s/Xray_VPN_Configs', 'vless'),
+    ('https://t.me/s/reality_config', 'vless'),
+    ('https://t.me/s/Singbox_Nodes', 'all'),
+
+    ('https://t.me/s/free_proxy_socks5_http_https', 'all'),
+    ('https://t.me/s/proxylist_2026_free', 'all'),
+    ('https://t.me/s/socks4_proxy_list', 'socks4'),
+    ('https://t.me/s/proxy_list_elite_anonymous', 'all')
+]
+SOURCES.extend(EIGHTH_WAVE_SOURCES)
+
+NINTH_WAVE_SOURCES = [
+    # New Working Github / CDN RAW
+    ('https://raw.githubusercontent.com/scidam/proxy-list/master/proxy.json', 'socks5'),
+    ('https://raw.githubusercontent.com/proxygenerator1/ProxyGenerator/main/MostStable/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/proxygenerator1/ProxyGenerator/main/Stable/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/proxygenerator1/ProxyGenerator/main/Unstable/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/vmheaven/VMHeaven-Free-Proxy-Updated/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/rdavydov/proxy-list/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/SOCKS5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/TheLime1/Validity/main/data/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/adasd223/http-socks-proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/mishakorzik/Free-Proxy/main/proxy.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.json', 'socks5'),
+    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_all.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/main/proxy_eu.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/hanwayTech/free-proxy-list/main/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/almroot/proxylist/master/list.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/saisuiu/uiu/main/free.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/vAHiD55555/ProxyScraper/main/proxies.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/duckray-client/free-vless-keys/main/keys.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/26info/vless-proxy-list/main/working-proxies.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/elliottophellia/yakumo/master/results/socks5/global/socks5_checked.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/officialputuid/ProxyForEveryone/main/xResults/RAW.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/officialputuid/ProxyForEveryone/main/xResults/Proxies.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/Tsprnay/Proxy-lists/master/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/KUTLime/ProxyList/main/ProxyList.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/SevenworksDev/proxy-list/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/nguywnben/daily-proxy-updates/main/proxies/socks5.txt', 'socks5'),
+    ('https://raw.githubusercontent.com/aslisk/proxyhttps/main/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/nguywnben/daily-proxy-updates/main/proxies/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/nguywnben/daily-proxy-updates/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/proxygenerator1/ProxyGenerator/main/Stable/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/proxygenerator1/ProxyGenerator/main/Unstable/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/vmheaven/VMHeaven-Free-Proxy-Updated/main/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/vmheaven/VMHeaven-Free-Proxy-Updated/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/SevenworksDev/proxy-list/main/proxies/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/SevenworksDev/proxy-list/main/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/HTTP.txt', 'http'),
+    ('https://raw.githubusercontent.com/TheLime1/Validity/main/data/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/adasd223/http-socks-proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/Tsprnay/Proxy-lists/master/proxies/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/hanwayTech/free-proxy-list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/hanwayTech/free-proxy-list/main/https.txt', 'https'),
+    ('https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/custom/google/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/im-razvan/proxy_list/main/http.txt', 'http'),
+    ('https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt', 'https'),
+    ('https://raw.githubusercontent.com/hendrikbgr/Free-Proxy-Repo/master/proxy_list.txt', 'http'),
+    ('https://cdn.jsdelivr.net/gh/jetkai/proxy-list@main/online-proxies/txt/proxies-socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/hookzof/socks5_list@master/proxy.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/TheSpeedX/PROXY-List@master/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/roosterkid/openproxylist@main/SOCKS5_RAW.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/monosans/proxy-list@main/proxies/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/prxchk/proxy-list@main/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/ShiftyTR/Proxy-List@master/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/zevtyardt/proxy-list@main/socks5.txt', 'socks5'),
+    ('https://cdn.jsdelivr.net/gh/MuRongPIG/Proxy-Master@main/socks5.txt', 'socks5'),
+    ('https://codeberg.org/dbarker/public-proxy-list/raw/branch/main/proxies.txt', 'socks5'),
+
+    # APIs (returns JSON or HTML, requires custom parser if text regex doesn't match)
+    ('https://api.proxy-checker.net/free-proxy/', 'socks5'),
+    ('https://proxy-tools.com/proxy/socks5', 'socks5'),
+    ('https://proxy-tools.com/proxy/https', 'https'),
+    ('https://proxy-tools.com/proxy/http', 'http'),
+    ('https://hidemy.io/en/proxy-list/', 'socks5'),
+    ('https://iproyal.com/free-proxy-list/', 'socks5'),
+    ('https://nodemaven.com/free-proxy-list/', 'socks5'),
+    ('https://proxybros.com/free-proxy-list/socks5/', 'socks5'),
+    ('https://roundproxies.com/free-proxy-list/', 'socks5'),
+    ('https://geonode.com/free-proxy-list/', 'socks5'),
+    ('https://premiumproxy.net/full-proxy-list', 'socks5'),
+    ('https://www.socks-proxy.net/', 'socks5'),
+    ('https://free-proxy-list.net/en/socks-proxy.html', 'socks5'),
+    ('https://spys.one/en/socks-proxy-list/', 'socks5'),
+    ('https://spys.me/socks.txt', 'socks5'),
+    ('http://ab57.ru/downloads/proxyold.txt', 'http'),
+
+    # Telegram Channels
+    ('https://t.me/s/socks5_proxy_free', 'socks5'),
+    ('https://t.me/s/proxy_socks5_http_https', 'socks5'),
+    ('https://t.me/s/proxy_list_pro', 'socks5'),
+    ('https://t.me/s/proxylist_update', 'socks5'),
+    ('https://t.me/s/socks5_proxies', 'socks5'),
+    ('https://t.me/s/daily_free_proxy', 'socks5'),
+    ('https://t.me/s/Free_Proxies', 'socks5'),
+    ('https://t.me/s/proxy_list_scraped', 'socks5'),
+    ('https://t.me/s/daily_proxy_list', 'socks5'),
+    ('https://t.me/s/proxies_for_you', 'socks5'),
+    ('https://t.me/s/proxies_anonymous', 'socks5'),
+    ('https://t.me/s/https_proxy_list', 'https'),
+    ('https://t.me/s/v2ray_proxies', 'socks5'),
+    ('https://t.me/s/v2ray_free_conf', 'socks5'),
+    ('https://t.me/s/ProxyListFree', 'socks5'),
+    ('https://t.me/s/proxy_lists', 'socks5'),
+]
+SOURCES.extend(NINTH_WAVE_SOURCES)
+
+# --- End User's New Sources ---
+
 def main():
     parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
     parser.add_argument('--threads', type=int, default=300, help='Количество потоков')
