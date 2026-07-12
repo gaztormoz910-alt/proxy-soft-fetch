@@ -4823,6 +4823,9 @@ class ProxyHunterApp(ctk.CTk):
         from concurrent.futures import ThreadPoolExecutor, as_completed
         
         dummy_hunter = ProxyHunter(threads=1)
+        if hasattr(self, 'hunter') and self.hunter:
+            dummy_hunter.ip_cache = self.hunter.ip_cache
+            dummy_hunter.asn_cache = self.hunter.asn_cache
         self._active_dummy_hunter = dummy_hunter
         if os.path.exists('GeoLite2-Country.mmdb'):
             try:
@@ -4843,9 +4846,25 @@ class ProxyHunterApp(ctk.CTk):
                 for p in proxies:
                     clean_p = p.split("://")[-1]
                     ip = clean_p.split(":")[0]
-                    unique_ips.add(ip)
                     if ip not in ip_to_proxies: ip_to_proxies[ip] = []
                     ip_to_proxies[ip].append(p)
+                    
+                    ip_info = dummy_hunter.ip_cache.get(ip, {})
+                    if 'datacenter' not in ip_info:
+                        unique_ips.add(ip)
+                    else:
+                        mobile = ip_info.get("mobile", False)
+                        hosting = ip_info.get("datacenter", False)
+                        asn_str = ip_info.get("asn", "")
+                        asn_num = asn_str.split()[0] if asn_str else ""
+                        asn_type = dummy_hunter.asn_cache.get(asn_num, "").lower()
+                        cat = "Unknown"
+                        if mobile: cat = self._t("checker_only_mob")
+                        elif asn_type == "isp": cat = self._t("checker_only_res")
+                        elif asn_type in ("hosting", "business"): cat = self._t("checker_only_dc")
+                        elif hosting: cat = self._t("checker_only_dc")
+                        else: cat = self._t("checker_only_res")
+                        self._update_check_row(p, "category", cat)
                     
                 if not unique_ips: return
                 
@@ -4860,7 +4879,7 @@ class ProxyHunterApp(ctk.CTk):
                 def _fetch_asn_info(asn):
                     if asn in dummy_hunter.asn_cache: return
                     for attempt in range(3):
-                        if not getattr(self, 'checker_is_running', False) or dummy_hunter._cancel_event.is_set(): return
+                        if dummy_hunter._cancel_event.is_set(): return
                         try:
                             html_url = f"https://ipinfo.io/{asn}"
                             resp_html = requests.get(html_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
@@ -4879,7 +4898,7 @@ class ProxyHunterApp(ctk.CTk):
                             time.sleep(2)
 
                 for chunk in chunks:
-                    if not getattr(self, 'checker_is_running', False) or dummy_hunter._cancel_event.is_set(): break
+                    if dummy_hunter._cancel_event.is_set(): break
                     retries = 3
                     backoff = 4
                     chunk_asns_to_fetch = set()
@@ -5220,7 +5239,7 @@ class ProxyHunterApp(ctk.CTk):
             if hasattr(self, 'checker_data'):
                 for proxy, vals in self.checker_data.items():
                     if len(vals) > 8:
-                        if vals[3] == "⏳": vals[3] = self._t("chk_skip")
+                        pass # Retain category '⏳' if background fetch is still running
                         
             self.btn_check_start.configure(state="normal", text=self._t("checker_start"), image=self.icons["play"], fg_color=GREEN, hover_color="#047857")
             self._chk_btn_load.configure(state="normal")
