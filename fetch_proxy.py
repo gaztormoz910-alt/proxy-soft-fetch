@@ -1982,27 +1982,32 @@ class ProxyHunter:
             try:
                 import time
                 import aiohttp
-                start_time = time.time()
-                # 100KB payload from Cloudflare speed test (reliable)
-                speed_url = "http://speed.cloudflare.com/__down?bytes=100000"
-                if proto.lower() in ('socks4', 'socks5', 'socks5h'):
-                    from aiohttp_socks import ProxyConnector
-                    connector = ProxyConnector.from_url(proxy_url)
-                    async with aiohttp.ClientSession(connector=connector) as session:
-                        async with session.get(speed_url, timeout=self.timeout) as resp:
-                            if resp.status == 200:
-                                data = await resp.read()
-                                duration = time.time() - start_time
-                                speed_mbps = (len(data) * 8) / (1024 * 1024) / duration if duration > 0 else 0
-                                if speed_mbps >= self.min_speed: speed_ok = True
-                else:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(speed_url, proxy=f"http://{ip}:{port}", timeout=self.timeout) as resp:
-                            if resp.status == 200:
-                                data = await resp.read()
-                                duration = time.time() - start_time
-                                speed_mbps = (len(data) * 8) / (1024 * 1024) / duration if duration > 0 else 0
-                                if speed_mbps >= self.min_speed: speed_ok = True
+                import asyncio
+                if not hasattr(self, '_speed_sem'):
+                    self._speed_sem = asyncio.Semaphore(30)
+                    
+                async with self._speed_sem:
+                    start_time = time.time()
+                    # 100KB payload from Cloudflare speed test (reliable)
+                    speed_url = "http://speed.cloudflare.com/__down?bytes=100000"
+                    if proto.lower() in ('socks4', 'socks5', 'socks5h'):
+                        from aiohttp_socks import ProxyConnector
+                        connector = ProxyConnector.from_url(proxy_url)
+                        async with aiohttp.ClientSession(connector=connector) as session:
+                            async with session.get(speed_url, timeout=self.timeout) as resp:
+                                if resp.status == 200:
+                                    data = await resp.read()
+                                    duration = time.time() - start_time
+                                    speed_mbps = (len(data) * 8) / (1024 * 1024) / duration if duration > 0 else 0
+                                    if speed_mbps >= self.min_speed: speed_ok = True
+                    else:
+                        async with aiohttp.ClientSession() as session:
+                            async with session.get(speed_url, proxy=f"http://{ip}:{port}", timeout=self.timeout) as resp:
+                                if resp.status == 200:
+                                    data = await resp.read()
+                                    duration = time.time() - start_time
+                                    speed_mbps = (len(data) * 8) / (1024 * 1024) / duration if duration > 0 else 0
+                                    if speed_mbps >= self.min_speed: speed_ok = True
             except Exception:
                 pass
             
@@ -2014,39 +2019,71 @@ class ProxyHunter:
             proxy_proto = proto.lower()
             smtp_ok = False
             
-            # Асинхронная проверка SMTP (Port 25)
-            # Чтобы не усложнять SOCKS хэндшейки для произвольных портов (т.к. нужно переписывать байт-код для порта 25),
-            # мы используем aiohttp если есть aiohttp_socks, иначе пропускаем тест для SOCKS
-            if proxy_proto in ('socks4', 'socks5', 'socks5h'):
-                proxy_url = f"{proxy_proto}://{ip}:{port}"
+            try:
+                import asyncio
+                from python_socks.async_.asyncio import Proxy
+                from python_socks import ProxyType
+                import ssl
+                
+                ptype = ProxyType.SOCKS5
+                if proxy_proto == 'socks4': ptype = ProxyType.SOCKS4
+                elif proxy_proto == 'http': ptype = ProxyType.HTTP
+                
+                proxy = Proxy.create(proxy_type=ptype, host=ip, port=int(port))
+                
+                smtp_servers = [
+                    ('smtp.gmail.com', 587, False),
+                    ('smtp-mail.outlook.com', 587, False),
+                    ('smtp.gmail.com', 465, True),
+                    ('smtp.mail.yahoo.com', 465, True),
+                ]
+                
+                for shost, sport, use_ssl in smtp_servers:
+                    try:
+                        sock = await asyncio.wait_for(proxy.connect(shost, sport), timeout=self.timeout)
+                        context = None
+                        if use_ssl:
+                            context = ssl.create_default_context()
+                            context.check_hostname = False
+                            context.verify_mode = ssl.CERT_NONE
+                            
+                        reader, writer = await asyncio.open_connection(sock=sock, ssl=context, server_hostname=shost if use_ssl else None)
+                        
+                        banner = await asyncio.wait_for(reader.read(1024), timeout=self.timeout)
+                        if banner[:3] == b'220':
+                            smtp_ok = True
+                        writer.close()
+                        await writer.wait_closed()
+                        
+                        if smtp_ok: break
+                    except Exception:
+                        pass
+            except ImportError:
+                # Если нет python_socks, делаем поверхностную проверку через aiohttp на 587/465 порты
                 try:
                     import aiohttp
-                    from aiohttp_socks import ProxyConnector
-                    connector = ProxyConnector.from_url(proxy_url)
-                    async with aiohttp.ClientSession(connector=connector) as session:
-                        for smtp_port in [25, 587, 465, 2525]:
+                    proxy_url = f"http://{ip}:{port}" if proxy_proto == 'http' else f"{proxy_proto}://{ip}:{port}"
+                    if proxy_proto in ('socks4', 'socks5', 'socks5h'):
+                        from aiohttp_socks import ProxyConnector
+                        connector = ProxyConnector.from_url(proxy_url)
+                        session = aiohttp.ClientSession(connector=connector)
+                    else:
+                        session = aiohttp.ClientSession()
+                        
+                    async with session:
+                        for smtp_port in [587, 465]:
+                            kwargs = {"timeout": self.timeout}
+                            if proxy_proto == 'http': kwargs["proxy"] = proxy_url
                             try:
-                                async with session.get(f'http://portquiz.net:{smtp_port}', timeout=self.timeout) as resp:
+                                async with session.get(f'http://portquiz.net:{smtp_port}', **kwargs) as resp:
                                     if resp.status == 200:
                                         smtp_ok = True
                                         break
                             except Exception: pass
-                except (ImportError, ConnectionResetError):
-                    # Если нет aiohttp_socks, считаем что SMTP тест не пройден, либо пройден условно
-                    smtp_ok = True 
-            else:
-                proxy_url = f"http://{ip}:{port}"
-                try:
-                    import aiohttp
-                    async with aiohttp.ClientSession() as session:
-                        for smtp_port in [25, 587, 465, 2525]:
-                            try:
-                                async with session.get(f'http://portquiz.net:{smtp_port}', proxy=proxy_url, timeout=self.timeout) as resp:
-                                    if resp.status == 200:
-                                        smtp_ok = True
-                                        break
-                            except Exception: pass
-                except Exception: pass
+                except Exception:
+                    pass
+            except Exception:
+                pass
                 
             if not smtp_ok:
                 return None
@@ -2830,7 +2867,7 @@ SOURCES.extend(NINTH_WAVE_SOURCES)
 
 def main():
     parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
-    parser.add_argument('--threads', type=int, default=300, help='Количество потоков')
+    parser.add_argument('--threads', type=lambda x: max(1, min(1000, int(x))), default=300, help='Количество потоков (макс. 1000)')
     parser.add_argument('--timeout', type=int, default=5, help='Таймаут соединения в секундах')
     parser.add_argument('--countries', default='US,CA,GB,AT,BE,BG,HR,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE', type=str, help='Разрешенные страны через запятую')
     parser.add_argument('--max-ping', type=float, default=700, help='Макс пинг в мс')
