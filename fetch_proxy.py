@@ -1878,13 +1878,17 @@ class ProxyHunter:
                     if item is None:
                         queue.task_done()
                         break
-                        
-                    if self._cancel_event.is_set():
-                        if pbar: pbar.update(1)
-                        queue.task_done()
-                        continue
-                        
+
+                    # REL-03: task_done() и pbar.update() обязаны выполниться даже
+                    # если тело воркера бросит. Раньше они стояли после try/except,
+                    # и любое исключение оттуда (например TclError из подменённого
+                    # в GUI tqdm после закрытия окна) убивало воркер без
+                    # task_done() — queue.join() ниже висел вечно, а вместе с ним
+                    # и весь поток сбора.
                     try:
+                        if self._cancel_event.is_set():
+                            continue
+
                         res = await async_worker(item)
                         if res:
                             ip_port, working_protos = res
@@ -1910,10 +1914,13 @@ class ProxyHunter:
                                     print(f"    [REALTIME_LIVE] {len(self.live_results)}")
                     except Exception:
                         pass
-                        
-                    if pbar: pbar.update(1)
-                    queue.task_done()
-                    
+                    finally:
+                        try:
+                            if pbar: pbar.update(1)
+                        except Exception:
+                            pass
+                        queue.task_done()
+
             workers = [asyncio.create_task(worker_task()) for _ in range(self.threads)]
             
             for item in self.candidate_generator:
@@ -2430,21 +2437,19 @@ class ProxyHunter:
             queue = asyncio.Queue(maxsize=self.threads * 2)
             pbar = tqdm(total=len(self.live_results), desc=self._dynamic_t("tqdm_filter")) if tqdm else None
             
-            to_remove_live = set()
-            
             async def worker_task():
                 while True:
                     item = await queue.get()
                     if item is None:
                         queue.task_done()
                         break
-                        
-                    if self._cancel_event.is_set():
-                        if pbar: pbar.update(1)
-                        queue.task_done()
-                        continue
-                        
+
+                    # REL-03: см. комментарий в validate() — task_done() обязан
+                    # выполниться при любом исходе, иначе queue.join() зависает.
                     try:
+                        if self._cancel_event.is_set():
+                            continue
+
                         res_tuple = await self.async_run_single_filter(item)
                         if res_tuple:
                             res, category = res_tuple
@@ -2459,7 +2464,6 @@ class ProxyHunter:
                             # Жесткий вторичный фильтр: отсекаем переопределенные страны
                             if self.countries and chk_country.upper() not in self.countries:
                                 with self._lock:
-                                    to_remove_live.add(res)
                                     strict_remove.add(res)
                             else:
                                 with self._lock:
@@ -2476,16 +2480,17 @@ class ProxyHunter:
                                     total_elite = len(self.elite_results)
                                     if total_elite % 2 == 0 or total_elite < 5:
                                         print(f"    [REALTIME_ELITE] {total_elite}")
-                        else:
-                            # Прокси не прошел Elite/Speed/Ping фильтр, но он все еще 'рабочий' (Live) с первого этапа.
-                            # Не удаляем его из live_results.
-                            pass
+                        # Прокси, не прошедший Elite/Speed/Ping, остаётся «рабочим»
+                        # с первого этапа — из live_results его не убираем.
                     except Exception:
                         pass
-                            
-                    if pbar: pbar.update(1)
-                    queue.task_done()
-                    
+                    finally:
+                        try:
+                            if pbar: pbar.update(1)
+                        except Exception:
+                            pass
+                        queue.task_done()
+
             workers = [asyncio.create_task(worker_task()) for _ in range(self.threads)]
             
             for item in self.live_results:
@@ -2502,9 +2507,8 @@ class ProxyHunter:
             for w in workers:
                 w.cancel()
             if pbar: pbar.close()
-            
-            return to_remove_live
-            
+
+
         # H-03 FIX: Safely run asyncio loops without conflicting with existing ones
         try:
             loop = asyncio.get_running_loop()
@@ -2514,19 +2518,19 @@ class ProxyHunter:
         if loop and loop.is_running():
             import nest_asyncio
             nest_asyncio.apply()
-            to_remove_live = asyncio.run(main_loop())
+            asyncio.run(main_loop())
         else:
             new_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(new_loop)
             try:
-                to_remove_live = new_loop.run_until_complete(main_loop())
+                new_loop.run_until_complete(main_loop())
             finally:
                 new_loop.close()
                 asyncio.set_event_loop(loop)
         
-        # We purposefully DO NOT remove to_remove_live from self.live_results.
-        # Even if a proxy fails the anonymity/SMTP check (or timeouts during advanced check), 
-        # it successfully passed the basic check and therefore is genuinely "Рабочий".
+        # Прокси, не прошедший анонимность/SMTP (или отвалившийся по таймауту на
+        # расширенной проверке), базовую проверку всё-таки прошёл и остаётся
+        # «Рабочим» — из live_results такие НЕ убираем.
         # This keeps the "Рабочие" metrics and exported lists perfectly aligned with what was found.
         # HOWEVER: We MUST remove proxies that failed the strict secondary Country filter!
         for p in strict_remove:
