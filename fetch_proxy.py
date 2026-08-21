@@ -1393,6 +1393,9 @@ class ProxyHunter:
             pass
         self.total_collected = 0
         
+        # Создаётся заново на каждый event loop — см. _reset_speed_semaphore().
+        self._speed_sem = None
+
         self._pause_event = threading.Event()
         self._cancel_event = threading.Event()
     def _t(self, key, *args, **kwargs):
@@ -1418,6 +1421,24 @@ class ProxyHunter:
 
     def resume(self):
         self._pause_event.clear()
+
+    # Ограничение параллельных замеров скорости: тест качает 100 КБ через каждый
+    # прокси, и без ограничения тысяча воркеров разом забьёт канал — все замеры
+    # окажутся заниженными и живые прокси отсеются как «медленные».
+    SPEED_TEST_CONCURRENCY = 30
+
+    def _reset_speed_semaphore(self):
+        """Создаёт новый семафор замеров скорости для текущего event loop.
+
+        COR-03: asyncio.Semaphore запоминает цикл, в котором впервые ждал, и
+        бросает RuntimeError при попытке использовать его в другом. У нас
+        validate() и advanced_filter() создают новый цикл на каждый проход,
+        поэтому переиспользованный семафор на втором проходе падал. Исключение
+        глотал внешний `except Exception: pass`, speed_ok оставался False — и
+        ВСЕ сгенерированные прокси проваливали фильтр скорости.
+        """
+        import asyncio
+        self._speed_sem = asyncio.Semaphore(self.SPEED_TEST_CONCURRENCY)
 
     def _wait_if_paused(self) -> bool:
         """Returns True if cancelled, False if ready to continue"""
@@ -2067,9 +2088,9 @@ class ProxyHunter:
                 import time
                 import aiohttp
                 import asyncio
-                if not hasattr(self, '_speed_sem'):
-                    self._speed_sem = asyncio.Semaphore(30)
-                    
+                if getattr(self, '_speed_sem', None) is None:
+                    self._reset_speed_semaphore()
+
                 async with self._speed_sem:
                     start_time = time.time()
                     # 100KB payload from Cloudflare speed test (reliable)
@@ -2278,7 +2299,11 @@ class ProxyHunter:
                 msg = context.get('message', '')
                 if 'Transport' in msg or 'SSL' in msg or 'socket' in msg.lower(): return
             loop.set_exception_handler(silence_event_loop_closed)
-            
+
+            # COR-03: семафор обязан принадлежать этому циклу, а не тому,
+            # что остался с первого прохода.
+            self._reset_speed_semaphore()
+
             queue = asyncio.Queue(maxsize=self.threads * 2)
             pbar = tqdm(total=len(self.live_results), desc=self._dynamic_t("tqdm_filter")) if tqdm else None
             
