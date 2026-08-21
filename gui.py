@@ -1116,13 +1116,25 @@ class ProxyHunterApp(ctk.CTk):
             os._exit(0)
     
     def _load_settings(self):
+        """Читает settings.json и накладывает поверх переменную окружения.
+
+        Токен GitHub можно задать через GITHUB_TOKEN — тогда секрет вообще не
+        попадает на диск. Переменная окружения имеет приоритет над файлом.
+        """
+        settings = {}
         try:
             if os.path.exists("settings.json"):
                 with open("settings.json", "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    loaded = json.load(f)
+                # settings.json правится руками — не доверяем, что там объект
+                if isinstance(loaded, dict):
+                    settings = loaded
         except Exception:
             pass
-        return {}
+        env_token = os.environ.get("GITHUB_TOKEN", "").strip()
+        if env_token:
+            settings["github_token"] = env_token
+        return settings
 
     def _save_settings(self):
         try:
@@ -1130,7 +1142,14 @@ class ProxyHunterApp(ctk.CTk):
             if hasattr(self, "output_dir"):
                 settings["output_dir"] = self.output_dir.get()
             if hasattr(self, "github_token_var"):
-                settings["github_token"] = self.github_token_var.get().strip().replace('\n', '').replace('\r', '')
+                token = self.github_token_var.get().strip().replace('\n', '').replace('\r', '')
+                env_token = os.environ.get("GITHUB_TOKEN", "").strip()
+                if env_token and token == env_token:
+                    # Токен пришёл из окружения — не переписываем его на диск,
+                    # иначе секрет «просочится» в файл при первом же Save.
+                    settings.pop("github_token", None)
+                else:
+                    settings["github_token"] = token
             if hasattr(self, "github_tm_enabled"):
                 settings["github_tm_enabled"] = self.github_tm_enabled.get()
             if hasattr(self, "github_tm_days_var"):
