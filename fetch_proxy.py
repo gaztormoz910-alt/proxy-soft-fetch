@@ -1508,18 +1508,26 @@ class ProxyHunter:
                 pass
         return 'Unknown'
     def collect(self):
-        print(f"\n[+] " + self._t("step1").format(len(SOURCES)))
+        # 32 URL перечислены в SOURCES под двумя протоколами сразу — один и тот
+        # же файл качался и разбирался дважды. Группируем по URL: скачиваем
+        # один раз, а найденные прокси помечаем всеми протоколами источника.
+        # Содержимое proxy_protocols то же, запросов — на 32 меньше.
+        by_url: Dict[str, Set[str]] = {}
+        for url, proto in SOURCES:
+            by_url.setdefault(url, set()).add(proto)
+
+        print(f"\n[+] " + self._t("step1").format(len(by_url)))
         total_raw, ok_sources = 0, 0
         try:
             from tqdm import tqdm
-            pbar = tqdm(total=len(SOURCES), desc=self._dynamic_t("tqdm_dl"))
+            pbar = tqdm(total=len(by_url), desc=self._dynamic_t("tqdm_dl"))
         except ImportError:
             pbar = None
-        def _fetch_and_parse(url, proto, fetch_timeout):
+        def _fetch_and_parse(url, protos, fetch_timeout):
             # COR-05: задача могла простоять в очереди пула минуты — проверяем
             # отмену до того, как уйти в сеть на fetch_timeout секунд.
             if self._cancel_event.is_set():
-                return proto, [], False
+                return protos, [], False
             content = ProxyUtils.fetch_url(url, fetch_timeout)
             responded = bool(content)
             proxies = []
@@ -1548,7 +1556,17 @@ class ProxyHunter:
                             proxies.extend(ProxyUtils.parse_proxies(sub_content))
                 else:
                     proxies.extend(ProxyUtils.parse_proxies(content))
-            return proto, proxies, responded
+            return protos, proxies, responded
+
+        def _record(protos, proxies):
+            """Помечает найденные прокси всеми протоколами их источника."""
+            with self._lock:
+                for p in proxies:
+                    for proto in protos:
+                        if proto == 'all':
+                            self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
+                        else:
+                            self.proxy_protocols[p].add(proto)
 
         # COR-05: раньше здесь стоял `with ThreadPoolExecutor(...)`. При отмене мы
         # выходили из цикла as_completed, но выход из блока вызывал
@@ -1558,16 +1576,16 @@ class ProxyHunter:
         ex = ThreadPoolExecutor(max_workers=50)
         try:
             fmap = {}
-            for url, proto in SOURCES:
+            for url, protos in by_url.items():
                 fetch_timeout = max(15, self.timeout)
-                fmap[ex.submit(_fetch_and_parse, url, proto, fetch_timeout)] = url
+                fmap[ex.submit(_fetch_and_parse, url, protos, fetch_timeout)] = url
 
             for fut in as_completed(fmap):
                 if self._wait_if_paused(): break
                 if self._cancel_event.is_set(): break
                 url = fmap[fut]
                 try:
-                    proto, proxies, responded = fut.result()
+                    protos, proxies, responded = fut.result()
                     if responded:
                         ok_sources += 1
                 except Exception:
@@ -1576,12 +1594,7 @@ class ProxyHunter:
 
                 if proxies:
                     total_raw += len(proxies)
-                    with self._lock:
-                        for p in proxies:
-                            if proto == 'all':
-                                self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
-                            else:
-                                self.proxy_protocols[p].add(proto)
+                    _record(protos, proxies)
                     print(f"[REALTIME_TOTAL] {len(self.proxy_protocols)}")
                 if pbar: pbar.update(1)
         finally:
@@ -1658,44 +1671,44 @@ class ProxyHunter:
             
             print(f"    [+] Найдено {len(history_sources)} исторических файлов. Начинаем скачивание...")
             
-            if history_sources:
+            # Тот же приём, что и для основного списка: один URL — одно скачивание.
+            hist_by_url: Dict[str, Set[str]] = {}
+            for url, proto in history_sources:
+                hist_by_url.setdefault(url, set()).add(proto)
+
+            if hist_by_url:
                 try:
-                    pbar_hist = tqdm(total=len(history_sources), desc="Машина времени")
-                except:
+                    pbar_hist = tqdm(total=len(hist_by_url), desc="Машина времени")
+                except Exception:
                     pbar_hist = None
-                    
+
                 ok_hist = 0
                 ex = ThreadPoolExecutor(max_workers=50)
                 try:
                     fmap = {}
-                    for url, proto in history_sources:
+                    for url, protos in hist_by_url.items():
                         fetch_timeout = max(15, self.timeout)
-                        fmap[ex.submit(_fetch_and_parse, url, proto, fetch_timeout)] = url
+                        fmap[ex.submit(_fetch_and_parse, url, protos, fetch_timeout)] = url
 
                     for fut in as_completed(fmap):
                         if self._wait_if_paused(): break
                         if self._cancel_event.is_set(): break
                         url = fmap[fut]
                         try:
-                            proto, proxies, responded = fut.result()
+                            protos, proxies, responded = fut.result()
                         except Exception:
                             if pbar_hist: pbar_hist.update(1)
                             continue
                         if proxies:
                             ok_hist += 1
                             total_raw += len(proxies)
-                            with self._lock:
-                                for p in proxies:
-                                    if proto == 'all':
-                                        self.proxy_protocols[p].update(['http', 'socks4', 'socks5'])
-                                    else:
-                                        self.proxy_protocols[p].add(proto)
+                            _record(protos, proxies)
                         if pbar_hist: pbar_hist.update(1)
                 finally:
                     ex.shutdown(wait=False, cancel_futures=True)   # COR-05
 
                 if pbar_hist: pbar_hist.close()
-                print(f"    Успешно скачано исторических файлов: {ok_hist}/{len(history_sources)}")
+                print(f"    Успешно скачано исторических файлов: {ok_hist}/{len(hist_by_url)}")
         print(f"    {self._t('log_unique_ip')}: {len(self.proxy_protocols)}")
         
         # Setup candidate generator for Pass 1
