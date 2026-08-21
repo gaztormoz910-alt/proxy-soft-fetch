@@ -975,15 +975,13 @@ class ProxyUtils:
             resp = ProxyUtils._get_with_tls_policy(url, headers, timeout)
             resp.raise_for_status()
             
-            # Special parsing for JSON APIs
-            if 'application/json' in resp.headers.get('Content-Type', '') or url.endswith('.json'):
-                try:
-                    data = resp.json()
-                    # Flatten JSON to string so the regex can pick up IP:PORT
-                    return str(data)
-                except Exception:
-                    pass
-            
+            # COR-01: раньше здесь для application/json возвращался str(resp.json()) —
+            # Python-repr словаря с одинарными кавычками. parse_proxies() не умеет
+            # разбирать такой текст: JSON-ветка на нём падает, а PROXY_RE не может
+            # перепрыгнуть через "', 'port': " между IP и портом. В итоге ~220 из
+            # 1710 источников (в том числе 188 страниц Geonode) молча давали ноль.
+            # Тело отдаётся как есть — parse_proxies сам разберёт и JSON, и текст.
+
             # Special parsing for Telegram
             if 't.me/s/' in url:
                 html_text = resp.text
