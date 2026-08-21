@@ -1486,6 +1486,10 @@ class ProxyHunter:
     # окажутся заниженными и живые прокси отсеются как «медленные».
     SPEED_TEST_CONCURRENCY = 30
 
+    # Столько же, сколько использует аналогичный запрос в gui.py: ipinfo.io
+    # отдаёт 429 при более агрессивном опросе.
+    ASN_LOOKUP_WORKERS = 20
+
     def _reset_speed_semaphore(self):
         """Создаёт новый семафор замеров скорости для текущего event loop.
 
@@ -2063,33 +2067,50 @@ class ProxyHunter:
             return
         
         print(self._t("check_asn").format(len(unique_asns)))
-        
-        checked = 0
-        for asn in unique_asns:
-            if self._cancel_event.is_set(): break
-            
+
+        def _lookup(asn):
+            """Возвращает тип ASN или None. Сетевые ошибки не выпускает наружу."""
             for attempt in range(3):
+                if self._cancel_event.is_set():
+                    return None
                 try:
-                    html_url = f"https://ipinfo.io/{asn}"
-                    resp_html = requests.get(html_url, timeout=10,
-                                             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
+                    resp_html = requests.get(
+                        f"https://ipinfo.io/{asn}", timeout=10,
+                        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'})
                     if resp_html.status_code == 200:
-                        import re
-                        m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<', resp_html.text, re.IGNORECASE)
-                        if m:
-                            self.asn_cache[asn] = m.group(1).lower()
-                            checked += 1
-                        break  # Выходим из цикла retry
-                    elif resp_html.status_code == 429:
+                        m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<',
+                                      resp_html.text, re.IGNORECASE)
+                        return m.group(1).lower() if m else None
+                    if resp_html.status_code == 429:
                         time.sleep(5)  # Rate limit — подождём и попробуем снова
                     else:
-                        break  # Другая ошибка, нет смысла ретраить
+                        return None    # Другая ошибка, нет смысла ретраить
                 except Exception:
-                    time.sleep(2)  # Сетевая ошибка, небольшая пауза
-            
-            time.sleep(0.5)  # Мягкий rate-limit для ipinfo.io
+                    time.sleep(2)      # Сетевая ошибка, небольшая пауза
+            return None
 
-        
+        # PERF-02: раньше ASN опрашивались строго последовательно, да ещё с
+        # time.sleep(0.5) после каждого. При 3000 уникальных ASN это ≥25 минут
+        # на одном лишь шаге классификации. Точно такой же запрос в gui.py уже
+        # был распараллелен на 20 воркеров — переносим сюда то же решение.
+        checked = 0
+        ex = ThreadPoolExecutor(max_workers=min(self.ASN_LOOKUP_WORKERS, len(unique_asns)))
+        try:
+            futures = {ex.submit(_lookup, asn): asn for asn in unique_asns}
+            for fut in as_completed(futures):
+                if self._cancel_event.is_set():
+                    break
+                try:
+                    asn_type = fut.result()
+                except Exception:
+                    continue
+                if asn_type:
+                    with self._lock:
+                        self.asn_cache[futures[fut]] = asn_type
+                    checked += 1
+        finally:
+            ex.shutdown(wait=False, cancel_futures=True)
+
         print(self._t("ipinfo", checked=checked, total=len(unique_asns)))
     def _check_rdns_and_bl(self, ip: str) -> dict:
         """Кэшируемая проверка RDNS и DNSBL"""
