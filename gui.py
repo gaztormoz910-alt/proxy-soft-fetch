@@ -705,6 +705,15 @@ for lang in ["RU", "EN"]:
         ISO_TO_NAME[lang].update(countries)
     ISO_TO_NAME[lang]['Unknown'] = "Unknown" if lang == "EN" else "Неизвестно"
 
+# Обратный индекс «локализованное название → ISO-код», по обоим языкам сразу.
+# Нужен, чтобы восстанавливать код страны из уже переведённой строки точным
+# сравнением: подстрочный поиск путает вложенные названия (Niger/Nigeria,
+# Guinea/Papua New Guinea, Sudan/South Sudan). См. COR-11 в AUDIT.md.
+NAME_TO_ISO = {}
+for _lang, _mapping in ISO_TO_NAME.items():
+    for _iso, _name in _mapping.items():
+        NAME_TO_ISO.setdefault(_name, _iso)
+
 
 LANG = {
     "EN": {
@@ -1527,15 +1536,17 @@ class ProxyHunterApp(ctk.CTk):
                     if not vals or len(vals) < 9: return vals
                     v = list(vals)
                     
-                    # Try to re-translate country (v[2])
-                    current_c = str(v[2])
-                    iso = ""
-                    for mapping in ISO_TO_NAME.values():
-                        for k, name in mapping.items():
-                            if name in current_c:
-                                iso = k
-                                break
-                        if iso: break
+                    # COR-11: страна восстанавливалась ПОДСТРОЧНЫМ поиском
+                    # (`if name in current_c`), а названия стран вложены друг в
+                    # друга. На фактическом содержимом ISO_TO_NAME это давало
+                    # чужой код для 13 стран: «Южный Судан» → Судан,
+                    # «Экваториальная Гвинея» → Гвинея, «Виргинские о-ва (США)»
+                    # → США, "British Indian Ocean Territory" → India,
+                    # "Macao SAR China" → China. Одно переключение языка портило
+                    # колонку «Страна», и эти значения потом экспортировались.
+                    # Точное совпадение по обратному индексу — заодно один
+                    # поиск по словарю вместо прохода по 470 названиям на строку.
+                    iso = NAME_TO_ISO.get(str(v[2]))
                     if iso:
                         v[2] = self._format_country(iso)
 
