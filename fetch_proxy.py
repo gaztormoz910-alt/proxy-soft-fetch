@@ -2612,40 +2612,61 @@ class ProxyHunter:
         print(f"    {self._t('elite_proxies')} {total_elite} | Категоризировано: {total_categorized} (DC: {len(self.results_datacenter)}, Res: {len(self.results_residential)}, Mob: {len(self.results_mobile)})")
 
     def save(self):
-        folder_path = os.path.join(self.output_dir, "results")
-        os.makedirs(folder_path, exist_ok=True)
-        
+        """Сохраняет результаты, подменяя папку results целиком и атомарно.
+
+        REL-04: раньше run() начинался с shutil.rmtree(results), то есть старые
+        результаты уничтожались ДО того, как получены новые. Упавший, отменённый
+        или просто безрезультатный прогон оставлял пользователя и без старых
+        данных, и без новых. Теперь пишем в соседнюю папку и переставляем её
+        на место только после того, как всё записано.
+        """
+        import shutil
+
+        final_path = os.path.join(self.output_dir, "results")
+        staging_path = final_path + ".new"
+        previous_path = final_path + ".old"
+
+        shutil.rmtree(staging_path, ignore_errors=True)
+        os.makedirs(staging_path, exist_ok=True)
+
         def _save_file(filename, data, desc):
             if not data: return
-            with open(os.path.join(folder_path, filename), 'w', encoding='utf-8') as f:
+            with open(os.path.join(staging_path, filename), 'w', encoding='utf-8') as f:
                 f.write(f"# {desc}: {len(data)}\n")
                 for p in data: f.write(p + '\n')
-                
+
         if self.live_results:
             _save_file('alive.txt', self.live_results, 'Живые прокси')
             print(self._t("save_live"))
-            
-        if getattr(self, 'elite_results', []):
-            _save_file('elite.txt', self.elite_results, 'Elite Proxies')
-            
-        if getattr(self, 'results_datacenter', []):
-            _save_file('datacenter.txt', self.results_datacenter, 'Datacenter Proxies')
-            
-        if getattr(self, 'results_residential', []):
-            _save_file('residential.txt', self.results_residential, 'Residential Proxies')
-            
-        if getattr(self, 'results_mobile', []):
-            _save_file('mobile.txt', self.results_mobile, 'Mobile Proxies')
+
+        _save_file('elite.txt', getattr(self, 'elite_results', []), 'Elite Proxies')
+        _save_file('datacenter.txt', getattr(self, 'results_datacenter', []), 'Datacenter Proxies')
+        _save_file('residential.txt', getattr(self, 'results_residential', []), 'Residential Proxies')
+        _save_file('mobile.txt', getattr(self, 'results_mobile', []), 'Mobile Proxies')
+
+        # Переставляем папки. Окно, в котором results отсутствует, — это ровно
+        # одно переименование, а не весь прогон.
+        try:
+            shutil.rmtree(previous_path, ignore_errors=True)
+            if os.path.exists(final_path):
+                os.rename(final_path, previous_path)
+            os.rename(staging_path, final_path)
+        except OSError as e:
+            # Не смогли переставить (например, папка занята другим процессом) —
+            # результаты уже на диске, сообщаем где именно.
+            print(f"[x] Не удалось обновить папку {final_path}: {e}")
+            print(f"    Результаты этого прогона лежат в {staging_path}")
+            return
+        finally:
+            shutil.rmtree(previous_path, ignore_errors=True)
     def run(self):
         t0 = time.time()
         print("\n🚀 ULTIMATE PROXY HUNTER v4.0 (ADVANCED FILTERS)")
-        
-        # Очищаем старые результаты перед началом нового сбора
-        import shutil
-        folder_path = os.path.join(self.output_dir, "results")
-        if os.path.exists(folder_path):
-            shutil.rmtree(folder_path, ignore_errors=True)
-            
+
+        # REL-04: старые результаты здесь больше не удаляются. Папка results
+        # заменяется целиком в save(), уже после того как новые данные записаны,
+        # — иначе упавший или отменённый прогон оставлял пользователя ни с чем.
+
         for attempt in range(2):
             # Файл базы нужно закрыть до скачивания: на Windows открытый mmap
             # не даёт os.replace() подменить его новой версией.
