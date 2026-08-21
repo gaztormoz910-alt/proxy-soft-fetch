@@ -3058,6 +3058,13 @@ SOURCES.extend(NINTH_WAVE_SOURCES)
 
 # --- End User's New Sources ---
 
+# COR-08: девять «волн» дописывались в SOURCES без сверки с уже добавленным,
+# и 51 запись оказалась дублем (spys.me/socks.txt встречался трижды). Каждый
+# дубль — это лишний HTTP-запрос с таймаутом до 15 c и повторный разбор ответа.
+# dict.fromkeys сохраняет исходный порядок; правим список на месте, чтобы не
+# осиротить ссылки на него.
+SOURCES[:] = list(dict.fromkeys(SOURCES))
+
 def main():
     parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
     parser.add_argument('--threads', type=lambda x: max(1, min(1000, int(x))), default=300, help='Количество потоков (макс. 1000)')
