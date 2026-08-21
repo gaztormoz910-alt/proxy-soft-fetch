@@ -725,6 +725,8 @@ LANG = {
         "ping": "Max Ping",
         "speed": "Min Speed",
         "smtp": "Check SMTP",
+        "insecure_sources": "Allow insecure sources",
+        "insecure_sources_hint": "Load sources whose TLS certificate cannot be verified.\nOff by default: a man-in-the-middle can replace the proxy list.\nTurn on only if some sources stopped responding.",
         "res": "Residential Only",
         "all": "✓ All",
         "all_short": "All",
@@ -879,6 +881,8 @@ LANG = {
         "ping": "Макс Пинг",
         "speed": "Мин Скор.",
         "smtp": "Проверять SMTP",
+        "insecure_sources": "Разрешить небезопасные источники",
+        "insecure_sources_hint": "Загружать источники, TLS-сертификат которых не проходит проверку.\nПо умолчанию выключено: посредник в сети может подменить список прокси.\nВключайте, только если часть источников перестала отвечать.",
         "res": "Только Residential",
         "all": "✓ Все",
         "all_short": "Все",
@@ -1150,6 +1154,8 @@ class ProxyHunterApp(ctk.CTk):
                     settings.pop("github_token", None)
                 else:
                     settings["github_token"] = token
+            if hasattr(self, "insecure_sources_var"):
+                settings["allow_insecure_sources"] = bool(self.insecure_sources_var.get())
             if hasattr(self, "github_tm_enabled"):
                 settings["github_tm_enabled"] = self.github_tm_enabled.get()
             if hasattr(self, "github_tm_days_var"):
@@ -1301,6 +1307,8 @@ class ProxyHunterApp(ctk.CTk):
             if btn.winfo_exists(): self._safe_config(btn, text=self._t("reset_short"))
         
         self._safe_config(self.smtp_switch, text=self._t("smtp"))
+        if hasattr(self, "insecure_switch"):
+            self._safe_config(self.insecure_switch, text=self._t("insecure_sources"))
         
         if hasattr(self, "lbl_github_tm"): self._safe_config(self.lbl_github_tm, text=self._t("github_tm_label"))
         if hasattr(self, "lbl_github_token"): self._safe_config(self.lbl_github_token, text=self._t("github_token_label"))
@@ -1910,6 +1918,16 @@ class ProxyHunterApp(ctk.CTk):
         self.res_var = ctk.BooleanVar(value=True)
         self.mob_var = ctk.BooleanVar(value=True)
         settings = self._load_settings()
+
+        # SEC-02: обход проверки TLS у источников. По умолчанию выключен.
+        self.insecure_sources_var = ctk.BooleanVar(value=bool(settings.get("allow_insecure_sources", False)))
+        self.insecure_switch = ctk.CTkSwitch(
+            frame, text=self._t("insecure_sources"), variable=self.insecure_sources_var,
+            command=self._save_settings,
+            fg_color=BORDER, progress_color=GOLD, font=("Segoe UI", 13), text_color=TEXT)
+        self.insecure_switch.pack(anchor="w", padx=10, pady=4)
+        self.interactive_widgets.append(self.insecure_switch)
+        ToolTip(self.insecure_switch, self._t("insecure_sources_hint"))
 
         # Output Directory
         ctk.CTkFrame(frame, fg_color=BORDER, height=1).pack(fill="x", padx=10, pady=12)
@@ -4214,6 +4232,7 @@ class ProxyHunterApp(ctk.CTk):
         max_ping_val = ping
         min_speed_val = speed
         check_smtp_val = self.smtp_var.get()
+        allow_insecure_val = bool(self.insecure_sources_var.get()) if hasattr(self, 'insecure_sources_var') else False
         dc_val = self.dc_var.get()
         res_val = self.res_var.get()
         mob_val = self.mob_var.get()
@@ -4252,7 +4271,8 @@ class ProxyHunterApp(ctk.CTk):
                     lang=self.current_lang,
                     github_token=self.github_token_var.get().strip().replace('\n', '').replace('\r', '') if hasattr(self, 'github_token_var') else "",
                     github_tm_enabled=self.github_tm_enabled.get() if hasattr(self, 'github_tm_enabled') else True,
-                    github_tm_days=gh_days
+                    github_tm_days=gh_days,
+                    allow_insecure_sources=allow_insecure_val
                 )
                 with patch_tqdm():
                     self.hunter_instance.run()

@@ -924,10 +924,39 @@ class ProxyUtils:
                 return p.hostname or "Config", str(p.port) if p.port else "N/A"
         except Exception:
             return "Config", "N/A"
+    # SEC-02: сертификаты источников проверяются по умолчанию. Раньше здесь стоял
+    # безусловный verify=False, из-за чего активный MITM мог подменить содержимое
+    # любого из 1710 источников и подсунуть пользователю свои точки выхода.
+    # Флаг включается пользователем явно и разрешает ровно один повтор без
+    # проверки — и только если запрос упал именно на SSLError.
+    ALLOW_INSECURE_SOURCES = False
+    _insecure_hosts_logged: Set[str] = set()
+    _insecure_lock = threading.Lock()
+
+    @classmethod
+    def _get_with_tls_policy(cls, url: str, headers: dict, timeout: int):
+        """GET с проверкой TLS; при SSLError — опциональный повтор без проверки."""
+        try:
+            return requests.get(url, headers=headers, timeout=timeout, stream=True)
+        except requests.exceptions.SSLError:
+            if not cls.ALLOW_INSECURE_SOURCES:
+                raise
+            import urllib3
+            import urllib.parse
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            host = urllib.parse.urlsplit(url).hostname or url
+            with cls._insecure_lock:
+                first_time = host not in cls._insecure_hosts_logged
+                if first_time:
+                    cls._insecure_hosts_logged.add(host)
+            if first_time:
+                print(f"    [!] TLS-сертификат {host} не прошёл проверку — "
+                      f"источник загружен без проверки (включён режим небезопасных источников)")
+            return requests.get(url, headers=headers, timeout=timeout, stream=True, verify=False)
+
     @staticmethod
     def fetch_url(url: str, timeout: int = 10) -> str:
-        import random, time, json, urllib3
-        urllib3.disable_warnings()
+        import random, time, json
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
@@ -943,7 +972,7 @@ class ProxyUtils:
             time.sleep(random.uniform(0.5, 3.0))
 
         try:
-            resp = requests.get(url, headers=headers, timeout=timeout, stream=True, verify=False)
+            resp = ProxyUtils._get_with_tls_policy(url, headers, timeout)
             resp.raise_for_status()
             
             # Special parsing for JSON APIs
@@ -1264,13 +1293,20 @@ class ProxyHunter:
                  check_smtp: bool = False,
                  collect_dc: bool = True, collect_res: bool = True, collect_mob: bool = True,
                  random_counts: Optional[Dict[str, int]] = None, lang: str = "RU", output_dir: str = ".",
-                 github_token: str = "", github_tm_enabled: bool = True, github_tm_days: int = 1):
+                 github_token: str = "", github_tm_enabled: bool = True, github_tm_days: int = 1,
+                 allow_insecure_sources: Optional[bool] = None):
         
         self.output_dir = output_dir
         self.lang = lang
         self.github_token = github_token
         self.github_tm_enabled = github_tm_enabled
         self.github_tm_days = github_tm_days
+
+        # None = «не трогать текущую политику». Так вспомогательный
+        # ProxyHunter(threads=1), который GUI создаёт для чекера, не сбрасывает
+        # флаг, выставленный запущенным сбором.
+        if allow_insecure_sources is not None:
+            ProxyUtils.ALLOW_INSECURE_SOURCES = bool(allow_insecure_sources)
 
         self.threads = threads
         self.timeout = timeout
@@ -2874,7 +2910,10 @@ def main():
     parser.add_argument('--min-speed', type=float, default=1.0, help='Мин скорость Мбит/с')
     parser.add_argument('--check-smtp', choices=['True', 'False'], default='True', help='Включить проверку SMTP портов (True/False)')
     parser.add_argument('--residential-only', action='store_true', help='Только residential/мобильные IP')
-    
+    parser.add_argument('--allow-insecure-sources', action='store_true',
+                        help='Разрешить загрузку источников с непроверяемым TLS-сертификатом '
+                             '(небезопасно: содержимое может быть подменено)')
+
     args = parser.parse_args()
     check_smtp_bool = args.check_smtp == 'True'
     countries_list = [c.strip().upper() for c in args.countries.split(',')
@@ -2895,7 +2934,8 @@ def main():
         check_smtp=check_smtp_bool,
         collect_dc=not args.residential_only,
         collect_res=True,
-        collect_mob=True
+        collect_mob=True,
+        allow_insecure_sources=args.allow_insecure_sources
     )
     hunter.run()
 if __name__ == '__main__':
