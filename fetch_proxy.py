@@ -904,6 +904,60 @@ class ProxyUtils:
             if i % 1000 == 0: time.sleep(0.001)
             
         return list(found)
+    # Причины отказа GitHub API. Раньше любой не-200 просто не добавлял ничего
+    # в результат, поэтому протухший токен, исчерпанный лимит и «за period
+    # коммитов не было» давали одинаковое «Найдено 0 исторических файлов».
+    GITHUB_TOKEN_REJECTED = "токен отклонён (401)"
+    GITHUB_RATE_LIMITED = "лимит API исчерпан (403)"
+
+    @classmethod
+    def classify_github_status(cls, status: int, headers=None) -> str:
+        """Человекочитаемая причина отказа GitHub API."""
+        if status == 401:
+            return cls.GITHUB_TOKEN_REJECTED
+        if status == 403:
+            # 403 у GitHub — и «кончился лимит», и «нет доступа». Отличаются
+            # только по заголовку остатка: при исчерпанном лимите он ноль.
+            remaining = (headers or {}).get('X-RateLimit-Remaining')
+            if remaining is not None and str(remaining).strip() == '0':
+                return cls.GITHUB_RATE_LIMITED
+            return "доступ запрещён (403)"
+        if status == 429:
+            return cls.GITHUB_RATE_LIMITED
+        if status == 404:
+            return "репозиторий или файл не найден (404)"
+        return f"HTTP {status}"
+
+    @classmethod
+    def check_github_token(cls, token: str, timeout: int = 10) -> Tuple[bool, str, Optional[int]]:
+        """Один запрос к /rate_limit до массовой рассылки.
+
+        Возвращает (годен, причина, остаток лимита). Смысл в том, чтобы не
+        отправлять 407 обречённых запросов, когда токен заведомо не принимается:
+        причина у всех будет одна и та же, а узнать её можно за один вызов.
+        """
+        try:
+            resp = requests.get(
+                "https://api.github.com/rate_limit",
+                headers={"Authorization": f"token {token}",
+                         "Accept": "application/vnd.github.v3+json"},
+                timeout=timeout)
+        except Exception as exc:
+            return False, cls.classify_fetch_error(exc), None
+
+        if resp.status_code != 200:
+            return False, cls.classify_github_status(resp.status_code, resp.headers), None
+
+        try:
+            core = resp.json().get('resources', {}).get('core', {})
+            remaining = core.get('remaining')
+        except Exception:
+            remaining = None
+
+        if remaining is not None and int(remaining) <= 0:
+            return False, cls.GITHUB_RATE_LIMITED, 0
+        return True, "", remaining
+
     @classmethod
     def fetch_github_commits(cls, url: str, token: str, hours_back: int = 24, cancel_event=None, pause_event=None) -> tuple:
         owner, repo, branch, path = None, None, None, None
@@ -918,14 +972,14 @@ class ProxyUtils:
             if not branch: branch = "main"
             
         if not owner or not repo or not path:
-            return [], {}
+            return [], {}, "не распознан как ссылка на GitHub"
 
         # SEC-05: owner/repo/path приходят из строки в SOURCES, которая правится
         # руками девятью «волнами». Раньше path подставлялся в URL как есть, и
         # '?' или '&' в нём превратились бы в лишние параметры запроса к GitHub
         # API — с нашим токеном в заголовке. Экранируем и валидируем.
         if not re.fullmatch(r'[A-Za-z0-9._-]+', owner) or not re.fullmatch(r'[A-Za-z0-9._-]+', repo):
-            return [], {}
+            return [], {}, "недопустимое имя owner/repo"
         import urllib.parse
         path = urllib.parse.quote(path, safe='/')
 
@@ -937,40 +991,46 @@ class ProxyUtils:
         
         commit_urls = []
         rate_limit = {}
-        try:
-            resp = requests.get(api_url, headers=headers, timeout=10)
+        error = ""
+
+        def _absorb_headers(resp):
             if 'X-RateLimit-Limit' in resp.headers:
                 rate_limit['limit'] = resp.headers.get('X-RateLimit-Limit')
                 rate_limit['remaining'] = resp.headers.get('X-RateLimit-Remaining')
                 rate_limit['reset'] = resp.headers.get('X-RateLimit-Reset')
                 rate_limit['used'] = resp.headers.get('X-RateLimit-Used')
 
+        def _collect_shas(resp):
+            for c in resp.json():
+                sha = c.get('sha')
+                if sha:
+                    commit_urls.append(f"https://raw.githubusercontent.com/{owner}/{repo}/{sha}/{path}")
+
+        try:
+            resp = requests.get(api_url, headers=headers, timeout=10)
+            _absorb_headers(resp)
+
             if resp.status_code == 200:
-                commits = resp.json()
-                for c in commits:
-                    sha = c.get('sha')
-                    if sha:
-                        commit_urls.append(f"https://raw.githubusercontent.com/{owner}/{repo}/{sha}/{path}")
-            
+                _collect_shas(resp)
+            else:
+                # Раньше здесь молча не делалось ничего, и отказ был неотличим
+                # от «за период коммитов не было».
+                return [], rate_limit, cls.classify_github_status(resp.status_code, resp.headers)
+
             while 'next' in resp.links:
                 resp = requests.get(resp.links['next']['url'], headers=headers, timeout=10)
-                if 'X-RateLimit-Limit' in resp.headers:
-                    rate_limit['limit'] = resp.headers.get('X-RateLimit-Limit')
-                    rate_limit['remaining'] = resp.headers.get('X-RateLimit-Remaining')
-                    rate_limit['reset'] = resp.headers.get('X-RateLimit-Reset')
-                    rate_limit['used'] = resp.headers.get('X-RateLimit-Used')
-
+                _absorb_headers(resp)
                 if resp.status_code == 200:
-                    for c in resp.json():
-                        sha = c.get('sha')
-                        if sha:
-                            commit_urls.append(f"https://raw.githubusercontent.com/{owner}/{repo}/{sha}/{path}")
+                    _collect_shas(resp)
                 else:
+                    # Первая страница уже получена — отдаём её и называем причину,
+                    # по которой обрыв случился на середине.
+                    error = cls.classify_github_status(resp.status_code, resp.headers)
                     break
-        except Exception:
-            pass
-            
-        return commit_urls, rate_limit
+        except Exception as exc:
+            return commit_urls, rate_limit, cls.classify_fetch_error(exc)
+
+        return commit_urls, rate_limit, error
 
     @staticmethod
     def extract_ip_port(uri: str) -> tuple[str, str]:
@@ -1626,8 +1686,9 @@ class ProxyHunter:
                 pass
         return 'Unknown'
     @staticmethod
-    def _report_failures(failures: Dict[str, int], limit: int = 6):
-        """Печатает сводку причин, по которым источники не ответили."""
+    def _report_failures(failures: Dict[str, int], limit: int = 6,
+                         label: str = "Не ответило источников"):
+        """Печатает сводку причин отказа — агрегатом, а не строкой на источник."""
         total = sum(failures.values())
         if not total:
             return
@@ -1635,7 +1696,7 @@ class ProxyHunter:
         detail = ", ".join(f"{reason} — {count}" for reason, count in top)
         if len(failures) > limit:
             detail += ", …"
-        print(f"    [!] Не ответило источников: {total} ({detail})")
+        print(f"    [!] {label}: {total} ({detail})")
 
     def collect(self):
         # 32 URL перечислены в SOURCES под двумя протоколами сразу — один и тот
@@ -1746,39 +1807,53 @@ class ProxyHunter:
             tm_days = getattr(self, "github_tm_days", 1)
             print(f"\n[*] Запуск Машины Времени GitHub (поиск коммитов за {tm_days*24} часа)...")
             
-            limit_before = None
-            try:
-                r_before = requests.get("https://api.github.com/rate_limit", headers={"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}, timeout=5)
-                if r_before.status_code == 200:
-                    limit_before = r_before.json().get('resources', {}).get('core', {}).get('remaining')
-            except Exception: pass
-            
-            history_sources = []
-            rate_limits = []
-            
-            def _resolve_commits(item):
-                if self._cancel_event.is_set():
-                    return [], {}
-                url, proto = item
-                if "raw.githubusercontent.com" in url or "cdn.jsdelivr.net" in url:
-                    commits, limit_info = ProxyUtils.fetch_github_commits(url, self.github_token, tm_days*24)
-                    return [(c, proto) for c in commits], limit_info
-                return [], {}
+            # Один запрос вместо 407 обречённых: если токен не принимается или
+            # лимит уже исчерпан, причина у всех источников будет одна и та же.
+            token_ok, token_error, limit_before = ProxyUtils.check_github_token(self.github_token)
+            if not token_ok:
+                print(f"    [x] Машина времени пропущена: {token_error}")
+                if token_error == ProxyUtils.GITHUB_TOKEN_REJECTED:
+                    print("        GitHub не принял токен — он мог истечь или быть отозван.")
+                    print("        Создайте новый на github.com/settings/tokens (права не нужны)")
+                    print("        и вставьте в настройках; либо снимите галочку «Машина времени».")
+                elif token_error == ProxyUtils.GITHUB_RATE_LIMITED:
+                    print("        Лимит запросов к GitHub API исчерпан. Он восстанавливается")
+                    print("        раз в час; либо уменьшите глубину поиска в настройках.")
+                history_sources = []
+                rate_limits = []
+            else:
+                history_sources = []
+                rate_limits = []
+                gh_failures: Dict[str, int] = defaultdict(int)
 
-            ex = ThreadPoolExecutor(max_workers=50)
-            try:
-                futures = [ex.submit(_resolve_commits, item) for item in SOURCES]
-                for fut in as_completed(futures):
-                    if self._cancel_event.is_set(): break
-                    try:
-                        res_urls, limit_info = fut.result()
-                    except Exception:
-                        continue
-                    history_sources.extend(res_urls)
-                    if limit_info and 'remaining' in limit_info:
-                        rate_limits.append(limit_info)
-            finally:
-                ex.shutdown(wait=False, cancel_futures=True)   # COR-05
+                def _resolve_commits(item):
+                    if self._cancel_event.is_set():
+                        return [], {}, ""
+                    url, proto = item
+                    if "raw.githubusercontent.com" in url or "cdn.jsdelivr.net" in url:
+                        commits, limit_info, error = ProxyUtils.fetch_github_commits(url, self.github_token, tm_days*24)
+                        return [(c, proto) for c in commits], limit_info, error
+                    return [], {}, ""
+
+                ex = ThreadPoolExecutor(max_workers=50)
+                try:
+                    futures = [ex.submit(_resolve_commits, item) for item in SOURCES]
+                    for fut in as_completed(futures):
+                        if self._cancel_event.is_set(): break
+                        try:
+                            res_urls, limit_info, error = fut.result()
+                        except Exception as exc:
+                            gh_failures[ProxyUtils.classify_fetch_error(exc)] += 1
+                            continue
+                        if error:
+                            gh_failures[error] += 1
+                        history_sources.extend(res_urls)
+                        if limit_info and 'remaining' in limit_info:
+                            rate_limits.append(limit_info)
+                finally:
+                    ex.shutdown(wait=False, cancel_futures=True)   # COR-05
+
+                self._report_failures(gh_failures, label="Не удалось прочитать историю")
 
 
             history_sources = list(dict.fromkeys(history_sources))
