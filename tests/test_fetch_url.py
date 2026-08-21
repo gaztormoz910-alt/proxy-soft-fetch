@@ -110,3 +110,63 @@ def test_invalid_utf8_bytes_do_not_raise():
     responses.add(responses.GET, "https://binary.test/list.txt",
                   body=b"\xff\xfe1.1.1.1:8080\xff", status=200, content_type="text/plain")
     assert fetch_and_parse("https://binary.test/list.txt") == ["1.1.1.1:8080"]
+
+
+# ----------------------------------- REL-05: диагностика отказавших источников
+
+@responses.activate
+def test_successful_fetch_reports_no_error():
+    responses.add(responses.GET, "https://ok.test/list.txt", body="8.8.8.8:80", status=200)
+    body, error = ProxyUtils.fetch_url_with_error("https://ok.test/list.txt", timeout=5)
+    assert body == "8.8.8.8:80"
+    assert error == ""
+
+
+@responses.activate
+def test_http_error_is_classified_with_its_status():
+    responses.add(responses.GET, "https://dead.test/list.txt", status=404)
+    body, error = ProxyUtils.fetch_url_with_error("https://dead.test/list.txt", timeout=5)
+    assert body == ""
+    assert error == "HTTP 404"
+
+
+@responses.activate
+def test_rate_limit_is_distinguishable_from_not_found():
+    responses.add(responses.GET, "https://busy.test/list.txt", status=429)
+    assert ProxyUtils.fetch_url_with_error("https://busy.test/list.txt", timeout=5)[1] == "HTTP 429"
+
+
+def test_error_classification_covers_the_common_network_failures():
+    import requests as rq
+    cases = [
+        (rq.exceptions.SSLError("bad cert"), "TLS"),
+        (rq.exceptions.ConnectTimeout("slow"), "таймаут"),
+        (rq.exceptions.ReadTimeout("slow"), "таймаут"),
+        (rq.exceptions.ConnectionError("dns"), "соединение"),
+        (ValueError("что-то ещё"), "ValueError"),
+    ]
+    for exc, expected in cases:
+        assert ProxyUtils.classify_fetch_error(exc) == expected, exc
+
+
+def test_failure_summary_aggregates_by_reason(capsys):
+    from fetch_proxy import ProxyHunter
+    ProxyHunter._report_failures({"таймаут": 210, "HTTP 404": 150, "TLS": 27})
+    out = capsys.readouterr().out
+    assert "387" in out                      # 210 + 150 + 27
+    assert "таймаут — 210" in out
+    assert out.index("таймаут") < out.index("TLS"), "самые частые причины идут первыми"
+
+
+def test_failure_summary_is_silent_when_everything_worked(capsys):
+    from fetch_proxy import ProxyHunter
+    ProxyHunter._report_failures({})
+    assert capsys.readouterr().out == ""
+
+
+def test_failure_summary_truncates_a_long_tail(capsys):
+    from fetch_proxy import ProxyHunter
+    ProxyHunter._report_failures({f"причина{i}": 1 for i in range(20)}, limit=3)
+    out = capsys.readouterr().out
+    assert out.count("причина") == 3
+    assert "…" in out

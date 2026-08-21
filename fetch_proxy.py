@@ -1051,7 +1051,35 @@ class ProxyUtils:
             return session.get(url, headers=headers, timeout=timeout, stream=True, verify=False)
 
     @staticmethod
-    def fetch_url(url: str, timeout: int = 10) -> str:
+    def classify_fetch_error(exc: BaseException) -> str:
+        """Короткая причина отказа источника — для сводки в логе.
+
+        REL-05: fetch_url заканчивался `except Exception: return ''`, поэтому
+        DNS, TLS, 403, 429 и таймаут были неотличимы от «источник пуст». Строка
+        перевода fetch_err была объявлена в обоих языках и не использовалась
+        нигде. При этом в репозитории лежат dead_github_sources.txt и
+        stale_repos.txt — мёртвые источники были известной проблемой, которую
+        нечем было диагностировать.
+        """
+        if isinstance(exc, requests.exceptions.SSLError):
+            return "TLS"
+        if isinstance(exc, requests.exceptions.Timeout):
+            return "таймаут"
+        if isinstance(exc, requests.exceptions.HTTPError):
+            resp = getattr(exc, "response", None)
+            return f"HTTP {resp.status_code}" if resp is not None else "HTTP"
+        if isinstance(exc, requests.exceptions.ConnectionError):
+            return "соединение"
+        return type(exc).__name__
+
+    @classmethod
+    def fetch_url(cls, url: str, timeout: int = 10) -> str:
+        """Скачивает источник. Пустая строка — не ответил или пуст."""
+        return cls.fetch_url_with_error(url, timeout)[0]
+
+    @staticmethod
+    def fetch_url_with_error(url: str, timeout: int = 10) -> Tuple[str, str]:
+        """Как fetch_url, но вторым элементом — причина отказа ('' если её нет)."""
         import random, time, json
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -1086,7 +1114,7 @@ class ProxyUtils:
                 messages = re.findall(r'<div class="tgme_widget_message_text[^>]*>(.*?)</div>', html_text, re.IGNORECASE | re.DOTALL)
                 # Remove html tags
                 clean_text = '\\n'.join([re.sub(r'<[^>]+>', ' ', m) for m in messages])
-                return clean_text
+                return clean_text, ''
 
             chunks, size = [], 0
             
@@ -1100,9 +1128,9 @@ class ProxyUtils:
                 # Увеличен лимит до 20 МБ, чтобы не ломать крупные JSON ответы и длинные списки
                 if size > 20 * 1024 * 1024: break
             resp.close()
-            return ''.join(chunks)
-        except Exception: 
-            return ''
+            return ''.join(chunks), ''
+        except Exception as exc:
+            return '', ProxyUtils.classify_fetch_error(exc)
     @staticmethod
     def tcp_ping(ip: str, port: int, timeout: int) -> bool:
         try:
@@ -1579,6 +1607,18 @@ class ProxyHunter:
             except Exception:
                 pass
         return 'Unknown'
+    @staticmethod
+    def _report_failures(failures: Dict[str, int], limit: int = 6):
+        """Печатает сводку причин, по которым источники не ответили."""
+        total = sum(failures.values())
+        if not total:
+            return
+        top = sorted(failures.items(), key=lambda kv: -kv[1])[:limit]
+        detail = ", ".join(f"{reason} — {count}" for reason, count in top)
+        if len(failures) > limit:
+            detail += ", …"
+        print(f"    [!] Не ответило источников: {total} ({detail})")
+
     def collect(self):
         # 32 URL перечислены в SOURCES под двумя протоколами сразу — один и тот
         # же файл качался и разбирался дважды. Группируем по URL: скачиваем
@@ -1590,6 +1630,10 @@ class ProxyHunter:
 
         print(f"\n[+] " + self._t("step1").format(len(by_url)))
         total_raw, ok_sources = 0, 0
+        # REL-05: причины отказов, чтобы «не ответило N» перестало быть
+        # безымянным числом. Копим агрегат, а не строку на каждый источник —
+        # 400 сообщений в лог пользы не принесут.
+        failures: Dict[str, int] = defaultdict(int)
         try:
             from tqdm import tqdm
             pbar = tqdm(total=len(by_url), desc=self._dynamic_t("tqdm_dl"))
@@ -1599,8 +1643,8 @@ class ProxyHunter:
             # COR-05: задача могла простоять в очереди пула минуты — проверяем
             # отмену до того, как уйти в сеть на fetch_timeout секунд.
             if self._cancel_event.is_set():
-                return protos, [], False
-            content = ProxyUtils.fetch_url(url, fetch_timeout)
+                return protos, [], False, ''
+            content, error = ProxyUtils.fetch_url_with_error(url, fetch_timeout)
             responded = bool(content)
             proxies = []
             if content:
@@ -1628,7 +1672,7 @@ class ProxyHunter:
                             proxies.extend(ProxyUtils.parse_proxies(sub_content))
                 else:
                     proxies.extend(ProxyUtils.parse_proxies(content))
-            return protos, proxies, responded
+            return protos, proxies, responded, error
 
         def _record(protos, proxies):
             """Помечает найденные прокси всеми протоколами их источника."""
@@ -1657,10 +1701,13 @@ class ProxyHunter:
                 if self._cancel_event.is_set(): break
                 url = fmap[fut]
                 try:
-                    protos, proxies, responded = fut.result()
+                    protos, proxies, responded, error = fut.result()
                     if responded:
                         ok_sources += 1
-                except Exception:
+                    else:
+                        failures[error or "пустой ответ"] += 1
+                except Exception as exc:
+                    failures[ProxyUtils.classify_fetch_error(exc)] += 1
                     if pbar: pbar.update(1)
                     continue
 
@@ -1674,6 +1721,7 @@ class ProxyHunter:
 
         if pbar: pbar.close()
         print(f"    {self._t('sources_replied')}: {ok_sources}")
+        self._report_failures(failures)
 
         # МАШИНА ВРЕМЕНИ (отдельным шагом)
         if getattr(self, 'github_token', None) and getattr(self, 'github_tm_enabled', True):
@@ -1767,7 +1815,7 @@ class ProxyHunter:
                         if self._cancel_event.is_set(): break
                         url = fmap[fut]
                         try:
-                            protos, proxies, responded = fut.result()
+                            protos, proxies, responded, _error = fut.result()
                         except Exception:
                             if pbar_hist: pbar_hist.update(1)
                             continue
