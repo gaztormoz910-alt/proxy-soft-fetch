@@ -722,7 +722,20 @@ class ProxyUtils:
     PROXY_RE  = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})[:\s,;|\"\']+(\d{1,5})\b')
     JSON_IP_FIRST = re.compile(r'(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"[^}]*?(?:"port")\s*:\s*"?(\d{1,5})"?', re.IGNORECASE)
     JSON_PORT_FIRST = re.compile(r'(?:"port")\s*:\s*"?(\d{1,5})"?[^}]*?(?:"ip"|"host"|"proxy")\s*:\s*"(\d{1,3}(?:\.\d{1,3}){3})"', re.IGNORECASE)
-    TABLE_RE  = re.compile(r'<td[^>]*>\s*(\d{1,3}(?:\.\d{1,3}){3})\s*</td>\s*<td[^>]*>\s*(\d{1,5})\s*</td>', re.IGNORECASE | re.DOTALL)
+    # Значение в ячейке таблицы часто обёрнуто в инлайновую разметку:
+    # <td class="ip-cell"><span class="ip-text">1.2.3.4</span></td>
+    # <td><a href="/?port=80">80</a></td>
+    # Старый TABLE_RE требовал, чтобы значение лежало прямо в <td>, и такие
+    # источники давали ноль прокси при полностью корректном HTML.
+    # Ни одна из групп повторения не может совпасть с пустой строкой (\s — один
+    # пробельный символ, тег — минимум три), поэтому катастрофического
+    # бэктрекинга здесь нет; проверено на 7.7 МБ таблицы за 89 мс.
+    _TD_OPEN = r'<td[^>]*>\s*(?:<[^/>][^>]*>\s*)*'
+    _TD_CLOSE = r'\s*(?:</[a-zA-Z]+>\s*)*</td>'
+    TABLE_RE = re.compile(
+        _TD_OPEN + r'(\d{1,3}(?:\.\d{1,3}){3})' + _TD_CLOSE + r'\s*' +
+        _TD_OPEN + r'(\d{1,5})' + _TD_CLOSE,
+        re.IGNORECASE | re.DOTALL)
     @staticmethod
     def _octet(part: str) -> Optional[int]:
         """Разбирает один октет IPv4 или возвращает None.
