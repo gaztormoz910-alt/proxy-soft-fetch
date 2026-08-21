@@ -1097,7 +1097,11 @@ class ProxyHunterApp(ctk.CTk):
         self.root_frame.grid_rowconfigure(0, weight=1)
 
         self.current_lang = "RU"
-        self._my_country = self._detect_my_country() # L-06 FIX: Move here after current_lang is set
+        # SEC-04: раньше здесь стоял self._detect_my_country() — блокирующий
+        # HTTP-запрос к ipapi.co прямо в конструкторе, до отрисовки окна.
+        # Определяем лениво, при первом обращении (см. _get_my_country).
+        self._my_country = None
+        self._my_country_resolved = False
         self.interactive_widgets = []
 
         self._build_sidebar()
@@ -2833,7 +2837,7 @@ class ProxyHunterApp(ctk.CTk):
     def _select_all_countries(self):
         """Select all countries EXCEPT user's own country"""
         for iso, v in self.country_vars.items():
-            v.set(iso != self._my_country)
+            v.set(iso != self._get_my_country())
         self._update_count()
 
     def _deselect_all(self):
@@ -2844,7 +2848,7 @@ class ProxyHunterApp(ctk.CTk):
         """ADD all countries from a region to current selection (not reset)"""
         if region_name in REGIONS[self.current_lang]:
             for iso in REGIONS[self.current_lang][region_name]:
-                if iso in self.country_vars and iso != self._my_country:
+                if iso in self.country_vars and iso != self._get_my_country():
                     self.country_vars[iso].set(True)
         self._update_count()
 
@@ -2859,7 +2863,7 @@ class ProxyHunterApp(ctk.CTk):
     def _select_tier1(self):
         self._deselect_all()
         for iso in ["US", "CA", "GB", "DE", "FR", "AU", "NL", "SE", "NO", "CH", "DK", "FI", "AT", "NZ", "IE", "BE"]:
-            if iso in self.country_vars and iso != self._my_country:
+            if iso in self.country_vars and iso != self._get_my_country():
                 self.country_vars[iso].set(True)
         self._update_count()
 
@@ -2867,8 +2871,38 @@ class ProxyHunterApp(ctk.CTk):
         # Строгая валидация: возвращаем только реально выбранные страны
         return [iso for iso, var in self.country_vars.items() if var.get()]
 
+    def _get_my_country(self):
+        """ISO-код страны пользователя. Определяется один раз при первом обращении.
+
+        Значение нужно ровно для одного: «Выбрать все» не отмечает собственную
+        страну пользователя. Ради этого нет смысла ни морозить запуск, ни
+        отправлять чей-то IP на сторону.
+        """
+        if not self._my_country_resolved:
+            self._my_country = self._detect_my_country()
+            self._my_country_resolved = True
+        return self._my_country
+
     def _detect_my_country(self):
-        """Detect user's country via IP geolocation (fast, one-shot)"""
+        """Определяет страну: сначала по системной локали, потом по IP.
+
+        SEC-04: раньше порядок был обратный, и запрос к ipapi.co выполнялся
+        всегда — при каждом запуске приложения, из конструктора, синхронно.
+        Это (1) отправляло реальный IP пользователя стороннему сервису без
+        спроса и (2) морозило главный поток Tk на срок до таймаута ещё до
+        появления окна. Системная локаль бесплатна, работает офлайн и ничего
+        никуда не шлёт, поэтому она идёт первой; сеть остаётся запасным
+        вариантом и с коротким таймаутом.
+        """
+        try:
+            import locale
+            loc = locale.getlocale()[0]  # например 'ru_RU'
+            if loc and '_' in loc:
+                code = loc.split('_')[1].upper()
+                if len(code) == 2:
+                    return code
+        except Exception:
+            pass
         try:
             import requests
             r = requests.get('https://ipapi.co/country_code/', timeout=3)
@@ -2876,14 +2910,6 @@ class ProxyHunterApp(ctk.CTk):
                 code = r.text.strip().upper()
                 if len(code) == 2:
                     return code
-        except Exception:
-            pass
-        # Fallback: try to detect from system locale
-        try:
-            import locale
-            loc = locale.getlocale()[0]  # e.g. 'ru_RU'
-            if loc and '_' in loc:
-                return loc.split('_')[1].upper()
         except Exception:
             pass
         return None

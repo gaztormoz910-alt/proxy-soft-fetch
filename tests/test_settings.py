@@ -153,3 +153,76 @@ def test_settings_json_is_not_tracked_by_git():
         ["git", "ls-files", "settings.json"],
         cwd=root, capture_output=True, text=True).stdout.strip()
     assert tracked == "", "settings.json снова попал под контроль версий"
+
+
+# ---------------------------------------- SEC-04: определение своей страны
+
+class CountryApp:
+    _get_my_country = ProxyHunterApp._get_my_country
+    _detect_my_country = ProxyHunterApp._detect_my_country
+
+    def __init__(self):
+        self._my_country = None
+        self._my_country_resolved = False
+
+
+def test_country_detection_is_lazy_and_cached(monkeypatch):
+    """Раньше это делалось в __init__ синхронно, до отрисовки окна."""
+    calls = []
+    monkeypatch.setattr(CountryApp, "_detect_my_country",
+                        lambda self: calls.append(1) or "DE")
+
+    app = CountryApp()
+    assert calls == [], "до первого обращения определять ничего не нужно"
+
+    assert app._get_my_country() == "DE"
+    assert app._get_my_country() == "DE"
+    assert calls == [1], "определение должно выполняться ровно один раз"
+
+
+def test_none_result_is_cached_too(monkeypatch):
+    calls = []
+    monkeypatch.setattr(CountryApp, "_detect_my_country",
+                        lambda self: calls.append(1) or None)
+    app = CountryApp()
+    assert app._get_my_country() is None
+    assert app._get_my_country() is None
+    assert calls == [1], "неудачное определение не должно повторяться при каждом клике"
+
+
+def test_locale_is_preferred_over_the_network(monkeypatch):
+    """Локаль бесплатна, работает офлайн и не отправляет IP на сторону."""
+    import locale as locale_mod
+    import requests as requests_mod
+
+    monkeypatch.setattr(locale_mod, "getlocale", lambda *a: ("de_DE", "UTF-8"))
+
+    def must_not_be_called(*a, **kw):
+        raise AssertionError("сеть не должна использоваться, когда локаль известна")
+
+    monkeypatch.setattr(requests_mod, "get", must_not_be_called)
+    assert CountryApp()._detect_my_country() == "DE"
+
+
+def test_network_is_used_only_when_the_locale_says_nothing(monkeypatch):
+    import locale as locale_mod
+    import requests as requests_mod
+
+    monkeypatch.setattr(locale_mod, "getlocale", lambda *a: (None, None))
+
+    class Resp:
+        status_code = 200
+        text = "fr\n"
+
+    monkeypatch.setattr(requests_mod, "get", lambda url, **kw: Resp())
+    assert CountryApp()._detect_my_country() == "FR"
+
+
+def test_detection_returns_none_when_everything_fails(monkeypatch):
+    import locale as locale_mod
+    import requests as requests_mod
+
+    monkeypatch.setattr(locale_mod, "getlocale", lambda *a: (None, None))
+    monkeypatch.setattr(requests_mod, "get",
+                        lambda url, **kw: (_ for _ in ()).throw(OSError("нет сети")))
+    assert CountryApp()._detect_my_country() is None
