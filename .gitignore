@@ -1,0 +1,30 @@
+# --- Секреты (см. AUDIT.md, SEC-01) -------------------------------------
+settings.json
+
+# --- Python -------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# --- Данные, которые приложение скачивает само --------------------------
+GeoLite2-*.mmdb
+GeoLite2-*.mmdb.tmp
+
+# --- Результаты прогонов ------------------------------------------------
+results/
+results_live/
+results_elite/
+results_mobile/
+results_residential/
+results_datacenter/
+
+# --- Артефакты разработки -----------------------------------------------
+blame.txt
+git_log.txt
+diff.txt
+*.tmp
+.write_test_tmp
