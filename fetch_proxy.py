@@ -1290,6 +1290,11 @@ TRANS = {
         "classify_filter": "    Классифицирую и фильтрую прокси...",
         "db_load_err": "Ошибка загрузки локальной базы (попытка {0}): {1}",
         "db_corrupted": "Битый файл базы удалён, скачиваем заново...",
+        "db_required": ("[x] ОСТАНОВЛЕНО: база GeoLite2-Country.mmdb недоступна.\n"
+                        "    Без неё страна каждого прокси определяется как 'Unknown',\n"
+                        "    и фильтр стран отбросил бы весь результат.\n"
+                        "    Проверьте доступ в интернет либо положите GeoLite2-Country.mmdb\n"
+                        "    рядом с программой и запустите сбор заново."),
         "elite": "  [★ ЭЛИТНЫЙ] Прошел все фильтры: {proxy} ({proto}) - {country}",
         "working": "  [✓ РАБОЧИЙ] Найден: {proxy} ({proto}) - {country}"
     },
@@ -1329,6 +1334,11 @@ TRANS = {
         "classify_filter": "    Classifying and filtering proxies...",
         "db_load_err": "Error loading local database (attempt {0}): {1}",
         "db_corrupted": "Corrupted database file deleted, downloading again...",
+        "db_required": ("[x] STOPPED: the GeoLite2-Country.mmdb database is unavailable.\n"
+                        "    Without it every proxy resolves to country 'Unknown',\n"
+                        "    and the country filter would discard the entire result.\n"
+                        "    Check your internet access or place GeoLite2-Country.mmdb\n"
+                        "    next to the program and start the run again."),
         "elite": "  [★ ELITE] Passed all filters: {proxy} ({proto}) - {country}",
         "working": "  [✓ WORKING] Found: {proxy} ({proto}) - {country}"
     }
@@ -2475,7 +2485,15 @@ class ProxyHunter:
                     print(self._t("db_corrupted"))
                 except Exception:  # BUG-10 FIX: bare except
                     pass
-            
+
+        # COR-02: без открытой базы _get_country() возвращает 'Unknown', а фильтр
+        # стран в validate() непустой всегда (есть список по умолчанию), поэтому
+        # отбрасывались бы ВСЕ кандидаты. Раньше прогон молча заканчивался нулём
+        # без единой ошибки в логе — самый дорогой в диагностике сценарий.
+        if self.db_reader is None:
+            print("\n" + self._t("db_required"))
+            return
+
         self.collect()
         if not self._cancel_event.is_set(): self.validate(is_second_pass=False)
         if not self._cancel_event.is_set(): self.advanced_filter(is_second_pass=False)
