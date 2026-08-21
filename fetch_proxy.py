@@ -2249,21 +2249,24 @@ class ProxyHunter:
                         is_bl = True
                         break
                 if is_bl: break
-            except Exception: 
+            except Exception:
                 pass
-        bad_ports = [21, 22, 23, 25, 3389, 3128]
-        has_bad_port = False
-        for port in bad_ports:
-            if ProxyUtils.tcp_ping(ip, port, timeout=1):
-                has_bad_port = True
-                break
+        # PERF-06: здесь стоял скан шести портов (21/22/23/25/3389/3128) с
+        # таймаутом 1 c каждый. Его результат клался в кэш под ключом
+        # 'bad_ports' и НЕ читался ничем: единственный потребитель этой функции
+        # (проверка «Чистый» в чекере) смотрит только rdns_dirty и dnsbl.
+        # Замер на реальных IP: PTR 0.27 c, DNSBL 1.95 c, скан портов 6.04 c —
+        # то есть 69% времени уходило на значение, которое никто не спрашивал.
+        # Признак сам по себе осмысленный, но включать его в критерий «чистоты»
+        # значит менять результат проверки — вынесено в «Требует решения».
+
         # H-04 FIX: Добавляем rdns_dirty для обнаружения подозрительных hostname
         DIRTY_KEYWORDS = ['proxy', 'vpn', 'tor', 'exit', 'relay', 'anon', 'scan', 'bot', 'spam', 'abuse']
         rdns_dirty = any(kw in rdns for kw in DIRTY_KEYWORDS) if rdns else False
         # Защита от состояния гонки при записи из множества потоков
         with self._lock:
             if ip not in self.ip_cache: self.ip_cache[ip] = {}
-            self.ip_cache[ip].update({'rdns': rdns, 'rdns_dirty': rdns_dirty, 'dnsbl': is_bl, 'bad_ports': has_bad_port})
+            self.ip_cache[ip].update({'rdns': rdns, 'rdns_dirty': rdns_dirty, 'dnsbl': is_bl})
             return self.ip_cache[ip].copy()
     async def async_run_single_filter(self, item: str) -> Optional[Tuple[str, str]]:
         if await self._await_if_paused(): return None
