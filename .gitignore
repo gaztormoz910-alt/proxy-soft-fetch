@@ -28,3 +28,81 @@ git_log.txt
 diff.txt
 *.tmp
 .write_test_tmp
+
+# ─────────────────────────────────────────────────────────────────────────
+#  Ретировано из-под контроля версий в ходе аудита (AUDIT.md, раздел 3).
+#  Файлы остались на диске — git просто перестал за ними следить.
+#  Полезный код проекта: fetch_proxy.py, gui.py, assets/, tests/, judge.php.
+# ─────────────────────────────────────────────────────────────────────────
+
+# Черновики и результаты прогонов
+/scratch/
+/results_*/
+
+# Дампы страниц, выгрузки и вывод git, сохранённые в файлы
+/*.html
+/*.json
+!/settings.example.json
+/*.txt
+!/requirements.txt
+!/requirements-dev.txt
+
+# Одноразовые скрипты и устаревшие копии основных модулей
+/_check_repos.py
+/_fetch_deepseek.py
+/_test_async_sockets.py
+/_test_extract.py
+/_test_formats.py
+/_test_new_html.py
+/_test_page.py
+/_test_pagination.py
+/append_429.py
+/append_ddg.py
+/append_sources.py
+/check_all_sources.py
+/check_dates.py
+/check_deepseek.py
+/check_deepseek_2.py
+/check_dynamic_sources.py
+/check_github_freshness.py
+/check_github_html_freshness.py
+/check_new.py
+/check_raw.py
+/check_sources.py
+/check_sources_fast.py
+/check_uniqueness.py
+/clean_sources.py
+/count.py
+/count_sources.py
+/create_temp_code.py
+/download_problem_urls.py
+/dump_sources.py
+/extract_prompt.py
+/extract_sources.py
+/extract_urls.py
+/extracted_prompt.py
+/fetch_proxy_head.py
+/find_raw.py
+/fix_bindings.py
+/fix_fetch.py
+/fix_gui.py
+/fix_sources.py
+/fix_syntax.py
+/get_tree.py
+/gui_recovered.py
+/old_code.py
+/purge_404_only.py
+/purge_dead_sources.py
+/remove_cis.py
+/save_sources.py
+/search_ru.py
+/temp_code.py
+/temp_extract.py
+/test_ddg.py
+/test_ddg2.py
+/test_ddg3.py
+/test_parser.py
+/test_scroll.py
+/test_urls.py
+/verify_new_sources.py
+/verify_sources.py
