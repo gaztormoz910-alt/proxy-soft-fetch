@@ -4865,7 +4865,7 @@ class ProxyHunterApp(ctk.CTk):
 
     def _run_checker_thread(self, proxies, timeout=10):
         from fetch_proxy import ProxyUtils, ProxyHunter
-        import requests, time, os
+        import requests, time
         from concurrent.futures import ThreadPoolExecutor, as_completed
         
         dummy_hunter = ProxyHunter(threads=1)
@@ -4873,12 +4873,11 @@ class ProxyHunterApp(ctk.CTk):
             dummy_hunter.ip_cache = self.hunter.ip_cache
             dummy_hunter.asn_cache = self.hunter.asn_cache
         self._active_dummy_hunter = dummy_hunter
-        if os.path.exists('GeoLite2-Country.mmdb'):
-            try:
-                import maxminddb
-                dummy_hunter.db_reader = maxminddb.open_database('GeoLite2-Country.mmdb')
-            except Exception:
-                pass
+        # REL-01: ProxyHunter уже открыл базу в __init__. Раньше здесь она
+        # открывалась второй раз, а ссылка на первый reader терялась — каждый
+        # запуск чекера утекал открытым mmap на 8.4 МБ. open_geoip() закрывает
+        # предыдущий reader перед открытием нового.
+        dummy_hunter.open_geoip()
 
         # Фиксированно 1000 потоков для чекера, как просил пользователь
         max_threads = 1000
@@ -5279,12 +5278,7 @@ class ProxyHunterApp(ctk.CTk):
             except TypeError: pool.shutdown(wait=False)
 
         # H-05 FIX: Закрываем db_reader чтобы не было утечки файловых дескрипторов
-        if hasattr(dummy_hunter, 'db_reader') and dummy_hunter.db_reader:
-            try:
-                dummy_hunter.db_reader.close()
-            except Exception:
-                pass
-            dummy_hunter.db_reader = None
+        dummy_hunter.close_geoip()
 
         self.checker_is_running = False
         def _reset_ui():

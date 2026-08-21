@@ -79,8 +79,16 @@ def test_run_proceeds_normally_when_a_database_is_present(isolated, monkeypatch)
         def close(self):
             pass
 
-    hunter, called = make_hunter(isolated, monkeypatch, db_reader=FakeReader())
-    # run() пытается переоткрыть базу с диска; файла нет, поэтому остаётся наш reader
+    hunter, called = make_hunter(isolated, monkeypatch)
+
+    # run() сам переоткрывает базу через open_geoip() — подменяем именно его,
+    # присваивать db_reader снаружи бессмысленно: close_geoip() его обнулит.
+    def fake_open():
+        hunter.db_reader = FakeReader()
+        return True
+
+    monkeypatch.setattr(hunter, "open_geoip", fake_open)
+
     hunter.run()
     assert called[:3] == ["collect", "validate", "advanced_filter"]
     assert "save" in called
