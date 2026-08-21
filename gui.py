@@ -4069,8 +4069,14 @@ class ProxyHunterApp(ctk.CTk):
             except: pass
         elif "[REALTIME_REMOVE_LIVE]" in text:
             try:
+                # COR-04: в отличие от остальных маркеров backend печатает этот
+                # с ЛИДИРУЮЩИМ '|': "[REALTIME_REMOVE_LIVE]|proto|ip|port".
+                # После split('|') нулевой элемент — пустая строка, поэтому поля
+                # начинаются с индекса 1. Раньше читались parts[0..2], ключ
+                # никогда не совпадал с записями таблицы, и отбракованные по
+                # стране прокси навсегда оставались в списке «Рабочие».
                 parts = text.split("[REALTIME_REMOVE_LIVE]")[1].strip().split("|")
-                data = {"ip": parts[1], "port": parts[2], "protocol": parts[0]}
+                data = {"protocol": parts[1], "ip": parts[2], "port": parts[3]}
                 self._proxy_queue.append((data, "remove_live"))
             except: pass
     def _toggle_pause(self):
