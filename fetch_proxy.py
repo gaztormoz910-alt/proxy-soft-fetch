@@ -693,17 +693,16 @@ SOURCES.extend([
     ('https://codeberg.org/dbarker/public-proxy-list/raw/branch/main/proxies.txt', 'http'),
     ('https://flashproxy.com/resources/free-proxies', 'http'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/socks5.txt', 'socks5'),
-    ('https://proxyhub.me/en/all-free-proxy-list.html?page={p}', 'http'),
+    ('https://proxyhub.me/en/all-free-proxy-list.html', 'http'),
     ('https://raw.githubusercontent.com/Ian-Lusule/Proxies/main/proxies/http.txt', 'http'),
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=protocolonly&format=text&timeout=20000', 'http'),
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolonly&format=text&timeout=20000', 'socks5'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.json', 'http'),
-    ('https://proxybros.com/free-proxy-list/{p}/', 'http'),
+    ('https://proxybros.com/free-proxy-list/', 'http'),
     ('https://proxylist.to/proxy-list.txt', 'http'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/all.txt', 'http'),
     ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.txt', 'http'),
     ('https://bitbucket.org/vanholt-proxies/public-http-proxies/raw/main/README.md', 'http'),
-    ('https://www.freeproxy.world/?type=&anonymity=&country=&speed=&port=&page={p}', 'http'),
     ('https://raw.githubusercontent.com/duckray-client/free-vless-keys/main/keys.txt', 'vless'),
     ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.json', 'http'),
     ('https://raw.githubusercontent.com/saisuiu/uiu/main/free.txt', 'http'),
@@ -3089,6 +3088,18 @@ SOURCES.extend(NINTH_WAVE_SOURCES)
 # дубль — это лишний HTTP-запрос с таймаутом до 15 c и повторный разбор ответа.
 # dict.fromkeys сохраняет исходный порядок; правим список на месте, чтобы не
 # осиротить ссылки на него.
+# COR-09: три URL остались с неподставленным плейсхолдером `{p}` и уходили на
+# сервер буквально, вместе с фигурными скобками. Разобрано по фактическому
+# поведению каждого сайта (проверено запросами):
+#   proxyhub.me      — пагинацию игнорирует, page=1/2/20/100 отдают одно и то же,
+#                      поэтому остался один URL без параметра;
+#   proxybros.com    — список подгружается скриптом, из HTML не извлекается
+#                      ничего ни на одной странице; оставлен один URL;
+#   freeproxy.world  — пагинация настоящая: 10 страниц дали 500 прокси без
+#                      единого пересечения, поэтому развёрнут в диапазон.
+SOURCES.extend([(f'https://www.freeproxy.world/?type=&anonymity=&country=&speed=&port=&page={i}', 'http')
+                for i in range(1, 31)])
+
 SOURCES[:] = list(dict.fromkeys(SOURCES))
 
 def main():
