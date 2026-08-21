@@ -698,7 +698,6 @@ SOURCES.extend([
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=protocolonly&format=text&timeout=20000', 'http'),
     ('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=protocolonly&format=text&timeout=20000', 'socks5'),
     ('https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.json', 'http'),
-    ('https://proxybros.com/free-proxy-list/', 'http'),
     ('https://proxylist.to/proxy-list.txt', 'http'),
     ('https://raw.githubusercontent.com/fyvri/fresh-proxy-list/archive/storage/classic/all.txt', 'http'),
     ('https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxies.txt', 'http'),
@@ -3223,7 +3222,6 @@ NINTH_WAVE_SOURCES = [
     ('https://hidemy.io/en/proxy-list/', 'socks5'),
     ('https://iproyal.com/free-proxy-list/', 'socks5'),
     ('https://nodemaven.com/free-proxy-list/', 'socks5'),
-    ('https://proxybros.com/free-proxy-list/socks5/', 'socks5'),
     ('https://roundproxies.com/free-proxy-list/', 'socks5'),
     ('https://geonode.com/free-proxy-list/', 'socks5'),
     ('https://premiumproxy.net/full-proxy-list', 'socks5'),
@@ -3265,8 +3263,9 @@ SOURCES.extend(NINTH_WAVE_SOURCES)
 # поведению каждого сайта (проверено запросами):
 #   proxyhub.me      — пагинацию игнорирует, page=1/2/20/100 отдают одно и то же,
 #                      поэтому остался один URL без параметра;
-#   proxybros.com    — список подгружается скриптом, из HTML не извлекается
-#                      ничего ни на одной странице; оставлен один URL;
+#   proxybros.com    — удалён по согласованию: список подгружается скриптом,
+#                      из HTML не извлекается ничего ни на одной странице,
+#                      а качалось при этом 205 КБ и 192 КБ за прогон;
 #   freeproxy.world  — пагинация настоящая: 10 страниц дали 500 прокси без
 #                      единого пересечения, поэтому развёрнут в диапазон.
 SOURCES.extend([(f'https://www.freeproxy.world/?type=&anonymity=&country=&speed=&port=&page={i}', 'http')
