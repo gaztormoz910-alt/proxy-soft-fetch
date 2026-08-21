@@ -1418,9 +1418,52 @@ class ProxyHunter:
         return text
 
     def _dynamic_t(self, key):
+        """Ленивая строка перевода — подпись прогресс-бара следует за сменой языка.
+
+        Настоящий tqdm обращается к desc как к обычной строке:
+        `prefix[-2:] == ": "`, затем `prefix + ": "`. Раньше здесь был объект
+        только с __str__, поэтому tqdm падал с
+        `TypeError: 'DynamicText' object is not subscriptable`
+        прямо в конструкторе прогресс-бара — то есть `python fetch_proxy.py`
+        не доживал до первого источника. В GUI это не проявлялось: там
+        patch_tqdm() подменяет tqdm заглушкой, которая только хранит desc.
+        """
+        outer = self
+
         class DynamicText:
-            def __str__(inner_self):
-                return self._t(key)
+            def _value(self) -> str:
+                return outer._t(key)
+
+            def __str__(self):
+                return self._value()
+
+            def __repr__(self):
+                return repr(self._value())
+
+            def __getitem__(self, item):
+                return self._value()[item]
+
+            def __len__(self):
+                return len(self._value())
+
+            def __bool__(self):
+                return bool(self._value())
+
+            def __add__(self, other):
+                return self._value() + other
+
+            def __radd__(self, other):
+                return other + self._value()
+
+            def __format__(self, spec):
+                return format(self._value(), spec)
+
+            def __eq__(self, other):
+                return self._value() == other
+
+            def __hash__(self):
+                return hash(self._value())
+
         return DynamicText()
     def cancel(self):
         self._cancel_event.set()
