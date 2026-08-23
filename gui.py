@@ -3885,7 +3885,11 @@ class ProxyHunterApp(ctk.CTk):
         s_updates = self._stat_updates.copy()
         self._stat_updates.clear()
         
-        if 'total' in s_updates: self.stat_total.configure(text=s_updates['total'])
+        if 'total' in s_updates:
+            self.stat_total.configure(text=s_updates['total'])
+            if hasattr(self, 'lbl_results_count'):
+                self.lbl_results_count.configure(
+                    text=self._t("proxies_count").format(s_updates['total']))
         
         # Pull text logs from deque
         batch = []
@@ -4063,8 +4067,12 @@ class ProxyHunterApp(ctk.CTk):
                 self._base_total_persistent = num
                 total_val = num + getattr(self, '_gen_total_persistent', 0)
                 self._stat_updates['total'] = str(total_val)
-                if hasattr(self, 'lbl_results_count'):
-                    self.lbl_results_count.configure(text=self._t("proxies_count").format(total_val))
+                # Никаких обращений к Tk в этом методе: он вызывается на КАЖДОЕ
+                # сообщение из очереди, до 5000 за тик. Замер: 5000 вызовов
+                # .configure() занимают 184 мс, а тик планируется каждые 100 мс —
+                # главный поток уходил в минус по бюджету, очередь росла, и окно
+                # получало от Windows статус «Не отвечает». Значение уже лежит в
+                # _stat_updates и применяется один раз за тик, ниже в _flush_log.
             except: pass
         elif "Уникальных IP:PORT" in text or "log_unique_ip" in text or "Unique IP:PORT" in text:
             try:
