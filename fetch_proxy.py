@@ -2884,7 +2884,7 @@ class ProxyHunter:
             shutil.rmtree(previous_path, ignore_errors=True)
     def run(self):
         t0 = time.time()
-        print("\n🚀 ULTIMATE PROXY HUNTER v4.0 (ADVANCED FILTERS)")
+        print("\n🚀 PROXYPULSE v4.0 (ADVANCED FILTERS)")
 
         # REL-04: старые результаты здесь больше не удаляются. Папка results
         # заменяется целиком в save(), уже после того как новые данные записаны,
@@ -3428,7 +3428,7 @@ SOURCES.extend([(f'https://www.freeproxy.world/?type=&anonymity=&country=&speed=
 SOURCES[:] = list(dict.fromkeys(SOURCES))
 
 def main():
-    parser = argparse.ArgumentParser(description='Proxy Hunter v4.0 - Advanced Filtration')
+    parser = argparse.ArgumentParser(description='ProxyPulse v4.0 - Advanced Filtration')
     parser.add_argument('--threads', type=lambda x: max(1, min(1000, int(x))), default=300, help='Количество потоков (макс. 1000)')
     parser.add_argument('--timeout', type=int, default=5, help='Таймаут соединения в секундах')
     parser.add_argument('--countries', default='US,CA,GB,AT,BE,BG,HR,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE', type=str, help='Разрешенные страны через запятую')

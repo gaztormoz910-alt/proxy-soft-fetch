@@ -46,6 +46,7 @@ diff.txt
 /*.txt
 !/requirements.txt
 !/requirements-dev.txt
+!/version_info.txt
 
 # Одноразовые скрипты и устаревшие копии основных модулей
 /_check_repos.py
@@ -106,3 +107,8 @@ diff.txt
 /test_urls.py
 /verify_new_sources.py
 /verify_sources.py
+
+# Артефакты сборки PyInstaller
+build/
+dist/
+*.manifest
