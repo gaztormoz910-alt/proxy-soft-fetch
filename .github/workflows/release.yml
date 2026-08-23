@@ -73,6 +73,24 @@ jobs:
           & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" ProxyPulse.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
 
+      - name: Запустить собранную программу
+        shell: pwsh
+        run: |
+          # Без этого шага можно выпустить релиз, который не стартует: PyInstaller
+          # не падает на отсутствующей зависимости, он просто её не кладёт, и
+          # программа умирает уже у пользователя. Ровно так уехал релиз 4.0.1 —
+          # в requirements.txt не было Pillow, и окно открывалось с текстом
+          # "Unhandled exception in script".
+          $p = Start-Process -FilePath "dist\ProxyPulse\ProxyPulse.exe" -PassThru
+          Start-Sleep -Seconds 25
+          $p.Refresh()
+          if ($p.HasExited) { throw "программа завершилась сама, код $($p.ExitCode)" }
+          $title = $p.MainWindowTitle
+          Write-Host "заголовок окна: '$title'"
+          Stop-Process -Id $p.Id -Force
+          # PyInstaller показывает трейсбек именно в окне с таким заголовком.
+          if ($title -notlike 'ProxyPulse*') { throw "неожиданный заголовок окна: '$title'" }
+
       - name: Проверить, что установщик собрался
         shell: pwsh
         run: |
