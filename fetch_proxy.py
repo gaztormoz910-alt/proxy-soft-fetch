@@ -2089,11 +2089,11 @@ class ProxyHunter:
             if await self._await_if_paused(): return None
             ip_port, protos = item
             
-            # Пропускаем зашифрованные конфиги напрямую в результаты
+            # Зашифрованные конфиги (vless/vmess/trojan/mtproto и прочие)
             if '://' in ip_port:
                 scheme = ip_port.split('://', 1)[0].lower()
                 if scheme in ('tg', 'https'): scheme = 'mtproto'
-                ext_ip, _ = ProxyUtils.extract_ip_port(ip_port)
+                ext_ip, ext_port = ProxyUtils.extract_ip_port(ip_port)
                 if not re.match(r'^\d{1,3}(?:\.\d{1,3}){3}$', ext_ip):
                     return None
                 country = self._get_country(ext_ip)
@@ -2102,6 +2102,21 @@ class ProxyHunter:
                 if self.countries:
                     if country.upper() not in self.countries:
                         return None
+
+                # Раньше здесь стоял безусловный return: конфиг попадал
+                # в «Рабочие», не будучи проверенным вообще ничем, кроме
+                # страны. Полноценно проверить vless/trojan без реализации
+                # самого протокола нельзя, но подтвердить, что endpoint хотя бы
+                # принимает соединения, можно и нужно — это нижняя планка,
+                # общая с остальными протоколами.
+                try:
+                    port = int(ext_port)
+                except (TypeError, ValueError):
+                    # Порт не извлёкся: та же подстановка, что и в
+                    # async_run_single_filter, чтобы поведение не расходилось.
+                    port = 443
+                if not await ProxyUtils.async_tcp_ping(ext_ip, port, self.timeout):
+                    return None
                 return (ip_port, {scheme})
                 
             ip, port_s = ip_port.rsplit(':', 1)
