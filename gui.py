@@ -1101,11 +1101,12 @@ class ProxyHunterApp(ctk.CTk):
 
         self.title("ProxyPulse v4.0")
         try:
+            _ico = resource_path("assets/ProxyPulse.ico")
             # default=: иконка ставится классу окна, поэтому её наследуют и
             # панель задач, и все дочерние диалоги, а не только это окно.
-            _ico = resource_path("assets/ProxyPulse.ico")
-            self.iconbitmap(default=_ico)   # класс окна: панель задач и диалоги
-            self.iconbitmap(_ico)           # само окно: значок в заголовке
+            self.iconbitmap(default=_ico)
+            self.iconbitmap(_ico)
+            self._apply_native_icons(_ico)
         except Exception:
             pass
         self.geometry("1375x770")
@@ -1156,6 +1157,38 @@ class ProxyHunterApp(ctk.CTk):
             import os
             os._exit(0)
     
+    def _apply_native_icons(self, ico_path):
+        """Ставит иконки окна напрямую через WinAPI, с явным размером.
+
+        Tk-шный iconbitmap() загружает из .ico ровно один кадр (48x48) и
+        отдаёт его и под ICON_BIG, и под ICON_SMALL. Заголовку окна нужен
+        24x24, поэтому Windows жмёт 48 в 24 своим алгоритмом — получается
+        мыло, хотя нужный кадр в файле есть. LoadImageW с явными cx/cy
+        заставляет систему взять из файла кадр правильного размера.
+        """
+        import ctypes
+        u = ctypes.windll.user32
+        u.LoadImageW.restype = ctypes.c_void_p
+        u.SendMessageW.restype = ctypes.c_void_p
+        u.SendMessageW.argtypes = [ctypes.c_void_p, ctypes.c_uint,
+                                   ctypes.c_void_p, ctypes.c_void_p]
+        LR_LOADFROMFILE, LR_DEFAULTCOLOR = 0x0010, 0x0000
+        IMAGE_ICON, WM_SETICON = 1, 0x0080
+        ICON_SMALL, ICON_BIG = 0, 1
+        SM_CXSMICON, SM_CXICON = 49, 11
+
+        hwnd = ctypes.c_void_p(u.GetParent(self.winfo_id()) or self.winfo_id())
+        for which, metric in ((ICON_SMALL, SM_CXSMICON), (ICON_BIG, SM_CXICON)):
+            px = u.GetSystemMetrics(metric)
+            h = u.LoadImageW(None, ico_path, IMAGE_ICON, px, px,
+                             LR_LOADFROMFILE | LR_DEFAULTCOLOR)
+            if h:
+                # хендл держим у себя: если иконку соберёт GC, окно останется без неё
+                self._icon_handles = getattr(self, "_icon_handles", [])
+                self._icon_handles.append(h)
+                u.SendMessageW(hwnd, WM_SETICON, ctypes.c_void_p(which),
+                               ctypes.c_void_p(h))
+
     def _load_settings(self):
         """Читает settings.json и накладывает поверх переменную окружения.
 

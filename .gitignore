@@ -108,7 +108,8 @@ diff.txt
 /verify_new_sources.py
 /verify_sources.py
 
-# Артефакты сборки PyInstaller
+# Артефакты сборки PyInstaller и Inno Setup
 build/
 dist/
+installer/
 *.manifest
