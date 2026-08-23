@@ -5298,6 +5298,7 @@ class ProxyHunterApp(ctk.CTk):
         import time
         import requests
         from concurrent.futures import ThreadPoolExecutor, as_completed
+        from fetch_proxy import ProxyUtils
 
         ip_to_proxies = {}
         for p in proxies:
@@ -5332,25 +5333,14 @@ class ProxyHunterApp(ctk.CTk):
             def fetch_asn(asn):
                 if asn in hunter.asn_cache:
                     return
-                for attempt in range(3):
-                    if hunter._cancel_event.is_set():
-                        return
-                    try:
-                        resp = requests.get("https://ipinfo.io/" + asn, timeout=10,
-                                            headers={'User-Agent': 'Mozilla/5.0'})
-                        if resp.status_code == 200:
-                            m = re.search(r'ASN type.*?>\s*(ISP|Hosting|Business)\s*<',
-                                          resp.text, re.IGNORECASE)
-                            if m:
-                                with hunter._lock:
-                                    hunter.asn_cache[asn] = m.group(1).lower()
-                            return
-                        if resp.status_code == 429:
-                            time.sleep(3 + attempt * 2)
-                        else:
-                            return
-                    except Exception:
-                        time.sleep(2)
+                # Общая реализация в ProxyUtils: читает страницу потоком и
+                # обрывает загрузку, найдя нужное слово. Раньше здесь была своя
+                # копия, качавшая все ~700 КБ страницы целиком.
+                asn_type = ProxyUtils.asn_type_from_ipinfo(
+                    asn, cancel_event=hunter._cancel_event)
+                if asn_type:
+                    with hunter._lock:
+                        hunter.asn_cache[asn] = asn_type
 
             for index, chunk in enumerate(chunks):
                 if hunter._cancel_event.is_set():
