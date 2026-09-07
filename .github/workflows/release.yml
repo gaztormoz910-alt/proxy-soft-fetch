@@ -51,8 +51,8 @@ jobs:
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "version = $v"
 
-      - name: Прописать версию в свойства .exe
-        run: python tools/make_version_info.py ${{ steps.ver.outputs.version }}
+      - name: Записать версию в единственный источник
+        run: python tools/set_version.py ${{ steps.ver.outputs.version }}
 
       - name: Собрать .exe
         run: python -m PyInstaller --noconfirm --clean --log-level WARN ProxyPulse.spec
