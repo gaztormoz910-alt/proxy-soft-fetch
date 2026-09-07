@@ -6,3 +6,7 @@ pytest>=8.0
 pytest-asyncio>=0.24     # тесты асинхронных путей validate()/advanced_filter()
 responses>=0.25          # мок HTTP для requests — тесты сети без сети
 flake8>=7.0
+
+# Нужен только сборщику иконки (tools/make_icon.py): уменьшение в линейном
+# свете считается на массивах, а не попиксельно на Python.
+numpy>=1.26
