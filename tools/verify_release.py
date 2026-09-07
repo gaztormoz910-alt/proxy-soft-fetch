@@ -20,6 +20,15 @@ import tempfile
 import time
 import urllib.request
 
+# Скрипт запускают из разных оболочек, в том числе из cmd.exe с кодировкой
+# cp1252, где обычный print с кириллицей падает на UnicodeEncodeError. Проверка,
+# которая зависит от кодировки конкретной консоли, ничего не проверяет.
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+
 URL = ('https://github.com/gaztormoz910-alt/proxy-soft-fetch/releases/'
        'latest/download/ProxyPulse-setup.exe')
 INSTALL_DIR = os.path.expandvars(r'%LOCALAPPDATA%\Programs\ProxyPulse')
