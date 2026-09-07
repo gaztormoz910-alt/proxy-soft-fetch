@@ -72,9 +72,16 @@ def check_clean():
     dirty = git('status', '--porcelain')
     assert not dirty, 'незакоммиченные изменения:\n%s' % dirty
     tag = 'v' + version()
-    got = remote_ref('origin1', 'refs/tags/' + tag)
-    print('  рабочее дерево чистое; тег %s на origin1: %s' % (tag, got[:12] or 'НЕТ'))
+    # ^{} разыменовывает аннотированный тег в коммит: без этого сравнивали бы
+    # хеш объекта тега с хешем коммита и всегда получали расхождение.
+    got = remote_ref('origin1', 'refs/tags/' + tag + '^{}') or         remote_ref('origin1', 'refs/tags/' + tag)
+    h = head()
+    print('  рабочее дерево чистое; тег %s -> %s, HEAD %s'
+          % (tag, got[:12] or 'НЕТ', h[:12]))
     assert got, 'тега %s нет на публичном репозитории' % tag
+    # Тег обязан указывать на текущий коммит: иначе опубликованный установщик
+    # собран не из того кода, который лежит в репозитории.
+    assert got == h, 'тег %s указывает на %s, а HEAD %s' % (tag, got[:12], h[:12])
     print('WORKTREE OK')
 
 
