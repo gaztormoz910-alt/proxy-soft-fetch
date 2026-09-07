@@ -13,6 +13,7 @@ Windows получает иконки тех размеров, которые п
 import ctypes
 import ctypes.wintypes as wt
 import hashlib
+import io
 import os
 import subprocess
 import sys
