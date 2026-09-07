@@ -11,17 +11,17 @@ Scope: обе ветки на обоих удалённых репозитори
 - [x] G1: main и рабочая ветка на публичном репозитории совпадают с HEAD
   CHECK: python tools/verify_repo.py --public
   EXPECT: PUBLIC REPO OK
-  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=98e235a2adf9c52844c0bc83e4d70bb915c73a97e77a4d2fe83b14db5dab9bd7; output-bytes=201
+  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=36fbe042b62133a58cd33f2f04bc2d37f07940e530d5e2a911affe6c8a3135d0; output-bytes=201
 
 - [x] G2: приватный репозиторий содержит тот же коммит
   CHECK: python tools/verify_repo.py --private
   EXPECT: PRIVATE REPO OK
-  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=8c0046ed4e42f08e62b8586a165cdaf042bf576a276350baad77e6c5776e685c; output-bytes=202
+  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=bbb0b578a21242f4e32a5ab8a9afb722ad567deb1554284cba10411e1334a826; output-bytes=202
 
-- [ ] G3: рабочее дерево чистое, а содержимое сборки совпадает с тегом текущей версии
+- [x] G3: рабочее дерево чистое, а содержимое сборки совпадает с тегом текущей версии
   CHECK: python tools/verify_repo.py --clean
   EXPECT: WORKTREE OK
-  EVIDENCE: pending
+  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=0ee73a1260697d5260802ad7957a7e6e16b707f2a587e3bd0a52b37678ebc020; output-bytes=207
 
 - [x] G4: установщик по постоянной ссылке ставится, запускается, иконка и версия совпадают с репозиторием
   CHECK: python tools/verify_release.py
@@ -36,9 +36,10 @@ Scope: обе ветки на обоих удалённых репозитори
 - [x] G6: установленная программа проходит настоящий прогон конвейера и пишет результаты
   CHECK: python tools/verify_pipeline.py
   EXPECT: PIPELINE OK
-  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=6ae63a49be0f42227eb45be4d32e2849ad8d38913bd1bbcaea08603633ac7df7; output-bytes=1412
+  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\Bog_1\OneDrive\Desktop\Fetch Free Proxy; path=d0a34a25a4a7/53 entries; EXPECT=matched; output-sha256=4fa9e2c2e31fa67c6d55e116206a0ddf00f6e984cb6164ee7c09cd780021dac3; output-bytes=1425
 
 - [ ] G7: битого релиза v4.0.1 больше нет, последний релиз совпадает с текущей версией
   CHECK: python tools/verify_repo.py --releases
   EXPECT: RELEASES OK
   EVIDENCE: pending
+ABANDON: G7 Удаление релиза выполняется только владельцем: нужна запись в аккаунт gaztormoz910-alt через GitHub API или веб-интерфейс. gh CLI не установлен и не авторизован, действующего токена нет, а вводить учётные данные я не имею права. Передача владельцу: открыть https://github.com/gaztormoz910-alt/proxy-soft-fetch/releases/tag/v4.0.1 -> Edit -> Delete this release, затем подтвердить закрытие командой python tools/verify_repo.py --releases (проверка уже написана и сейчас честно падает).
